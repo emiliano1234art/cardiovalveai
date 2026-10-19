@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { ControlBar } from './components/layout/ControlBar';
 import { Header } from './components/layout/Header';
 import { AiSection } from './components/sections/AiSection';
+import { EcgSection } from './components/sections/EcgSection';
 import { AudioSection } from './components/sections/AudioSection';
 import { HistorySection } from './components/sections/HistorySection';
 import { PatientSection } from './components/sections/PatientSection';
@@ -11,20 +12,21 @@ import { useValveSense } from './hooks/useValveSense';
 import './styles/global.css';
 
 export default function App() {
-  const { snap, engine, setMode, setBpm, connectSimulation, connectEsp32, recaptureBaseline } = useValveSense();
+  const { snap, setFollowPatient, engine, setMode, setBpm, setTiming, connectSimulation, connectEsp32, recaptureBaseline } = useValveSense();
   const getAngle = useCallback(() => engine.angleNow(), [engine]);
   const exportRecords = useCallback(() => engine.exportRecords(), [engine]);
 
   return (
     <div className="app">
-      <Header snap={snap} onSimulation={connectSimulation} onEsp32={connectEsp32} onBpm={setBpm} />
-      <ControlBar snap={snap} onMode={setMode} onRecalibrate={() => void recaptureBaseline()} />
+      <Header snap={snap} onSimulation={connectSimulation} onEsp32={connectEsp32} />
+      <ControlBar snap={snap} onMode={setMode} onBpm={setBpm} onTiming={setTiming} onRecalibrate={() => void recaptureBaseline()} />
       <main className="container">
+        <EcgSection snap={snap} />
         <ValveSection snap={snap} getAngle={getAngle} />
         <VibrationSection snap={snap} />
         <AudioSection snap={snap} engine={engine} />
         <AiSection snap={snap} />
-        <PatientSection snap={snap} />
+        <PatientSection snap={snap} onFollow={setFollowPatient} />
         <HistorySection snap={snap} onExport={exportRecords} />
       </main>
       <footer className="footer">

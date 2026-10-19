@@ -9,7 +9,7 @@ export function VibrationSection({ snap }: { snap: EngineSnapshot }) {
   const L = snap.latest;
   const f = L?.features;
   return (
-    <Section index="02" title="Vibración" subtitle="Sensor piezoeléctrico acoplado a la carcasa · 1 kHz" aside="Descriptores del último ciclo completo">
+    <Section index="03" kinds={snap.sourceKind === 'simulation' ? ['synthetic'] : ['experimental']} title="Vibración" subtitle="Sensor piezoeléctrico acoplado a la carcasa · 1 kHz" aside="Descriptores del último ciclo completo">
       <div className="grid g-signal">
         <div className="card">
           <div className="card-head">

@@ -10,7 +10,7 @@ const POTENTIAL = [
 ];
 
 const RESULTS = [
-  { tag: 'done', title: 'Ya demostrado (simulación)', items: ['Modelo bileaflet sincronizado con ECG simulado.', 'Detección de R y FC desde los RR.', 'Detector experimental que separa desviación mecánica de cambio de FC.', 'Dashboard v1 y formato de dataset por ciclo.'] },
+  { tag: 'done', title: 'Ya demostrado (simulación)', items: ['Modelo bileaflet sincronizado con ECG simulado.', 'Detección de R y FC desde los RR.', 'Detector experimental que separa desviación mecánica de cambio de FC.', 'Dashboard con ECG simulado y formato de dataset por ciclo.'] },
   { tag: 'pending', title: 'Pendiente de probar', items: ['Prototipo físico con piezo y MEMS integrados.', 'Repetibilidad del movimiento (CV del ciclo y del ángulo).', 'Detección real de apertura y cierre.', 'Línea basal y condiciones controladas con sensores fijos.'] },
   { tag: 'future', title: 'Proyección', items: ['ECG real con adquisición aislada.', 'Accionamiento pasivo por presión (alternativa B).', 'Estudios con datos reales y validación clínica.'] },
 ] as const;

@@ -13,6 +13,7 @@ import type { ValveDataSource } from './DataSource';
  *   { "type": "status", "bpm_programmed": 72 }     // opcional
  *
  * `piezo` y `servo` tienen la misma longitud; `audio` = longitud × fs_audio / fs_piezo.
+ * `ecg` (opcional, mV, misma longitud que `piezo`): sólo desde un módulo de ECG aislado / inalámbrico.
  */
 export class Esp32WebSocketSource implements ValveDataSource {
   readonly kind = 'esp32' as const;
@@ -95,6 +96,7 @@ export class Esp32WebSocketSource implements ValveDataSource {
         piezo: Float32Array.from(msg.piezo as number[]),
         servo: Float32Array.from(msg.servo as number[]),
         audio: Float32Array.from(msg.audio as number[]),
+        ...(Array.isArray(msg.ecg) ? { ecg: Float32Array.from(msg.ecg as number[]) } : {}),
       });
     } else if (msg.type === 'cycle') {
       this.cycleCb?.(msg as unknown as CycleFeatures);

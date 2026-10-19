@@ -3,11 +3,13 @@ import { deviationLevel } from '../../analysis/ValveAnalysisPipeline';
 import type { EngineSnapshot } from '../../engine/ValveSenseEngine';
 import { fmt, mmss } from '../../lib/format';
 import { SYNTHETIC_PATIENT } from '../../simulation/PatientSimulator';
-import type { PatientSnapshot } from '../../types/valvesense';
+import type { PatientSnapshot, Verdict } from '../../types/valvesense';
 import { axis, COLORS, grid, margin } from '../charts/chartTheme';
 import { ChartTooltip } from '../charts/ChartTooltip';
 import { Section } from '../ui/Section';
 import { LEVEL_LABEL } from '../ui/StatusBadge';
+
+const VERDICT_SHORT: Record<Verdict, string> = { basal: 'basal', fc: 'cambio de FC', leve: 'desviación leve', importante: 'desviación importante' };
 
 const STAGES: PatientSnapshot['session_stage'][] = ['reposo', 'calentamiento', 'ejercicio', 'enfriamiento', 'recuperación'];
 
@@ -25,7 +27,7 @@ function Tile({ label, value, unit, foot }: { label: string; value: string; unit
   );
 }
 
-export function PatientSection({ snap }: { snap: EngineSnapshot }) {
+export function PatientSection({ snap, onFollow }: { snap: EngineSnapshot; onFollow: (on: boolean) => void }) {
   const p = snap.patient;
   const L = snap.latest;
   const level = deviationLevel(L?.assessment.anomaly ?? 0);
@@ -33,7 +35,7 @@ export function PatientSection({ snap }: { snap: EngineSnapshot }) {
   const trend = snap.hrTrend.map((d) => ({ ...d, x: d.t - t0 - (snap.hrTrend.at(-1)!.t - t0) }));
 
   return (
-    <Section index="05" title="Respuesta funcional" subtitle="Integración conceptual de datos del dispositivo con la respuesta al ejercicio (Kinesiología)">
+    <Section index="06" kinds={['synthetic', 'future']} title="Respuesta funcional" subtitle="Integración conceptual de datos del dispositivo con la respuesta al ejercicio (Kinesiología)">
       <div className="synthetic">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
           <span className="synthetic-label">
@@ -48,6 +50,16 @@ export function PatientSection({ snap }: { snap: EngineSnapshot }) {
           </span>
         </div>
 
+        {snap.sourceKind === 'simulation' && (
+          <label className="follow-toggle">
+            <input type="checkbox" checked={snap.followPatient} onChange={(e) => onFollow(e.target.checked)} />
+            <span>
+              <b>Acoplar el ECG simulado a la FC del paciente simulado.</b> Durante el ejercicio sube la FC: la válvula sigue al ritmo y la
+              IA debe informar «cambio de FC», no una falla mecánica.
+            </span>
+          </label>
+        )}
+
         {/* concepto de integración */}
         <div className="flow" style={{ marginBottom: 14 }}>
           <div className="flow-node">
@@ -59,7 +71,10 @@ export function PatientSection({ snap }: { snap: EngineSnapshot }) {
               Anomaly score <b>{fmt(L?.assessment.anomaly, 2)}</b>
             </div>
             <div className="kv">
-              Frecuencia <b>{fmt(L?.record.bpm, 0)} lpm</b>
+              FC del ECG <b>{fmt(snap.ecgBpm, 0)} lpm</b>
+            </div>
+            <div className="kv">
+              Veredicto IA <b>{L ? VERDICT_SHORT[L.record.verdict] : '—'}</b>
             </div>
           </div>
           <div className="flow-op">+</div>

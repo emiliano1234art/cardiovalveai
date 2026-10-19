@@ -1,19 +1,28 @@
 import { DEFAULT_BPM } from '../config/modes';
-import { ValveSignalSynth } from '../simulation/ValveSignalSynth';
+import { DEFAULT_PARAMS, type SimParams } from '../presentation/sim/model';
+import { sim } from '../presentation/sim/store';
+import { SyncedSynth } from '../sources/SyncedSimSource';
 import type { CycleFeatures } from '../types/valvesense';
 import { BaselineModel } from './BaselineModel';
 import { CycleAnalyzer } from './CycleAnalyzer';
 
 /**
- * Calibración de la línea basal en simulación: corre el sintetizador en modo
- * NORMAL, descarta los primeros ciclos (transitorio) y promedia N ciclos.
+ * Calibración de la línea basal en simulación: modelo sincronizado con ECG en
+ * condición NORMAL, se descartan los primeros ciclos y se promedian N ciclos.
+ * La basal usa la misma temporización (τ, D, θ) que la configuración activa.
+ * Con el prototipo real, la basal se recaptura con el botón «Recapturar basal».
  */
-export function calibrateSimulatedBaseline(cycles = 40, bpm = DEFAULT_BPM, seed = 1234): BaselineModel {
-  const synth = new ValveSignalSynth(seed);
-  synth.setMode('normal');
-  synth.setBpm(bpm);
+export function calibrateSimulatedBaseline(
+  cycles = 40,
+  bpm = DEFAULT_BPM,
+  timing: Partial<Pick<SimParams, 'delayMs' | 'openMs' | 'thetaMax'>> = {},
+): BaselineModel {
+  const saved = sim.state.params;
+  sim.setParams({ ...DEFAULT_PARAMS, ...timing, bpm });
+  const synth = new SyncedSynth();
   const analyzer = new CycleAnalyzer();
   const feats: CycleFeatures[] = [];
-  while (feats.length < cycles + 2) feats.push(...analyzer.push(synth.generate(250)));
-  return BaselineModel.fromCycles(feats.slice(2), 'simulated');
+  while (feats.length < cycles + 4) feats.push(...analyzer.push(synth.generate(250)));
+  sim.setParams(saved);
+  return BaselineModel.fromCycles(feats.slice(4), 'simulated');
 }

@@ -268,3 +268,46 @@ main.container { padding-top: 24px; padding-bottom: 48px; display: flex; flex-di
 .zbar-track { position: relative; height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
 .zbar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; transition: width .5s ease, background .4s; }
 .zbar-tick { position: absolute; top: -1px; bottom: -1px; width: 1px; background: var(--border-strong); }
+
+/* ───────── tipos de dato ───────── */
+.section-eyebrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.data-badge {
+  display: inline-flex; align-items: center; height: 18px; padding: 0 7px; border-radius: 5px;
+  font-family: var(--mono); font-size: 9.5px; font-weight: 600; letter-spacing: .06em; border: 1px solid; cursor: help;
+}
+.data-badge.synthetic { color: var(--brand); background: var(--brand-softer); border-color: #bfe3ea; }
+.data-badge.experimental { color: #7a4fc0; background: #f5f0fd; border-color: #ddd0f5; }
+.data-badge.future { color: var(--muted); background: var(--surface-2); border-color: var(--border); border-style: dashed; }
+
+/* ───────── sincronización ECG (barra de control) ───────── */
+.ctl-sync { border-top: 1px dashed var(--border); gap: 22px; }
+.ctl-slider { display: flex; flex-direction: column; gap: 2px; min-width: 170px; flex: 1 1 170px; max-width: 240px; font-size: 11.5px; color: var(--text-2); }
+.ctl-slider-head { display: flex; justify-content: space-between; gap: 8px; }
+.ctl-slider-head strong { color: var(--text); font-size: 12px; }
+.ctl-slider input { width: 100%; accent-color: var(--brand); margin: 0; }
+.ctl-presets { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+.btn.on { border-color: var(--brand); color: var(--brand); background: var(--brand-softer); }
+.beat-dot { width: 9px; height: 9px; border-radius: 50%; background: #f3c2bf; transition: background .08s, transform .08s; }
+.beat-dot.on { background: var(--crit); transform: scale(1.25); }
+
+/* ───────── sección ECG ───────── */
+.g-ecg { grid-template-columns: 1fr 300px; }
+@media (max-width: 1100px) { .g-ecg { grid-template-columns: 1fr; } }
+.valve-state { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; letter-spacing: .02em; }
+.valve-state .lamp { width: 14px; height: 14px; border-radius: 50%; }
+.timeline { position: relative; }
+.timeline svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chain { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; }
+.chain .node { border: 1px solid var(--border); border-radius: 8px; padding: 5px 9px; background: var(--surface-2); color: var(--text); font-weight: 550; }
+.chain .node.hot { border-color: var(--brand); background: var(--brand-softer); color: var(--brand); }
+.chain .arr { color: var(--muted); }
+.cmp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+@media (max-width: 720px) { .cmp-grid { grid-template-columns: 1fr; } }
+.follow-toggle { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: var(--text-2); background: #fff; border: 1px solid #e5e2f6; border-radius: 10px; padding: 9px 12px; margin-bottom: 14px; cursor: pointer; }
+.follow-toggle input { margin-top: 2px; accent-color: var(--s-patient); }
+@media (max-width: 720px) {
+  .card-head { flex-wrap: wrap; }
+  .tabs { flex-wrap: wrap; max-width: 100%; }
+  .ctl-presets { margin-left: 0; }
+  .ctl-slider { max-width: none; }
+}

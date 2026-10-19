@@ -38,6 +38,7 @@ problema clínico → válvula real → solución ValveSense → prototipo con s
 | Opción | Cómo |
 |---|---|
 | **Sin internet** | `entrega/ValveSense_presentacion.html` (doble clic; autocontenido). |
+| **Dashboard sin internet** | `entrega/ValveSense_dashboard.html` (abre directo en `#/dashboard`). |
 | **PDF para Canvas** | `entrega/ValveSense_presentacion.pdf` (12 páginas). Regenerar tras completar los campos pendientes (botón *Imprimir / PDF*). |
 | **Imágenes** | `entrega/imagenes/*.jpg`: renders 3D (modelo universitario, despiece, prótesis bileaflet, concepto futuro) y vistas de ECG, comparación normal vs. restringida, válvula real y dashboard. |
 | **En línea** | https://emiliano1234art.github.io/cardiovalveai/ (se actualiza al hacer merge en `main`). |
@@ -90,10 +91,13 @@ npm run dataset    # regenera el dataset sintético de ejemplo (public/data/)
 
 En la barra superior puedes:
 
-- Cambiar el **estado experimental**: Normal · Apertura limitada · Cierre alterado · Ritmo irregular.
-- Ajustar la **frecuencia programada** (lpm) con `−` / `+`.
+- Cambiar la **condición mecánica**: Normal · Apertura restringida (45°) · Cierre incompleto (12° residuales) · Movimiento irregular (valva 2).
+- Ajustar la **sincronización ECG**: FC del ECG simulado, retardo τ (R → apertura), duración de apertura D y ángulo máximo θ. Al cambiar τ, D o θ la línea basal se recalibra con esa temporización.
+- Botones **Reposo · 72 lpm** y **Variación de FC · 110 lpm** (la IA debe responder «cambio de FC», no falla). La FC simulada cambia de forma gradual (≤ 12 lpm/s).
 - Alternar **SIMULACIÓN / DATOS REALES** (ESP32 por WebSocket).
 - **Recapturar la línea basal** con los próximos 30 ciclos de la fuente activa.
+
+Secciones: **01 ECG y sincronización** (ECG con picos R, FC detectada, estado abierta/cerrada, línea de tiempo R → τ → apertura → D → cierre) · 02 Estado de válvula · 03 Vibración · 04 Audio y espectrograma · 05 IA (veredicto basal / cambio de FC / desviación leve / importante; normal vs actual) · 06 Respuesta funcional del paciente simulado (opción para acoplar el ECG a su FC) · 07 Historial y exportación. Cada sección indica el tipo de dato: **DATOS SINTÉTICOS**, **EXPERIMENTAL** o **CLÍNICO FUTURO**.
 
 ---
 
@@ -101,21 +105,23 @@ En la barra superior puedes:
 
 ```
           ┌────────────────────────── Fuente de datos (ValveDataSource) ──────────────────────────┐
-          │  SimulatedValveSource  ──►  ValveSignalSynth (señales físicas sintéticas)            │
+          │  SyncedSimSource ──► SyncedSynth (modelo de presentation/sim: ECG + bileaflet)       │
           │  Esp32WebSocketSource  ──►  ESP32 real (JSON por WebSocket)                          │
           └──────────────────────────────┬────────────────────────────────────────────────────────┘
-                                         │ SignalChunk { piezo, servo, audio, fs, t0 }
+                                         │ SignalChunk { piezo, servo, audio, ecg?, fs, t0 }
                                          ▼
                               ┌────────────────────┐
                               │ ValveSenseEngine   │  buffers circulares (3 s), espectrograma STFT
                               └─────────┬──────────┘
                                         ▼
        ┌───────────────────── ValveAnalysisPipeline ──────────────────────┐
-       │ CycleAnalyzer  → segmenta ciclos (cruce de umbral del servo)      │
+       │ CycleAnalyzer  → segmenta ciclos (umbral adaptativo del servo)    │
        │                → descriptores: RMS, pico, energía, f. dominante, │
-       │                  centroide, tiempos 10–90 %, envolventes de fase  │
+       │                  centroide, tiempos 10–90 %, envolventes (ms)     │
+       │                → ECG: picos R, RR y FC (tipo Pan–Tompkins)        │
        │ BaselineModel  → z-scores vs basal + correlación de forma         │
        │                → similitud %, anomaly score (0–1), regularidad    │
+       │                → sincronía ciclo vs RR, veredicto (FC ≠ falla)    │
        └──────────────────────────────┬────────────────────────────────────┘
                                       ▼ CycleRecord (1 por ciclo)
                       useValveSense (React, refresco 10 Hz) → componentes
@@ -130,12 +136,11 @@ src/
 ├── types/valvesense.ts          Contratos de datos (SignalChunk, CycleRecord, …)
 ├── config/modes.ts              Perfiles físicos de cada estado + constantes de adquisición
 ├── simulation/
-│   ├── ValveSignalSynth.ts      Sintetizador: servo + resonadores amortiguados (clics) + ruido de flujo
 │   ├── PatientSimulator.ts      Paciente SINTÉTICO + historial ficticio de sesiones
 │   └── rng.ts                   PRNG determinista
 ├── sources/
 │   ├── DataSource.ts            Interfaz común de fuentes
-│   ├── SimulatedValveSource.ts  Fuente simulada (bloques de 50 ms)
+│   ├── SyncedSimSource.ts       Fuente simulada sincronizada con ECG (bloques de 50 ms)
 │   └── Esp32WebSocketSource.ts  ← punto de conexión del ESP32
 ├── analysis/
 │   ├── dsp.ts                   FFT, Welch, RMS, centroide, envolventes, Pearson
@@ -147,7 +152,7 @@ src/
 ├── hooks/useValveSense.ts       Puente React
 ├── components/
 │   ├── layout/                  Header, barra de control
-│   ├── sections/                Las 6 secciones del dashboard
+│   ├── sections/                Las 7 secciones del dashboard (EcgSection, ValveSection, …)
 │   ├── charts/                  Gráfico de señal, espectrograma, tooltip, tema
 │   └── ui/                      Section, MetricCard, StatusBadge
 └── lib/                         RingBuffer, formato, exportación CSV/JSON
@@ -159,16 +164,19 @@ public/data/                     valvesense_sample_dataset.{csv,json}
 
 | Indicador | Cálculo |
 |---|---|
-| Segmentación de ciclo | Cruce ascendente del ángulo del servo por 8° (con histéresis) |
+| Segmentación de ciclo | Cruce ascendente del ángulo por piso adaptativo + 8° (con histéresis; funciona con cierre incompleto) |
+| FC (ECG) / RR | Detector tipo Pan–Tompkins (derivada → cuadrado → integración 150 ms → umbral, refractario 250 ms); FC = 60/RR medio |
+| Ciclo valvular vs RR | \|duración del ciclo − RR\| (tolerancia 60 ms) |
 | Tiempo de apertura / cierre | Transición 10 %→90 % (y 90 %→10 %) del ángulo máximo del ciclo |
 | RMS / pico / energía | Sobre la señal piezo del ciclo completo; energía = ∑x²·Δt |
 | Frecuencia dominante / centroide | PSD de Welch (Hann 512, 50 %) del audio del ciclo, > 150 Hz |
-| Regularidad | `100·exp(−(CV/0,12)^1,5)` con CV = coef. de variación del período (12 ciclos) |
-| Similitud con basal | Combina la distancia multivariante de z-scores (9 descriptores) y la correlación de las envolventes de fase |
+| Regularidad | Con ECG: `100·exp(−(MAD(ciclo−RR)/RR/0,06)^1,5)` (la variación del RR es fisiológica). Sin ECG: CV del período (12 ciclos) |
+| Similitud con basal | Combina la distancia multivariante de z-scores (7 descriptores por evento) y la correlación de las envolventes (0–500 ms desde la apertura, tolerancia ±20 ms) |
 | Anomaly score (0–1) | Distancia multivariante + error de forma + penalización por irregularidad. Suavizado EMA (α = 0,4) |
 | Estado | `< 0,3` NORMAL · `0,3–0,6` DESVIACIÓN LEVE · `≥ 0,6` DESVIACIÓN IMPORTANTE |
+| Veredicto | Desviación leve/importante según el estado; si no, «cambio de FC» cuando \|FC ECG − FC basal\| ≥ 10 lpm; si no, «dentro de la basal» |
 
-Valores típicos de la simulación: Normal ≈ 98 % / 0,01 · Ritmo irregular ≈ 55 % / 0,45–0,7 · Apertura limitada ≈ 32 % / 0,89 · Cierre alterado ≈ 25 % / 0,85.
+Resultados del modelo sintético (no son mediciones): Normal 72 lpm ≈ 100 % / 0,00 → basal · Normal 60–110 lpm ≈ 94–100 % / ≤ 0,1 → cambio de FC · Apertura restringida ≈ 56 % / 0,63 → importante · Cierre incompleto ≈ 49 % / 0,69 → importante · Movimiento irregular ≈ 67 % / 0,54 → leve.
 
 ---
 
@@ -186,13 +194,15 @@ El ESP32 debe abrir un servidor WebSocket y enviar un mensaje JSON por bloque (r
   "fs_audio": 8000,
   "piezo": [0.012, -0.004, ...],
   "servo": [0.0, 0.1, ...],
-  "audio": [0.001, -0.002, ...]
+  "audio": [0.001, -0.002, ...],
+  "ecg": [0.01, 0.02, ...]
 }
 ```
 
 - `piezo` y `servo` tienen la **misma longitud** (muestreo `fs_piezo`); `servo` es el ángulo en grados (comandado o medido).
 - `audio` tiene longitud `len(piezo) × fs_audio / fs_piezo`, normalizado a [−1, 1] (p. ej. muestra I²S de 16 bits / 32768).
 - `piezo` centrado en 0 (resta el offset del ADC), en unidades arbitrarias o V.
+- `ecg` es **opcional** (mV, misma longitud que `piezo`). Sólo desde un módulo de adquisición de ECG **aislado, a batería o inalámbrico**; no conectar electrodos corporales a circuitos alimentados por USB sin aislamiento. Sin `ecg`, el dashboard analiza la válvula sin referencia de ritmo.
 
 Mensajes opcionales:
 

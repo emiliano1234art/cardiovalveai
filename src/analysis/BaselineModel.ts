@@ -1,5 +1,9 @@
 import type { BaselineAssessment, CycleFeatures, FeatureDeviation } from '../types/valvesense';
-import { clamp, mean, pearson, std } from './dsp';
+import { clamp, dilate, mean, pearson, std } from './dsp';
+
+/** Tolerancia temporal de la comparación de forma: ±4 puntos = ±20 ms. */
+const SHAPE_TOL = 4;
+const shapeR = (a: number[], b: number[]) => pearson(dilate(a, SHAPE_TOL), dilate(b, SHAPE_TOL));
 
 /** Descriptores usados para comparar con la línea basal. */
 export const BASELINE_FEATURES: {
@@ -11,13 +15,11 @@ export const BASELINE_FEATURES: {
   /** piso de dispersión absoluto */
   absFloor: number;
 }[] = [
-  { key: 'cycle_duration_ms', label: 'Duración de ciclo', unit: 'ms', relFloor: 0.02, absFloor: 5 },
   { key: 'servo_angle', label: 'Ángulo de apertura', unit: '°', relFloor: 0.03, absFloor: 1 },
   { key: 'opening_duration_ms', label: 'Tiempo de apertura', unit: 'ms', relFloor: 0.08, absFloor: 3 },
   { key: 'closing_duration_ms', label: 'Tiempo de cierre', unit: 'ms', relFloor: 0.08, absFloor: 3 },
-  { key: 'piezo_rms', label: 'RMS vibración', unit: 'u.a.', relFloor: 0.08, absFloor: 0.002 },
+  { key: 'piezo_energy', label: 'Energía vibración', unit: 'u.a.²·s', relFloor: 0.08, absFloor: 0.0002 },
   { key: 'piezo_peak', label: 'Pico vibración', unit: 'u.a.', relFloor: 0.08, absFloor: 0.01 },
-  { key: 'audio_rms', label: 'RMS audio', unit: '', relFloor: 0.08, absFloor: 0.001 },
   { key: 'dominant_frequency', label: 'Frecuencia dominante', unit: 'Hz', relFloor: 0.05, absFloor: 20 },
   { key: 'spectral_centroid', label: 'Centroide espectral', unit: 'Hz', relFloor: 0.05, absFloor: 20 },
 ];
@@ -38,6 +40,8 @@ export class BaselineModel {
   readonly cycles: number;
   readonly createdAt: number;
   readonly origin: 'simulated' | 'captured';
+  /** FC media durante la captura de la basal (lpm) */
+  readonly bpm: number;
 
   private constructor(
     stats: Record<string, BaselineStats>,
@@ -45,6 +49,7 @@ export class BaselineModel {
     audioEnv: number[],
     cycles: number,
     origin: 'simulated' | 'captured',
+    bpm: number,
   ) {
     this.stats = stats;
     this.piezoEnvelope = piezoEnv;
@@ -52,6 +57,7 @@ export class BaselineModel {
     this.cycles = cycles;
     this.createdAt = Date.now();
     this.origin = origin;
+    this.bpm = bpm;
   }
 
   static fromCycles(cycles: CycleFeatures[], origin: 'simulated' | 'captured'): BaselineModel {
@@ -66,6 +72,7 @@ export class BaselineModel {
       averageEnvelopes(cycles.map((c) => c.audio_envelope)),
       cycles.length,
       origin,
+      60000 / mean(cycles.map((c) => c.cycle_duration_ms)),
     );
   }
 
@@ -78,7 +85,7 @@ export class BaselineModel {
     });
     // distancia multivariante (z-scores acotados)
     const D = Math.sqrt(mean(deviations.map((d) => Math.min(Math.abs(d.z), 8) ** 2)));
-    const r = 0.5 * pearson(f.piezo_envelope, this.piezoEnvelope) + 0.5 * pearson(f.audio_envelope, this.audioEnvelope);
+    const r = 0.5 * shapeR(f.piezo_envelope, this.piezoEnvelope) + 0.5 * shapeR(f.audio_envelope, this.audioEnvelope);
 
     const featureScore = 1 - Math.exp(-Math.max(0, D - 1.2) / 2.2);
     const shapeScore = clamp((0.95 - r) / 0.55, 0, 1);

@@ -14,14 +14,14 @@ interface Props {
 export function ValveSection({ snap, getAngle }: Props) {
   const r = snap.latest?.record;
   const L = snap.latest;
-  const cd = dev(L, 'cycle_duration_ms');
   const isSim = snap.sourceKind === 'simulation';
 
   return (
     <Section
-      index="01"
+      index="02"
+      kinds={snap.sourceKind === 'simulation' ? ['synthetic'] : ['experimental']}
       title="Estado de válvula"
-      subtitle="Cinemática del prototipo a escala (Ø 60–80 mm) accionado por servomotor"
+      subtitle="Prótesis bileaflet (2 valvas) a escala · accionada por servomotor sincronizado con el ECG"
       aside={
         isSim ? (
           <>
@@ -39,7 +39,7 @@ export function ValveSection({ snap, getAngle }: Props) {
           <div className="card-head">
             <div>
               <h3 className="card-title">Válvula en tiempo real</h3>
-              <p className="card-sub">Sincronizada con el ángulo medido del servo</p>
+              <p className="card-sub">Sincronizada con el ángulo del actuador (valva 1)</p>
             </div>
             <span className="pill num" style={{ height: 28 }}>
               {fmt(r?.bpm ?? snap.bpmProgrammed, 0)} lpm
@@ -52,12 +52,11 @@ export function ValveSection({ snap, getAngle }: Props) {
 
         <div className="grid g-3" style={{ alignContent: 'start' }}>
           <MetricCard
-            label="Frecuencia"
+            label="Frecuencia valvular"
             value={r?.bpm}
-            unit="lpm"
+            unit="ciclos/min"
             decimals={1}
-            baseline={cd.baseline ? 60000 / cd.baseline : undefined}
-            z={cd.z}
+            foot={<span>ECG {fmt(r?.ecg_bpm, 0)} lpm · la válvula sigue al ritmo</span>}
             accent="var(--brand)"
           />
           <MetricCard label="Ángulo de apertura" value={r?.servo_angle} unit="°" decimals={1} {...dev(L, 'servo_angle')} accent="var(--brand)" />
@@ -74,7 +73,7 @@ export function ValveSection({ snap, getAngle }: Props) {
             value={r?.regularity}
             unit="%"
             decimals={1}
-            foot={<span>Variabilidad del período · últimos 12 ciclos</span>}
+            foot={<span>{r?.rr_ms ? 'Ciclo valvular respecto del RR · 12 ciclos' : 'Variabilidad del período · 12 ciclos'}</span>}
             z={r && r.regularity < 50 ? -5 : r && r.regularity < 80 ? -3 : undefined}
             accent="var(--brand)"
           />

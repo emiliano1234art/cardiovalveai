@@ -10,7 +10,7 @@ export function AudioSection({ snap, engine }: { snap: EngineSnapshot; engine: V
   const L = snap.latest;
   const f = L?.features;
   return (
-    <Section index="03" title="Audio" subtitle="Micrófono digital MEMS (I²S) · 8 kHz" aside="Análisis espectral Welch · ventana Hann 512">
+    <Section index="04" kinds={snap.sourceKind === 'simulation' ? ['synthetic'] : ['experimental']} title="Audio" subtitle="Micrófono digital MEMS (I²S) · 8 kHz" aside="Análisis espectral Welch · ventana Hann 512">
       <div className="grid g-signal">
         <div className="card">
           <div className="card-head">

@@ -19,6 +19,10 @@ export const CSV_COLUMNS: (keyof CycleRecord)[] = [
   'baseline_similarity',
   'anomaly_score',
   'regularity',
+  'ecg_bpm',
+  'rr_ms',
+  'sync_error_ms',
+  'verdict',
   'mode',
   'source',
 ];

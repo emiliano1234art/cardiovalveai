@@ -115,7 +115,8 @@ export function HistorySection({ snap, onExport }: { snap: EngineSnapshot; onExp
 
   return (
     <Section
-      index="06"
+      index="07"
+      kinds={['synthetic']}
       title="Historial"
       subtitle={`Evolución por ciclo (últimos ${VISIBLE}) · zonas sombreadas = estado experimental distinto de NORMAL`}
       aside={
@@ -148,6 +149,19 @@ export function HistorySection({ snap, onExport }: { snap: EngineSnapshot; onExp
             { y: THRESHOLDS.mild, label: 'leve', color: COLORS.warn },
             { y: THRESHOLDS.major, label: 'importante', color: COLORS.crit },
           ]}
+        />
+        <MiniHistory title="FC detectada (ECG)" sub="Desde los intervalos RR · un cambio de FC no es una falla" data={data} dataKey="ecg_bpm" color="#d0473e" unit="lpm" domain={[40, 130]} decimals={0} segs={segs} />
+        <MiniHistory
+          title="Ciclo valvular vs RR"
+          sub="|duración del ciclo − RR| · ¿la válvula sigue al ECG?"
+          data={data}
+          dataKey="sync_error_ms"
+          color={COLORS.piezo}
+          unit="ms"
+          domain={[0, 150]}
+          decimals={0}
+          segs={segs}
+          refs={[{ y: 60, label: 'tolerancia', color: COLORS.warn }]}
         />
         <MiniHistory title="Regularidad" sub="Estabilidad del período entre ciclos" data={data} dataKey="regularity" color={COLORS.piezo} unit="%" domain={[0, 100]} decimals={1} segs={segs} />
         <MiniHistory title="Frecuencia dominante" sub="Pico espectral del audio por ciclo" data={data} dataKey="dominant_frequency" color={COLORS.audio} unit="Hz" domain={[0, 2500]} decimals={0} segs={segs} />

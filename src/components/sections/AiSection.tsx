@@ -8,6 +8,7 @@ import type { DeviationLevel, FeatureDeviation } from '../../types/valvesense';
 import { axis, COLORS, grid, margin } from '../charts/chartTheme';
 import { ChartTooltip } from '../charts/ChartTooltip';
 import { Section } from '../ui/Section';
+import type { Verdict } from '../../types/valvesense';
 import { LEVEL_COLOR, StatusBadge } from '../ui/StatusBadge';
 
 function SimilarityGauge({ value }: { value: number }) {
@@ -121,6 +122,18 @@ function DeviationBars({ deviations }: { deviations: FeatureDeviation[] }) {
   );
 }
 
+const VERDICT: Record<Verdict, { label: string; color: string; bg: string; text: string }> = {
+  basal: { label: 'Dentro de la línea basal', color: 'var(--ok)', bg: 'var(--ok-soft)', text: 'FC y firma mecánica consistentes con la basal.' },
+  fc: {
+    label: 'Cambio de FC · sin desviación mecánica',
+    color: 'var(--brand)',
+    bg: 'var(--brand-softer)',
+    text: 'La FC del ECG cambió, el ciclo valvular sigue al RR y la firma de cada evento se mantiene: no se marca como falla.',
+  },
+  leve: { label: 'Desviación mecánica leve', color: 'var(--warn)', bg: 'var(--warn-soft)', text: 'La firma de los eventos se aparta levemente de la basal.' },
+  importante: { label: 'Desviación mecánica importante', color: 'var(--crit)', bg: 'var(--crit-soft)', text: 'La firma de los eventos se aparta claramente de la basal.' },
+};
+
 function interpretation(level: DeviationLevel, deviations: FeatureDeviation[]): string {
   const top = [...deviations]
     .filter((d) => Math.abs(d.z) >= 2.5)
@@ -147,10 +160,11 @@ export function AiSection({ snap }: { snap: EngineSnapshot }) {
 
   return (
     <Section
-      index="04"
+      index="05"
       title="Inteligencia artificial · Línea basal ValveSense"
       subtitle="Detección de desviaciones respecto del comportamiento de referencia del propio prototipo"
-      aside="Modelo estadístico multivariante + correlación de forma de onda"
+      kinds={snap.sourceKind === 'simulation' ? ['synthetic'] : ['experimental']}
+      aside="Heurística experimental: modelo estadístico + correlación de forma + sincronía con el ECG"
     >
       <div className="grid g-ai">
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -158,6 +172,16 @@ export function AiSection({ snap }: { snap: EngineSnapshot }) {
             <span className="kicker">Estado</span>
             <StatusBadge level={level} large />
           </div>
+          {L && (
+            <div style={{ border: `1.5px solid ${VERDICT[L.record.verdict].color}`, background: VERDICT[L.record.verdict].bg, borderRadius: 10, padding: '8px 12px' }}>
+              <div className="kicker">¿Falla mecánica o cambio de ritmo?</div>
+              <div style={{ fontWeight: 650, color: VERDICT[L.record.verdict].color, fontSize: 14.5 }}>{VERDICT[L.record.verdict].label}</div>
+              <div className="note" style={{ margin: '2px 0 0', fontSize: 11.5 }}>
+                {VERDICT[L.record.verdict].text}
+                {L.record.ecg_bpm !== null && ` FC ECG ${fmt(L.record.ecg_bpm, 0)} lpm · basal ${fmt(snap.baseline?.bpm, 0)} lpm.`}
+              </div>
+            </div>
+          )}
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <SimilarityGauge value={sim} />
           </div>
@@ -188,8 +212,8 @@ export function AiSection({ snap }: { snap: EngineSnapshot }) {
           <div className="card">
             <div className="card-head">
               <div>
-                <h3 className="card-title">Patrón basal vs patrón actual</h3>
-                <p className="card-sub">Envolvente por fase del ciclo · promedio de los últimos 4 ciclos</p>
+                <h3 className="card-title">Normal (línea basal) vs condición actual</h3>
+                <p className="card-sub">Envolvente desde el inicio de la apertura (tiempo absoluto, no % del ciclo: no depende de la FC) · promedio de los últimos 4 ciclos</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
                 <div className="legend">
@@ -215,12 +239,12 @@ export function AiSection({ snap }: { snap: EngineSnapshot }) {
             <ResponsiveContainer width="100%" height={250}>
               <ComposedChart data={snap.envelopes} margin={margin}>
                 <CartesianGrid {...grid} />
-                <XAxis dataKey="phase" type="number" domain={[0, 100]} ticks={[0, 20, 40, 60, 80, 100]} tickFormatter={(v: number) => `${v} %`} {...axis} />
+                <XAxis dataKey="phase" type="number" domain={[0, 500]} ticks={[0, 100, 200, 300, 400, 500]} tickFormatter={(v: number) => `${v} ms`} {...axis} />
                 <YAxis width={52} tickFormatter={(v: number) => fmt(v, tab === 'piezo' ? 2 : 3)} {...axis} />
                 <Tooltip
                   isAnimationActive={false}
                   cursor={{ stroke: '#9fb0c0', strokeDasharray: '3 3' }}
-                  content={(p) => <ChartTooltip {...p} decimals={4} labelFormatter={(l) => `Fase ${fmt(Number(l), 0)} % del ciclo`} />}
+                  content={(p) => <ChartTooltip {...p} decimals={4} labelFormatter={(l) => `${fmt(Number(l), 0)} ms desde la apertura`} />}
                 />
                 <Area dataKey={baseKey} name="Patrón basal" type="monotone" stroke={COLORS.baseline} strokeDasharray="5 4" strokeWidth={1.6} fill={COLORS.baseline} fillOpacity={0.1} isAnimationActive={false} />
                 <Line dataKey={curKey} name="Patrón actual" type="monotone" stroke={color} strokeWidth={2} dot={false} isAnimationActive={false} />

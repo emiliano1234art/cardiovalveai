@@ -133,6 +133,24 @@ export function spectralFeatures(psd: Float64Array, fs: number, fmin = 150): Spe
   return { dominant, centroid: den > 0 ? num / den : 0 };
 }
 
+/**
+ * Envolvente temporal: media de |x| en `points` intervalos de una ventana fija
+ * (s) desde el inicio del ciclo. A diferencia de la fase normalizada, no se
+ * deforma cuando cambia la FC. Las muestras fuera del ciclo cuentan como 0.
+ */
+export function timeEnvelope(x: ArrayLike<number>, fs: number, windowS: number, points: number): number[] {
+  const n = Math.round(windowS * fs);
+  const out = new Array<number>(points).fill(0);
+  for (let p = 0; p < points; p++) {
+    const a = Math.floor((p * n) / points);
+    const b = Math.max(a + 1, Math.floor(((p + 1) * n) / points));
+    let s = 0;
+    for (let i = a; i < b && i < x.length; i++) s += Math.abs(x[i]);
+    out[p] = s / (b - a);
+  }
+  return out;
+}
+
 /** Envolvente: media de |x| en `points` intervalos iguales (fase normalizada). */
 export function phaseEnvelope(x: ArrayLike<number>, points: number): number[] {
   const out = new Array<number>(points).fill(0);
@@ -182,3 +200,12 @@ export function std(x: number[]): number {
 }
 
 export const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+
+/** Dilatación (máximo móvil ±k puntos): vuelve la comparación de envolventes tolerante a corrimientos pequeños. */
+export function dilate(x: number[], k: number): number[] {
+  return x.map((_, i) => {
+    let m = -Infinity;
+    for (let j = Math.max(0, i - k); j <= Math.min(x.length - 1, i + k); j++) m = Math.max(m, x[j]);
+    return m;
+  });
+}

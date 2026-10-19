@@ -6,7 +6,6 @@ interface Props {
   snap: EngineSnapshot;
   onSimulation: () => void;
   onEsp32: (url: string) => void;
-  onBpm: (bpm: number) => void;
 }
 
 const STATUS: Record<ConnectionStatus, { dot: string; text: string }> = {
@@ -34,7 +33,7 @@ export function Logo() {
   );
 }
 
-export function Header({ snap, onSimulation, onEsp32, onBpm }: Props) {
+export function Header({ snap, onSimulation, onEsp32 }: Props) {
   const [url, setUrl] = useState('ws://192.168.4.1:81');
   const st = STATUS[snap.status];
   const isSim = snap.sourceKind === 'simulation';
@@ -67,19 +66,12 @@ export function Header({ snap, onSimulation, onEsp32, onBpm }: Props) {
             </button>
           </div>
 
-          <span className="pill">
-            Frecuencia programada
-            <span className="stepper">
-              <button disabled={!isSim || snap.bpmProgrammed <= 40} onClick={() => onBpm(snap.bpmProgrammed - 2)} aria-label="Disminuir">
-                −
-              </button>
-              <strong className="num" style={{ minWidth: 52, textAlign: 'center' }}>
-                {snap.bpmProgrammed} lpm
-              </strong>
-              <button disabled={!isSim || snap.bpmProgrammed >= 140} onClick={() => onBpm(snap.bpmProgrammed + 2)} aria-label="Aumentar">
-                +
-              </button>
-            </span>
+          <span className="pill" title={snap.hasEcg ? 'FC calculada a partir de los intervalos RR del ECG' : 'Sin canal ECG'}>
+            <span className={`beat-dot${snap.sinceBeat !== null && snap.sinceBeat < 0.15 ? ' on' : ''}`} aria-hidden />
+            FC (ECG{isSim ? ' simulado' : ''})
+            <strong className="num" style={{ minWidth: 58, textAlign: 'right' }}>
+              {snap.ecgBpm !== null ? `${Math.round(snap.ecgBpm)} lpm` : isSim ? '—' : `${snap.bpmProgrammed} lpm`}
+            </strong>
           </span>
         </div>
       </div>

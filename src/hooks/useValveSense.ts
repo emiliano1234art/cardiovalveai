@@ -29,6 +29,9 @@ export function useValveSense() {
   const connectSimulation = useCallback(() => engine.connectSimulation(), [engine]);
   const connectEsp32 = useCallback((url: string) => engine.connectEsp32(url), [engine]);
   const recaptureBaseline = useCallback(() => engine.recaptureBaseline(), [engine]);
+  const setTiming = useCallback((patch: Parameters<ValveSenseEngine['setTiming']>[0]) => engine.setTiming(patch), [engine]);
 
-  return { snap, engine, setMode, setBpm, connectSimulation, connectEsp32, recaptureBaseline };
+  const setFollowPatient = useCallback((on: boolean) => engine.setFollowPatient(on), [engine]);
+
+  return { snap, setFollowPatient, engine, setMode, setBpm, setTiming, connectSimulation, connectEsp32, recaptureBaseline };
 }

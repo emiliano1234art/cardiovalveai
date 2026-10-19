@@ -200,10 +200,10 @@ export function S08Dashboard() {
         </Card>
         <Card title="Dashboard completo" kinds={['sint']}>
           <div style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.35 }}>
-            El dashboard v1 se conserva con sus gráficas, el análisis IA, el espectrograma y el paciente simulado. Esta vista resume cómo se integrarán ECG y sincronización.
+            Conserva las gráficas, el análisis IA, el espectrograma y el paciente simulado, y suma ECG simulado, picos R, temporización τ/D y el veredicto «cambio de FC».
           </div>
           <a className="v-btn sm v-no-print" href="#/dashboard" style={{ textDecoration: 'none', alignSelf: 'flex-start', marginTop: 4 }}>
-            Abrir dashboard v1 ↗
+            Abrir dashboard ↗
           </a>
           <div className="v-tiny v-mono" style={{ fontSize: 12 }}>
             #/dashboard

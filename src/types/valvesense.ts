@@ -5,7 +5,8 @@
  * respeta estos contratos. Ver README §5 «Estructura de datos esperada».
  */
 
-export type ExperimentalMode = 'normal' | 'limited_opening' | 'altered_closing' | 'irregular_rhythm';
+/** Condición mecánica experimental (misma definición que la presentación). */
+export type ExperimentalMode = 'normal' | 'restricted' | 'incomplete' | 'irregular';
 
 export type ValveState = 'closed' | 'opening' | 'open' | 'closing';
 
@@ -30,6 +31,8 @@ export interface SignalChunk {
   servo: Float32Array;
   /** Señal acústica normalizada [-1, 1]. */
   audio: Float32Array;
+  /** ECG (mV) opcional, mismo muestreo que `piezo`. */
+  ecg?: Float32Array;
 }
 
 /** Descriptores extraídos de un ciclo completo (sin comparación con basal). */
@@ -47,10 +50,14 @@ export interface CycleFeatures {
   cycle_duration_ms: number;
   opening_duration_ms: number;
   closing_duration_ms: number;
-  /** Envolvente de vibración normalizada a 0–100 % de la fase del ciclo (N puntos). */
+  /** Envolvente de vibración en los primeros 500 ms desde la apertura (N puntos). */
   piezo_envelope: number[];
-  /** Envolvente acústica normalizada a 0–100 % de la fase del ciclo (N puntos). */
+  /** Envolvente acústica en los primeros 500 ms desde la apertura (N puntos). */
   audio_envelope: number[];
+  /** Último intervalo RR del ECG al cerrar el ciclo (ms), si hay ECG. */
+  rr_ms: number | null;
+  /** FC detectada desde el ECG (lpm), si hay ECG. */
+  ecg_bpm: number | null;
 }
 
 /** Registro por ciclo: el formato canónico que se guarda, exporta y grafica. */
@@ -74,12 +81,23 @@ export interface CycleRecord {
   baseline_similarity: number;
   anomaly_score: number;
   regularity: number;
+  /** FC detectada desde el ECG (lpm) */
+  ecg_bpm: number | null;
+  /** Intervalo RR del ECG (ms) */
+  rr_ms: number | null;
+  /** |duración del ciclo valvular − RR| (ms): ¿la válvula sigue al ECG? */
+  sync_error_ms: number | null;
+  /** Clasificación experimental */
+  verdict: Verdict;
   /** Etiqueta experimental (sólo conocida en simulación; `null` con datos reales). */
   mode: ExperimentalMode | null;
   source: DataSourceKind;
 }
 
 export type DeviationLevel = 'normal' | 'mild' | 'major';
+
+/** basal · fc (cambio de FC sin desviación mecánica) · leve · importante */
+export type Verdict = 'basal' | 'fc' | 'leve' | 'importante';
 
 export interface FeatureDeviation {
   key: keyof CycleFeatures;

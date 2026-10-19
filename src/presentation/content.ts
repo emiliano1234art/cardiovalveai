@@ -129,7 +129,7 @@ export const GANTT: GanttTask[] = [
     start: '2026-10-01',
     end: '2026-10-20',
     status: 'en curso',
-    evidence: 'Repositorio: dashboard v1 (1 oct) y presentación interactiva (19 oct)',
+    evidence: 'Repositorio: dashboard v1 (1 oct), presentación interactiva y dashboard con ECG simulado (19 oct)',
   },
   { name: 'Pruebas por condición', start: '2026-10-28', end: '2026-11-03', status: 'por confirmar' },
   { name: 'Preparación Feria y souvenir', start: '2026-10-26', end: '2026-11-04', status: 'por confirmar' },

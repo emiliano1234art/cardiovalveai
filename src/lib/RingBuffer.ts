@@ -80,8 +80,12 @@ export function openIntervals(servo: Float32Array, fs: number, thresholdDeg: num
   const dur = servo.length / fs;
   const out: [number, number][] = [];
   let start: number | null = null;
+  // umbral relativo al mínimo de la ventana (cierre incompleto: el mínimo no es 0°)
+  let lo = Infinity;
+  for (let i = 0; i < servo.length; i += 5) if (Number.isFinite(servo[i])) lo = Math.min(lo, servo[i]);
+  const thr = (Number.isFinite(lo) ? lo : 0) + thresholdDeg;
   for (let i = 0; i < servo.length; i += 5) {
-    const open = servo[i] > thresholdDeg;
+    const open = servo[i] > thr;
     if (open && start === null) start = i;
     if (!open && start !== null) {
       out.push([start / fs - dur, i / fs - dur]);
