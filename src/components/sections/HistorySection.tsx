@@ -126,7 +126,7 @@ export function HistorySection({ snap, onExport }: { snap: EngineSnapshot; onExp
           <button className="btn" onClick={() => downloadJson(onExport(), 'valvesense_sesion.json')}>
             ⤓ JSON
           </button>
-          <a className="btn" href="/data/valvesense_sample_dataset.csv" download>
+          <a className="btn" href={`${import.meta.env.BASE_URL}data/valvesense_sample_dataset.csv`} download>
             Dataset de ejemplo
           </a>
         </div>

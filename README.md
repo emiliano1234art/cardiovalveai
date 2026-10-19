@@ -1,12 +1,91 @@
-# ValveSense
+# ValveSense · CardioValveAI
 
-**Análisis inteligente de la firma mecánica y acústica valvular**
+**Del movimiento valvular al seguimiento funcional: una base para la rehabilitación cardiorrespiratoria personalizada.**
 
-Dashboard web para un prototipo experimental a escala (Ingeniería Biomédica + Kinesiología) inspirado en una prótesis aórtica mecánica. Una válvula de ~60–80 mm, accionada por servomotor, se monitoriza con un **sensor piezoeléctrico** (vibración), un **micrófono MEMS** (sonido) y un **ESP32** (adquisición).
+Proyecto Interdisciplinario (Ingeniería Civil en Biomedicina + Kinesiología). Este repositorio contiene:
 
-> ⚠️ **No es un dispositivo médico.** El objetivo es construir una *línea basal* del comportamiento mecánico/acústico del prototipo y detectar **desviaciones** respecto de ella. Ningún resultado es un diagnóstico. Todos los datos actuales son **sintéticos**, incluido el "paciente simulado".
+1. **Presentación interactiva de avance** (por defecto): portada + 10 diapositivas de contenido + bibliografía, con un modelo trivalvo animado y manipulable.
+2. **Dashboard v1** (conservado) en `#/dashboard`: análisis de señales sintéticas y conexión al ESP32.
+
+> ⚠️ Prototipo académico. No es un dispositivo médico ni entrega diagnósticos. Todo dato generado se marca como **SIMULACIÓN**; el panel funcional usa **datos sintéticos, no clínicos**.
 
 ---
+
+## Presentación interactiva (entrega 20–21 de octubre)
+
+### Abrir
+
+| Opción | Cómo |
+|---|---|
+| **Sin internet** | Abrir `entrega/ValveSense_presentacion.html` con doble clic (archivo autocontenido, ~2 MB). |
+| **PDF para Canvas** | `entrega/ValveSense_presentacion.pdf` (12 páginas, una diapositiva por página). Regenerarlo tras completar los campos pendientes. |
+| **En línea** | https://emiliano1234art.github.io/cardiovalveai/ (GitHub Pages, se actualiza al hacer merge en `main`). |
+| **Desarrollo** | `npm install && npm run dev` → http://localhost:5173/cardiovalveai/ |
+
+`npm run build:offline` regenera `entrega/ValveSense_presentacion.html`.
+
+### Controles
+
+| Acción | Botón / tecla |
+|---|---|
+| Anterior / siguiente | `‹ ›`, flechas ← →, PageUp/PageDown, deslizar en tablet |
+| Índice lateral | `☰` o **I** |
+| Modo Presentación / Exploración | barra inferior o **E** (Presentación oculta controles secundarios) |
+| Notas del expositor | **N** (no se imprimen) |
+| Animación completa → reducida → pausa | **A** |
+| Pantalla completa | `⛶` o **F** |
+| Imprimir / Guardar como PDF | botón `Imprimir / PDF` (diseño de impresión claro, 1 diapositiva por página, estados estáticos representativos y pestañas desplegadas) |
+| Enlace directo | `#/s7`, `#/s8`, `#/biblio`… |
+
+### Dónde editar el contenido
+
+**Todo el contenido editable está en `src/presentation/content.ts`**: integrantes, entrevista, dibujo inicial, hallazgos del Toolkit, Carta Gantt, hitos, URL del QR, referencias y notas del expositor. Un texto entre `[corchetes]` es un **campo pendiente** y se muestra resaltado en rosa.
+
+Pendiente de completar con información real del equipo (no se inventó):
+
+- Nombres de integrantes (`META.members`).
+- Entrevista al docente (`INTERVIEW`): nombre, cargo, fecha, foto, extracto, observación → implicación → ajuste. Mientras esté pendiente, la diapositiva 6 muestra el guion de preguntas preparado.
+- Dibujo inicial a mano (`DRAWING_BEFORE`): copiar la imagen a `public/` y poner su ruta.
+- Hallazgos del Toolkit — Encargo 1 (`TOOLKIT_FINDINGS`).
+- Carta Gantt — Encargo 2 (`GANTT`): fechas, responsables y estados. Hoy es una **propuesta editable**; solo "Dashboard y presentación" figura *en curso* porque tiene respaldo en el repositorio.
+- Referencias marcadas *pendiente de verificación* (DOI de Fritzsche 2007, hoja oficial del MG90S, enlace ESP-IDF).
+
+### Modelo de simulación (fuente única de verdad)
+
+`src/presentation/sim/model.ts` define la cinemática trivalva y las señales; `sim/store.ts` tiene **un solo reloj**. El modelo 3D, el indicador de fase, las ondas de vibración y sonido y los gráficos de límites, derivadas e integrales leen el mismo estado, así que **pausar detiene todo** y cambiar la frecuencia modifica el período en todas partes.
+
+Supuestos documentados:
+
+- Ciclo en fracciones fijas de T: apertura 0–0,15T · abierta hasta 0,40T · cierre hasta 0,52T · cerrada.
+- Perfil suave θ = θmín + Δθ·(1 − cos πu)/2 ⇒ ω = Δθ·π/(2D)·sin πu.
+- Cada evento (tope de apertura, asiento de cierre) excita una oscilación amortiguada con amplitud ∝ ω máx del tramo (supuesto a validar).
+- Condiciones: normal (80°, editable) · limitada a 60° · limitada a 45° · cierre incompleto (12° residuales, separación visible) · asimétrica (valva 3 al 55 % y con retardo 0,05T).
+- Ruido de fondo con semilla fija (reproducible). Sin circuito de presión ni flujo.
+- Eₓ = ∫x²dt en V²·s (no es energía mecánica en joules); RMS = √(Eₓ/Δt).
+- "Diferencia vs. normal" (diapositiva 9) = promedio de diferencias relativas de 4 descriptores: **heurística demostrativa**, no IA entrenada ni diagnóstico.
+
+El ángulo del servo **no** es el ángulo de las valvas: su relación depende del mecanismo de transmisión y requiere calibración.
+
+### Estructura
+
+```
+src/presentation/
+├── content.ts              ← contenido editable centralizado
+├── Presentation.tsx        shell: escenario 16:9, navegación, modos, notas, impresión
+├── sim/model.ts            cinemática trivalva + señales sintéticas
+├── sim/store.ts            reloj y parámetros únicos
+├── geometry/trivalve.ts    geometría compartida 3D / SVG
+├── three/                  escena Three.js (rotación, vistas, despiece, etiquetas)
+├── components/             gráficos, controles, conexión ESP32, valva SVG
+├── slides/                 Portada, S01…S10, Bibliografía
+└── styles/presentation.css tema azul noche + tema de impresión
+```
+
+La conexión real del dashboard v1 (`src/sources/Esp32WebSocketSource.ts`) se conserva y se usa en la diapositiva 7 (modo Exploración → URL → Conectar). Sin conexión, la diapositiva muestra «Sin conexión al prototipo» y las señales son simulación.
+
+---
+
+# Dashboard v1 (`#/dashboard`)
 
 ## 1. Instalación
 
@@ -20,7 +99,7 @@ npm install
 ## 2. Ejecución
 
 ```bash
-npm run dev        # servidor de desarrollo → http://localhost:5173
+npm run dev        # servidor de desarrollo → http://localhost:5173/cardiovalveai/#/dashboard
 npm run build      # typecheck + build de producción en dist/
 npm run preview    # sirve el build de producción
 npm run dataset    # regenera el dataset sintético de ejemplo (public/data/)

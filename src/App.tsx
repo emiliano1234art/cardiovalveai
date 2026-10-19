@@ -8,6 +8,7 @@ import { PatientSection } from './components/sections/PatientSection';
 import { ValveSection } from './components/sections/ValveSection';
 import { VibrationSection } from './components/sections/VibrationSection';
 import { useValveSense } from './hooks/useValveSense';
+import './styles/global.css';
 
 export default function App() {
   const { snap, engine, setMode, setBpm, connectSimulation, connectEsp32, recaptureBaseline } = useValveSense();

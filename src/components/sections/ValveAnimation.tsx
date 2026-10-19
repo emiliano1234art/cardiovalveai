@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { leafletVertices, R_IN } from '../../presentation/geometry/trivalve';
 
 interface Props {
   getAngle: () => number;
@@ -14,15 +15,20 @@ const STATE_LABEL = {
 
 const C = 140; // centro
 const R = 78; // radio del orificio
+const K = R / R_IN;
+/** Valva i proyectada en vista superior y escalada al SVG. */
+const leafPoints = (i: number, deg: number) =>
+  leafletVertices(i, deg)
+    .map(([x, , z]) => `${(C + x * K).toFixed(1)},${(C + z * K).toFixed(1)}`)
+    .join(' ');
 
 /**
- * Vista frontal de una válvula bivalva. Cada valva gira sobre su eje de
- * bisagra; en proyección frontal su altura escala con cos(θ).
+ * Vista superior de la válvula trivalva (misma geometría que la presentación).
+ * Cada valva gira sobre su eje de articulación (cuerda de su sector).
  * Se actualiza con requestAnimationFrame directamente sobre el DOM.
  */
 export function ValveAnimation({ getAngle, maxAngle = 90 }: Props) {
-  const top = useRef<SVGGElement>(null);
-  const bottom = useRef<SVGGElement>(null);
+  const leaves = useRef<(SVGPolygonElement | null)[]>([]);
   const glow = useRef<SVGCircleElement>(null);
   const needle = useRef<SVGLineElement>(null);
   const angleText = useRef<SVGTextElement>(null);
@@ -35,10 +41,8 @@ export function ValveAnimation({ getAngle, maxAngle = 90 }: Props) {
     let state: keyof typeof STATE_LABEL = 'closed';
     const loop = () => {
       const a = Math.min(maxAngle, getAngle());
-      const s = Math.max(0.04, Math.cos((a * Math.PI) / 180));
-      const hinge = 2; // desplazamiento de la bisagra respecto del diámetro
-      top.current?.setAttribute('transform', `translate(0 ${C - hinge}) scale(1 ${s}) translate(0 ${-(C - hinge)})`);
-      bottom.current?.setAttribute('transform', `translate(0 ${C + hinge}) scale(1 ${s}) translate(0 ${-(C + hinge)})`);
+      // geometría trivalva compartida con la presentación (vista superior)
+      leaves.current.forEach((el, i) => el?.setAttribute('points', leafPoints(i, a)));
       glow.current?.setAttribute('opacity', String(Math.min(1, a / 60)));
       // aguja del goniómetro (0° → 90°)
       const th = Math.PI - (a / 90) * (Math.PI / 2);
@@ -59,14 +63,6 @@ export function ValveAnimation({ getAngle, maxAngle = 90 }: Props) {
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
   }, [getAngle, maxAngle]);
-
-  const leaflet = (sign: 1 | -1) => {
-    // semidisco: arco del orificio + cuerda desplazada
-    const y = C - sign * 2;
-    const x0 = C - Math.sqrt(R * R - 4);
-    const x1 = C + Math.sqrt(R * R - 4);
-    return `M ${x0} ${y} A ${R} ${R} 0 0 ${sign === 1 ? 1 : 0} ${x1} ${y} Z`;
-  };
 
   return (
     <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -98,17 +94,18 @@ export function ValveAnimation({ getAngle, maxAngle = 90 }: Props) {
         <circle cx={C} cy={C} r={R} fill="url(#orifice)" />
         <circle ref={glow} cx={C} cy={C} r={R} fill="url(#flowGlow)" opacity={0} />
         {/* valvas */}
-        <g ref={top}>
-          <path d={leaflet(1)} fill="url(#leaf)" />
-          <path d={leaflet(1)} fill="none" stroke="#5d7389" strokeWidth={1} />
-        </g>
-        <g ref={bottom}>
-          <path d={leaflet(-1)} fill="url(#leaf)" />
-          <path d={leaflet(-1)} fill="none" stroke="#5d7389" strokeWidth={1} />
-        </g>
-        {/* bisagras */}
-        {[-1, 1].map((sx) => (
-          <rect key={sx} x={C + sx * (R + 2) - 5} y={C - 10} width={10} height={20} rx={3} fill="#9fb0c0" />
+        {[0, 1, 2].map((i) => (
+          <polygon
+            key={i}
+            ref={(el) => {
+              leaves.current[i] = el;
+            }}
+            points={leafPoints(i, 0)}
+            fill="url(#leaf)"
+            stroke="#5d7389"
+            strokeWidth={1}
+            strokeLinejoin="round"
+          />
         ))}
       </svg>
 
