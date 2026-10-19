@@ -8,5 +8,10 @@ writeFileSync(
   'entrega/ValveSense_dashboard.html',
   html.replace('<head>', `<head><script>if(!location.hash||location.hash==='#')location.hash='#/dashboard'</script>`),
 );
+// presentación en formato dashboard (#/panel)
+writeFileSync(
+  'entrega/ValveSense_panel.html',
+  html.replace('<head>', `<head><script>if(!location.hash||location.hash==='#')location.hash='#/panel'</script>`),
+);
 const mb = (statSync('entrega/ValveSense_presentacion.html').size / 1e6).toFixed(1);
-console.log(`OK · entrega/ValveSense_presentacion.html y entrega/ValveSense_dashboard.html (${mb} MB c/u) — abrir con doble clic, funciona sin internet.`);
+console.log(`OK · entrega/ValveSense_presentacion.html entrega/ValveSense_dashboard.html y entrega/ValveSense_panel.html (${mb} MB c/u) — abrir con doble clic, funciona sin internet.`);

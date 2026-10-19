@@ -38,6 +38,7 @@ problema clínico → válvula real → solución ValveSense → prototipo con s
 | Opción | Cómo |
 |---|---|
 | **Sin internet** | `entrega/ValveSense_presentacion.html` (doble clic; autocontenido). |
+| **Presentación en formato dashboard** | `#/panel` o `entrega/ValveSense_panel.html`: menú de temas a la izquierda, cada diapositiva en vivo (con sus animaciones y modelos 3D) al centro y, siempre visible a la derecha, la simulación: válvula animada, ECG/vibración/sonido, veredicto de la IA y controles. Teclas ← → y botón *Panel* en la barra de la presentación. |
 | **Dashboard sin internet** | `entrega/ValveSense_dashboard.html` (abre directo en `#/dashboard`). |
 | **PDF para Canvas** | `entrega/ValveSense_presentacion.pdf` (12 páginas). Regenerar tras completar los campos pendientes (botón *Imprimir / PDF*). |
 | **Imágenes** | `entrega/imagenes/*.jpg`: renders 3D (modelo universitario, despiece, prótesis bileaflet, concepto futuro) y vistas de ECG, comparación normal vs. restringida, válvula real y dashboard. |

@@ -280,6 +280,9 @@ export function Presentation() {
         <button className="v-btn sm" aria-pressed={showNotes} aria-label="Notas del expositor" onClick={() => setShowNotes((v) => !v)} title="Notas del expositor (N)">
           ✎<span className="lbl">Notas</span>
         </button>
+        <a className="v-btn sm" href={`#/panel/${slide.id}`} title="Ver en formato dashboard con la simulación en vivo" style={{ textDecoration: 'none' }}>
+          ▦<span className="lbl">Panel</span>
+        </a>
         <button className="v-btn sm icon" onClick={toggleFullscreen} aria-label="Pantalla completa" title="Pantalla completa (F)">
           ⛶
         </button>
