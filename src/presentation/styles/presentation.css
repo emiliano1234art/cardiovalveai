@@ -3,40 +3,49 @@
    Tema: azul noche (pantalla) / claro (impresión).                      */
 
 .v-root {
-  --bg: #061224;
-  --bg-2: #0a1a31;
-  --panel: #0e2240;
-  --panel-2: #132b4f;
-  --line: #22406a;
-  --line-soft: #183357;
-  --text: #f3f8fd;
-  --text-2: #bfd0e3;
-  --muted: #8aa0bb;
-  --cyan: #22d3ee;
-  --teal: #2dd4bf;
-  --cyan-soft: rgba(34, 211, 238, 0.14);
-  --coral: #ff7a59;
-  --coral-soft: rgba(255, 122, 89, 0.16);
-  --amber: #fbbf24;
-  --amber-soft: rgba(251, 191, 36, 0.14);
-  --green: #4ade80;
-  --pending: #f9a8d4;
-  --pending-soft: rgba(249, 168, 212, 0.1);
-  --sig-vib: #22d3ee;
-  --sig-snd: #a78bfa;
-  --grid: rgba(138, 160, 187, 0.16);
-  --valve-ring: #c9d6e3;
-  --valve-edge: #6f86a3;
-  --valve-orifice: #0b1f3a;
-  --valve-seat: #93a7bd;
-  --valve-leaf: #22d3ee;
-  --valve-leaf-edge: #0e7490;
+  --bg: #f6f9fc;
+  --bg-2: #eef4f9;
+  --panel: #ffffff;
+  --panel-2: #f1f6fb;
+  --line: #d3dfeb;
+  --line-soft: #e4ecf4;
+  --text: #0b1f33;
+  --text-2: #3a5068;
+  --muted: #6b8199;
+  --cyan: #0891b2;
+  --teal: #0d9488;
+  --blue: #2563eb;
+  --cyan-soft: rgba(8, 145, 178, 0.09);
+  --coral: #ea580c;
+  --coral-soft: rgba(234, 88, 12, 0.09);
+  --amber: #b45309;
+  --amber-soft: rgba(217, 119, 6, 0.1);
+  --violet: #7c3aed;
+  --violet-soft: rgba(124, 58, 237, 0.08);
+  --green: #15803d;
+  --pending: #be185d;
+  --pending-soft: rgba(190, 24, 93, 0.06);
+  --sig-vib: #0891b2;
+  --sig-snd: #7c3aed;
+  --sig-ecg: #e11d48;
+  --grid: rgba(51, 72, 95, 0.1);
+  --valve-ring: #e2e8f0;
+  --valve-edge: #64748b;
+  --valve-orifice: #ffffff;
+  --valve-seat: #cbd5e1;
+  --valve-leaf: #38bdf8;
+  --valve-leaf-edge: #0369a1;
+  --carbon: #334155;
+  --shadow: 0 1px 2px rgba(11, 31, 51, 0.04), 0 8px 28px rgba(11, 31, 51, 0.06);
   --font: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
 
   position: fixed;
   inset: 0;
-  background: radial-gradient(1200px 700px at 75% 20%, #0d2a4d 0%, var(--bg) 60%) fixed, var(--bg);
+  background:
+    radial-gradient(900px 500px at 85% 0%, rgba(8,145,178,.07), transparent 70%),
+    radial-gradient(700px 500px at 0% 100%, rgba(37,99,235,.05), transparent 70%),
+    var(--bg);
   color: var(--text);
   font-family: var(--font);
   font-size: 22px;
@@ -68,7 +77,7 @@
 .v-head-left { display: flex; gap: 22px; align-items: flex-start; }
 .v-badge {
   flex: none; width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center;
-  font-family: var(--mono); font-size: 26px; font-weight: 600; color: var(--bg);
+  font-family: var(--mono); font-size: 26px; font-weight: 600; color: #fff; box-shadow: 0 6px 18px rgba(8,145,178,.25);
   background: linear-gradient(135deg, var(--cyan), var(--teal));
 }
 .v-kicker { font-size: 16px; letter-spacing: .16em; text-transform: uppercase; color: var(--cyan); font-weight: 600; }
@@ -77,8 +86,8 @@
 .v-body { flex: 1; min-height: 0; }
 
 /* ───────────── superficies ───────────── */
-.v-panel { background: linear-gradient(180deg, var(--panel), var(--bg-2)); border: 1px solid var(--line-soft); border-radius: 22px; padding: 22px 26px; }
-.v-panel.flat { background: var(--panel); }
+.v-panel { background: var(--panel); border: 1px solid var(--line-soft); border-radius: 22px; padding: 22px 26px; box-shadow: var(--shadow); }
+.v-panel.flat { background: var(--panel-2); box-shadow: none; }
 .v-panel-title { font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin: 0 0 12px; }
 .v-grid { display: grid; gap: 22px; }
 .v-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
@@ -113,12 +122,12 @@
 /* ───────────── controles ───────────── */
 .v-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; padding: 0 18px; white-space: nowrap;
-  border-radius: 12px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text);
+  border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--text);
   font-size: 17px; font-weight: 600; cursor: pointer; transition: border-color .2s, background .2s, color .2s;
 }
 .v-btn:hover { border-color: var(--cyan); }
 .v-btn:focus-visible, .v-chip:focus-visible, .v-seg button:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
-.v-btn.primary { background: var(--cyan); color: #04202b; border-color: var(--cyan); }
+.v-btn.primary { background: var(--cyan); color: #fff; border-color: var(--cyan); }
 .v-btn.icon { width: 46px; padding: 0; }
 .v-btn.sm { height: 38px; font-size: 15px; padding: 0 12px; border-radius: 10px; }
 .v-btn.sm.icon { width: 38px; }
@@ -131,7 +140,7 @@
 .v-chip.active { background: var(--cyan-soft); color: var(--cyan); border-color: var(--cyan); }
 .v-chip.alt.active { background: var(--coral-soft); color: var(--coral); border-color: var(--coral); }
 .v-seg { display: inline-flex; padding: 4px; gap: 4px; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--line-soft); }
-.v-seg button { height: 38px; padding: 0 14px; border-radius: 10px; border: 0; background: transparent; color: var(--text-2); font-size: 16px; font-weight: 600; cursor: pointer; }
+.v-seg button { white-space: nowrap; height: 38px; padding: 0 14px; border-radius: 10px; border: 0; background: transparent; color: var(--text-2); font-size: 16px; font-weight: 600; cursor: pointer; }
 .v-seg button.active { background: var(--panel-2); color: var(--cyan); box-shadow: inset 0 0 0 1px var(--cyan); }
 .v-slider { display: grid; grid-template-columns: 150px 1fr 92px; align-items: center; gap: 14px; font-size: 17px; color: var(--text-2); }
 .v-slider input { width: 100%; accent-color: var(--cyan); height: 28px; }
@@ -144,7 +153,7 @@
 
 .v-phase { display: inline-flex; gap: 6px; }
 .v-phase span { padding: 6px 12px; border-radius: 10px; font-size: 15px; font-weight: 650; color: var(--muted); border: 1px solid var(--line-soft); transition: all .15s; }
-.v-phase span.on { color: #04202b; background: var(--cyan); border-color: var(--cyan); }
+.v-phase span.on { color: #fff; background: var(--cyan); border-color: var(--cyan); }
 
 /* ───────────── escena 3D ───────────── */
 .scene { position: relative; width: 100%; height: 100%; cursor: grab; }
@@ -153,21 +162,24 @@
 .scene-label {
   position: absolute; left: 0; top: 0; pointer-events: auto; white-space: nowrap;
   font-size: 14px; font-weight: 650; padding: 4px 10px 4px 4px; border-radius: 999px;
-  background: rgba(6, 18, 36, .82); border: 1px solid var(--line); color: var(--text); cursor: pointer;
+  background: rgba(255, 255, 255, .92); border: 1px solid var(--line); color: var(--text); cursor: pointer; box-shadow: 0 2px 8px rgba(11,31,51,.08);
   display: inline-flex; align-items: center; gap: 6px; transition: opacity .2s, border-color .2s;
 }
 .scene-label b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--panel-2); color: var(--cyan); font-size: 12px; }
-.scene-label.active { border-color: var(--cyan); background: rgba(14,116,144,.9); }
-.scene-label.active b { background: var(--cyan); color: #04202b; }
+.scene-label.active { border-color: var(--cyan); background: #ecfeff; color: var(--cyan); }
+.scene-label.active b { background: var(--cyan); color: #fff; }
 .scene-fallback { display: grid; place-items: center; height: 100%; color: var(--muted); font-size: 17px; text-align: center; }
-.v-viewer { position: relative; border-radius: 22px; overflow: hidden; background: radial-gradient(600px 400px at 50% 40%, #12305a 0%, var(--bg-2) 70%); border: 1px solid var(--line-soft); }
+.v-viewer { position: relative; border-radius: 22px; overflow: hidden; border: 1px solid var(--line-soft); box-shadow: var(--shadow);
+  background: radial-gradient(520px 360px at 50% 42%, #ffffff 0%, #eef5fb 75%), #eef5fb; }
+.v-viewer::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(8,145,178,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(8,145,178,.06) 1px, transparent 1px); background-size: 28px 28px; }
 .v-viewer-tools { position: absolute; left: 16px; top: 16px; right: 16px; display: flex; justify-content: space-between; gap: 10px; pointer-events: none; z-index: 2; }
 .v-viewer-tools > * { pointer-events: auto; }
 .v-viewer-foot { position: absolute; left: 16px; bottom: 14px; right: 16px; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; pointer-events: none; z-index: 2; }
 .v-viewer-foot > * { pointer-events: auto; }
-.v-readout { background: rgba(6, 18, 36, .78); border: 1px solid var(--line-soft); border-radius: 14px; padding: 10px 12px; }
+.v-readout { background: rgba(255, 255, 255, .9); border: 1px solid var(--line-soft); border-radius: 14px; padding: 10px 12px; }
 .v-theme-print .v-readout { background: rgba(255,255,255,.9); }
-.v-hint { font-size: 14px; color: var(--muted); background: rgba(6,18,36,.6); padding: 4px 10px; border-radius: 8px; }
+.v-hint { font-size: 14px; color: var(--muted); background: rgba(255,255,255,.85); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--line-soft); }
 
 /* ───────────── gráficos ───────────── */
 .v-plot text { font-family: var(--font); fill: var(--muted); font-size: 14px; }
@@ -201,7 +213,7 @@
 .v-toolbar {
   position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 30;
   display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 18px;
-  background: rgba(10, 26, 49, .88); border: 1px solid var(--line); backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, .92); border: 1px solid var(--line); backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(11,31,51,.12);
   transition: opacity .35s, transform .35s;
   font-size: 15px;
 }
@@ -216,7 +228,7 @@
 }
 .v-index {
   position: absolute; left: 0; top: 0; bottom: 0; width: 360px; z-index: 40; padding: 24px 18px;
-  background: rgba(8, 21, 40, .97); border-right: 1px solid var(--line); transform: translateX(-100%); transition: transform .3s ease;
+  background: rgba(255, 255, 255, .98); border-right: 1px solid var(--line); transform: translateX(-100%); transition: transform .3s ease; box-shadow: 10px 0 40px rgba(11,31,51,.1);
   display: flex; flex-direction: column; gap: 4px; overflow-y: auto;
 }
 .v-index.open { transform: none; }
@@ -231,10 +243,10 @@
 .v-index button.active .n { color: var(--cyan); }
 .v-notes {
   position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%); width: min(900px, 92vw); z-index: 30;
-  background: rgba(10, 26, 49, .95); border: 1px solid var(--amber); border-radius: 16px; padding: 14px 18px; font-size: 16px; color: var(--text-2);
+  background: #fffbeb; border: 1px solid var(--amber); border-radius: 16px; padding: 14px 18px; font-size: 16px; color: var(--text-2); box-shadow: var(--shadow);
 }
 .v-notes b { color: var(--amber); letter-spacing: .1em; font-size: 13px; text-transform: uppercase; display: block; margin-bottom: 4px; }
-.v-scrim { position: absolute; inset: 0; z-index: 35; background: rgba(0,0,0,.35); }
+.v-scrim { position: absolute; inset: 0; z-index: 35; background: rgba(11,31,51,.18); }
 
 /* modo presentación: controles secundarios ocultos */
 .v-present .v-explore-only { display: none !important; }
@@ -300,3 +312,14 @@
 
 /* símbolos matemáticos: no convertir ω→Ω ni θ→Θ */
 .v-keep-case { text-transform: none !important; letter-spacing: .02em !important; }
+
+/* ───────────── tipo de dato ───────────── */
+.v-tag.exp { background: var(--cyan-soft); color: var(--cyan); border: 1.5px solid var(--cyan); }
+.v-tag.clin { color: var(--violet); border: 1.5px dashed var(--violet); background: var(--violet-soft); }
+.v-tag.sim { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+.v-tag.future { color: var(--violet); border: 1.5px dashed var(--violet); }
+.v-warn { border-left: 5px solid var(--coral); background: #fff7ed; border-radius: 12px; padding: 10px 14px; font-size: 15.5px; color: #7c2d12; }
+.v-key { border-radius: 20px; padding: 18px 26px; background: linear-gradient(120deg, #ecfeff, #eff6ff); border: 1px solid #bae6fd; font-size: 23px; font-weight: 600; line-height: 1.35; color: #0b3a52; }
+.v-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.katex { font-size: 1.12em; color: var(--text); }
+.v-eq { display: grid; grid-template-columns: 1fr; gap: 4px; }

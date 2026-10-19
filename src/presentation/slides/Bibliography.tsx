@@ -1,14 +1,14 @@
 import { REFERENCES, type Reference } from '../content';
 import { SlideHead, useDeck } from '../components/deck';
 
-const TOPICS: Reference['topic'][] = ['Prótesis valvulares', 'Rehabilitación y respuesta funcional', 'Análisis acústico y vibracional', 'Componentes electrónicos'];
+const TOPICS: Reference['topic'][] = ['Prótesis valvulares', 'Fisiología y ECG', 'Rehabilitación y respuesta funcional', 'Análisis acústico y vibracional', 'Componentes electrónicos'];
 
 export function Bibliography() {
   const { print } = useDeck();
   return (
     <div className="v-slide" style={{ paddingTop: 44 }}>
       <SlideHead kicker="Bibliografía" title="Referencias" right={<span className="v-tiny">Estilo Vancouver · numeración según aparición en la lista</span>} />
-      <div className="v-body" style={{ columnCount: 2, columnGap: 36, fontSize: print ? 14.5 : 15.5, lineHeight: 1.38 }}>
+      <div className="v-body" style={{ columnCount: 2, columnGap: 36, fontSize: print ? 13 : 14, lineHeight: 1.32 }}>
         {TOPICS.map((t) => (
           <div key={t} style={{ breakInside: 'avoid', marginBottom: 12 }}>
             <div className="v-panel-title" style={{ color: 'var(--cyan)', marginBottom: 6, fontSize: 13 }}>

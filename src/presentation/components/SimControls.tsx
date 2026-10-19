@@ -1,12 +1,12 @@
 import { useEffect, useRef } from 'react';
-import { CONDITIONS, LEAFLETS, leafletProfiles, leafletState, period, phaseName, type PhaseName } from '../sim/model';
+import { CONDITIONS, effectiveOpen, LEAFLETS, leafletState, LIMITS, phaseName, rrOf, type Condition, type PhaseName } from '../sim/model';
 import { sim, useSim } from '../sim/store';
 
-export function ConditionChips({ compact = false }: { compact?: boolean }) {
+export function ConditionChips({ compact = false, only }: { compact?: boolean; only?: Condition[] }) {
   const { params } = useSim();
   return (
-    <div className="v-row" style={{ gap: 8 }} role="radiogroup" aria-label="Condición experimental">
-      {CONDITIONS.map((c, i) => (
+    <div className="v-row" style={{ gap: 8 }} role="radiogroup" aria-label="Condición mecánica">
+      {CONDITIONS.filter((c) => !only || only.includes(c.id)).map((c) => (
         <button
           key={c.id}
           role="radio"
@@ -16,14 +16,14 @@ export function ConditionChips({ compact = false }: { compact?: boolean }) {
           title={c.detail}
           style={compact ? { height: 40, fontSize: 15, padding: '0 12px' } : undefined}
         >
-          {i + 1}. {c.short}
+          {c.short}
         </button>
       ))}
     </div>
   );
 }
 
-export function PlaybackButtons() {
+export function PlaybackButtons({ small = false }: { small?: boolean }) {
   const s = useSim();
   return (
     <div className="v-row" style={{ gap: 8 }}>
@@ -31,32 +31,44 @@ export function PlaybackButtons() {
         {s.playing ? '❚❚ Pausar' : '▶ Reproducir'}
       </button>
       <button className="v-btn sm" onClick={() => sim.reset()} aria-label="Reiniciar">
-        ↺ Reiniciar
+        ↺{small ? '' : ' Reiniciar'}
       </button>
-      <button className="v-btn sm" aria-pressed={s.speed < 1} onClick={() => sim.setSpeed(s.speed < 1 ? 1 : 0.25)}>
-        🐢 Cámara lenta ×¼
+      <button className="v-btn sm" aria-pressed={s.speed < 1} onClick={() => sim.setSpeed(s.speed < 1 ? 1 : 0.25)} title="Cámara lenta ×¼">
+        🐢{small ? '' : ' Lenta ×¼'}
       </button>
     </div>
   );
 }
 
-export function ParamSliders() {
-  const { params } = useSim();
-  const T = period(params);
+function Slider({ label, min, max, step, value, unit, onChange }: { label: string; min: number; max: number; step: number; value: number; unit: string; onChange: (v: number) => void }) {
   return (
-    <div className="v-col" style={{ gap: 6 }}>
-      <label className="v-slider">
-        Frecuencia
-        <input type="range" min={30} max={120} step={2} value={params.cpm} onChange={(e) => sim.setParams({ cpm: Number(e.target.value) })} />
-        <output>{params.cpm} cpm</output>
-      </label>
-      <label className="v-slider">
-        Apertura máx.
-        <input type="range" min={20} max={85} step={1} value={params.thetaMax} onChange={(e) => sim.setParams({ thetaMax: Number(e.target.value) })} />
-        <output>{params.thetaMax}°</output>
-      </label>
+    <label className="v-slider">
+      {label}
+      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} />
+      <output>
+        {value} {unit}
+      </output>
+    </label>
+  );
+}
+
+export function ParamSliders({ timing = true, angle = true }: { timing?: boolean; angle?: boolean }) {
+  const { params } = useSim();
+  const RR = rrOf(params);
+  const eff = effectiveOpen(params);
+  return (
+    <div className="v-col" style={{ gap: 4 }}>
+      <Slider label="FC (ECG)" min={LIMITS.bpm[0]} max={LIMITS.bpm[1]} step={1} value={params.bpm} unit="lpm" onChange={(bpm) => sim.setParams({ bpm })} />
+      {timing && (
+        <>
+          <Slider label="Retardo τ" min={LIMITS.delayMs[0]} max={LIMITS.delayMs[1]} step={5} value={params.delayMs} unit="ms" onChange={(delayMs) => sim.setParams({ delayMs })} />
+          <Slider label="Apertura D" min={LIMITS.openMs[0]} max={LIMITS.openMs[1]} step={10} value={params.openMs} unit="ms" onChange={(openMs) => sim.setParams({ openMs })} />
+        </>
+      )}
+      {angle && <Slider label="Ángulo máx." min={LIMITS.thetaMax[0]} max={LIMITS.thetaMax[1]} step={1} value={params.thetaMax} unit="°" onChange={(thetaMax) => sim.setParams({ thetaMax })} />}
       <div className="v-tiny">
-        T = 60 / {params.cpm} = {T.toFixed(3).replace('.', ',')} s · f = {(1 / T).toFixed(2).replace('.', ',')} Hz · 80° es la apertura normal inicial (editable)
+        RR = 60/FC = {RR.toFixed(3).replace('.', ',')} s
+        {eff.truncated && <span className="v-coral"> · apertura acortada a {(eff.dOpen * 1000).toFixed(0)} ms para completar el ciclo antes del siguiente latido</span>}
       </div>
     </div>
   );
@@ -64,7 +76,7 @@ export function ParamSliders() {
 
 const PHASE_ORDER: PhaseName[] = ['apertura', 'abierta', 'cierre', 'cerrada'];
 
-/** Indicador de fase + ángulos de las tres valvas, sincronizado por cuadro. */
+/** Indicador de fase + ángulos de las dos valvas, sincronizado por cuadro. */
 export function PhaseReadout({ showAngles = true }: { showAngles?: boolean }) {
   const spans = useRef<(HTMLSpanElement | null)[]>([]);
   const angles = useRef<(HTMLElement | null)[]>([]);
@@ -74,9 +86,9 @@ export function PhaseReadout({ showAngles = true }: { showAngles?: boolean }) {
         const p = sim.state.params;
         const ph = phaseName(t, p);
         PHASE_ORDER.forEach((n, i) => spans.current[i]?.classList.toggle('on', n === ph));
-        leafletProfiles(p).forEach((lp, i) => {
+        [0, 1].forEach((i) => {
           const el = angles.current[i];
-          if (el) el.textContent = `${leafletState(t, p, lp).theta.toFixed(0)}°`;
+          if (el) el.textContent = `${leafletState(t, p, i).theta.toFixed(0)}°`;
         });
       }),
     [],
@@ -111,7 +123,7 @@ export function PhaseReadout({ showAngles = true }: { showAngles?: boolean }) {
             </span>
           ))}
           <span className="v-tiny" title="La relación entre el ángulo del servo y el de las valvas depende de la transmisión">
-            θ servo: requiere calibración
+            θ servo ≠ θ valva (requiere calibración)
           </span>
         </div>
       )}

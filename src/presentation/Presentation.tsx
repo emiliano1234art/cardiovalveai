@@ -5,16 +5,16 @@ import { Deck, type DeckMode } from './components/deck';
 import { sim, useSim, type MotionPref } from './sim/store';
 import { Bibliography } from './slides/Bibliography';
 import { Cover } from './slides/Cover';
-import { S01Name } from './slides/S01Name';
-import { S02Wicked } from './slides/S02Wicked';
-import { S03Interdisciplinary } from './slides/S03Interdisciplinary';
-import { S04Materials } from './slides/S04Materials';
-import { S05Gantt } from './slides/S05Gantt';
-import { S06Interview } from './slides/S06Interview';
-import { S07Prototype } from './slides/S07Prototype';
-import { S08Math } from './slides/S08Math';
-import { S09Results } from './slides/S09Results';
-import { S10Souvenir } from './slides/S10Souvenir';
+import { S01Problem } from './slides/S01Problem';
+import { S02RealValve } from './slides/S02RealValve';
+import { S03Solution } from './slides/S03Solution';
+import { S04Prototype } from './slides/S04Prototype';
+import { S05Ecg } from './slides/S05Ecg';
+import { S06SignalsAI } from './slides/S06SignalsAI';
+import { S07Math } from './slides/S07Math';
+import { S08Dashboard } from './slides/S08Dashboard';
+import { S09Impact } from './slides/S09Impact';
+import { S10Close } from './slides/S10Close';
 import './styles/presentation.css';
 
 interface SlideDef {
@@ -27,16 +27,16 @@ interface SlideDef {
 /** Portada + 10 diapositivas de contenido (numeradas) + bibliografía. */
 export const SLIDES: SlideDef[] = [
   { id: 'cover', num: null, title: 'Portada', C: Cover },
-  { id: 's1', num: 1, title: 'Nombre y propuesta', C: S01Name },
-  { id: 's2', num: 2, title: 'Wicked problem', C: S02Wicked },
-  { id: 's3', num: 3, title: 'Integración interdisciplinaria', C: S03Interdisciplinary },
-  { id: 's4', num: 4, title: 'Materiales e insumos', C: S04Materials },
-  { id: 's5', num: 5, title: 'Carta Gantt resumida', C: S05Gantt },
-  { id: 's6', num: 6, title: 'Entrevista al docente', C: S06Interview },
-  { id: 's7', num: 7, title: 'Prototipo: antes y después', C: S07Prototype },
-  { id: 's8', num: 8, title: 'Modelo matemático', C: S08Math },
-  { id: 's9', num: 9, title: 'Resultados y conclusiones', C: S09Results },
-  { id: 's10', num: 10, title: 'Souvenir y cierre', C: S10Souvenir },
+  { id: 's1', num: 1, title: 'Problema clínico', C: S01Problem },
+  { id: 's2', num: 2, title: 'Cómo funciona una válvula real', C: S02RealValve },
+  { id: 's3', num: 3, title: 'Solución ValveSense', C: S03Solution },
+  { id: 's4', num: 4, title: 'Prototipo con sensores integrados', C: S04Prototype },
+  { id: 's5', num: 5, title: 'Sincronización con ECG', C: S05Ecg },
+  { id: 's6', num: 6, title: 'Vibración, sonido e IA', C: S06SignalsAI },
+  { id: 's7', num: 7, title: 'Matemática aplicada', C: S07Math },
+  { id: 's8', num: 8, title: 'Dashboard actualizado', C: S08Dashboard },
+  { id: 's9', num: 9, title: 'Integración clínica e impacto', C: S09Impact },
+  { id: 's10', num: 10, title: 'Plan, validación y cierre', C: S10Close },
   { id: 'biblio', num: null, title: 'Bibliografía', C: Bibliography },
 ];
 

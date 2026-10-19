@@ -4,6 +4,7 @@ import '@fontsource/jetbrains-mono/600.css';
 import { lazy, StrictMode, Suspense, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Presentation } from './presentation/Presentation';
+import { RenderView } from './presentation/RenderView';
 
 /** Dashboard v1 (conservado) disponible en #/dashboard. */
 const DashboardApp = lazy(() => import('./App'));
@@ -15,6 +16,7 @@ function Root() {
     window.addEventListener('hashchange', on);
     return () => window.removeEventListener('hashchange', on);
   }, []);
+  if (location.hash.startsWith('#/render/')) return <RenderView />;
   return dash ? (
     <Suspense fallback={null}>
       <DashboardApp />

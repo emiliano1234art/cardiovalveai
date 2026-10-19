@@ -45,6 +45,8 @@ class SimStore {
   }
 
   setParams(patch: Partial<SimParams>) {
+    // continuidad de fase: al cambiar la FC se reescala el reloj (t/RR constante)
+    if (patch.bpm && patch.bpm !== this.ui.params.bpm) this.t *= this.ui.params.bpm / patch.bpm;
     this.set({ params: { ...this.ui.params, ...patch } });
     this.emitFrame();
   }

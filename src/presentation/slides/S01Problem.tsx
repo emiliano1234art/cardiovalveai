@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { KEY_IDEA } from '../content';
 import { Cite, SlideHead, useDeck } from '../components/deck';
 
 interface Factor {
@@ -82,7 +83,7 @@ const CY = 300;
 const RAD = 232;
 const pos = (deg: number) => [CX + RAD * Math.cos((deg * Math.PI) / 180), CY + RAD * Math.sin((deg * Math.PI) / 180)] as const;
 
-export function S02Wicked() {
+export function S01Problem() {
   const { print } = useDeck();
   const [sel, setSel] = useState<string>('func');
   const f = FACTORS.find((x) => x.id === sel)!;
@@ -91,10 +92,9 @@ export function S02Wicked() {
   return (
     <div className="v-slide">
       <SlideHead
-        num={2}
-        kicker="Wicked problem · planteamiento y fundamentación"
+        num={1}
+        kicker="ValveSense · el problema clínico (wicked problem)"
         title="La recuperación no depende solo de la prótesis"
-        lead="Comprender la recuperación de una persona con prótesis valvular requiere considerar el funcionamiento de la prótesis y su respuesta durante las actividades y la rehabilitación."
       />
       <div className="v-body" style={{ display: 'grid', gridTemplateColumns: '860px 1fr', gap: 24 }}>
         <div className="v-panel" style={{ padding: 0, position: 'relative' }}>
@@ -174,16 +174,18 @@ export function S02Wicked() {
               </p>
             </div>
           )}
-          <div className="v-panel flat" style={{ padding: print ? '10px 18px' : '16px 22px' }}>
+          <div className="v-panel flat" style={{ padding: print ? '10px 18px' : '14px 20px' }}>
             <div className="v-panel-title">¿Por qué es un problema complejo?</div>
-            <ul className="v-list" style={{ fontSize: print ? 14 : 18, gap: print ? 4 : 8 }}>
+            <ul className="v-list" style={{ fontSize: print ? 14 : 17, gap: print ? 4 : 6 }}>
               <li>Ningún factor explica la recuperación por sí solo: cada uno influye en los demás.</li>
-              <li>Intervienen varios actores con información distinta (paciente, equipo clínico, familia, sistema de salud).</li>
-              <li>
-                <span className="v-amber">Supuesto del equipo</span> (a investigar): datos del funcionamiento valvular y de la respuesta funcional, vistos en conjunto, podrían orientar un seguimiento más
-                personalizado.
-              </li>
+              <li>Participan actores con información distinta: paciente, equipo clínico, familia y sistema de salud.</li>
             </ul>
+          </div>
+          <div className="v-key" style={{ fontSize: print ? 16 : 19, padding: print ? '12px 18px' : '16px 22px' }}>
+            <div className="v-kicker" style={{ fontSize: 13, marginBottom: 6 }}>
+              Propuesta ValveSense
+            </div>
+            {KEY_IDEA}
           </div>
         </div>
       </div>

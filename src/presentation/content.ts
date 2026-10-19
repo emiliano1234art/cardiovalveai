@@ -12,12 +12,16 @@
  */
 
 export const PENDING = (label: string) => `[${label}]`;
+
+/** Idea principal que debe recordar el público. */
+export const KEY_IDEA =
+  'ValveSense busca transformar las señales mecánicas y acústicas de una prótesis valvular en información útil para explorar nuevas formas de monitoreo cardiovascular y apoyar, en el futuro, una rehabilitación más personalizada.';
 export const isPending = (s: string | null | undefined) => !s || /^\[.*\]$/.test(s.trim());
 
 // ─────────────────────────────── Portada ───────────────────────────────
 export const META = {
   project: 'ValveSense',
-  subtitle: 'Del movimiento valvular al seguimiento funcional: una base para la rehabilitación cardiorrespiratoria personalizada',
+  subtitle: 'Señales mecánicas y acústicas de una prótesis valvular, sincronizadas con el ECG, para explorar un monitoreo cardiovascular más personalizado',
   team: 'CardioValveAI',
   careers: ['Ingeniería Civil en Biomedicina', 'Kinesiología'],
   course: 'Proyecto Interdisciplinario (ID)',
@@ -56,6 +60,7 @@ export const JOINT_DECISIONS: { decision: string; from: string }[] = [
   { decision: 'Registrar vibración (piezoeléctrico) y sonido (MEMS) del movimiento valvular en un prototipo a escala.', from: 'Biomedicina' },
   { decision: 'Seleccionar como variables funcionales futuras: FC, SpO₂, percepción de esfuerzo (Borg) y recuperación de FC.', from: 'Kinesiología' },
   { decision: 'Construir una línea basal del prototipo y comparar condiciones mecánicas controladas.', from: 'Biomedicina + Kinesiología' },
+  { decision: 'Sincronizar la válvula demostrativa con el ECG como representación educativa (no fisiológica).', from: 'Biomedicina + Kinesiología' },
 ];
 
 // ─────────────────────── Entrevista al docente (pendiente) ───────────────────────
@@ -112,6 +117,14 @@ export const GANTT: GanttTask[] = [
   { name: 'Adquisición de datos (ESP32)', start: '2026-10-22', end: '2026-10-31', status: 'por confirmar' },
   { name: 'Análisis de señales', start: '2026-10-26', end: '2026-11-02', status: 'por confirmar' },
   {
+    name: 'Sincronización ECG (modo simulado)',
+    start: '2026-10-15',
+    end: '2026-10-28',
+    status: 'en curso',
+    evidence: 'Repositorio: ECG sintético, detección de R y sincronización en la presentación (oct.)',
+  },
+  { name: 'Adquisición ECG real segura (propuesta)', start: '2026-10-27', end: '2026-11-03', status: 'por confirmar' },
+  {
     name: 'Dashboard y presentación interactiva',
     start: '2026-10-01',
     end: '2026-10-20',
@@ -135,7 +148,7 @@ export interface Reference {
   url?: string;
   /** verificada = autores, título, revista y DOI comprobados; pendiente = falta verificar. */
   status: 'verificada' | 'pendiente de verificación';
-  topic: 'Prótesis valvulares' | 'Rehabilitación y respuesta funcional' | 'Análisis acústico y vibracional' | 'Componentes electrónicos';
+  topic: 'Prótesis valvulares' | 'Fisiología y ECG' | 'Rehabilitación y respuesta funcional' | 'Análisis acústico y vibracional' | 'Componentes electrónicos';
   note?: string;
 }
 
@@ -160,6 +173,27 @@ export const REFERENCES: Reference[] = [
     text: 'Zoghbi WA, et al. Guidelines for the Evaluation of Prosthetic Valve Function With Cardiovascular Imaging: A Report From the American Society of Echocardiography. J Am Soc Echocardiogr. 2024;37(1):2–63.',
     url: 'https://doi.org/10.1016/j.echo.2023.10.004',
     status: 'verificada',
+  },
+  {
+    id: 'statpearls',
+    topic: 'Fisiología y ECG',
+    text: 'StatPearls. Physiology, Cardiac Cycle. Treasure Island (FL): StatPearls Publishing (NCBI Bookshelf NBK459327).',
+    url: 'https://www.ncbi.nlm.nih.gov/books/NBK459327/',
+    status: 'pendiente de verificación',
+    note: 'Documento confirmado; autores y texto exacto por confirmar en la versión vigente.',
+  },
+  {
+    id: 'pan1985',
+    topic: 'Fisiología y ECG',
+    text: 'Pan J, Tompkins WJ. A real-time QRS detection algorithm. IEEE Trans Biomed Eng. 1985;BME-32(3):230–236.',
+    status: 'verificada',
+  },
+  {
+    id: 'iec60601',
+    topic: 'Fisiología y ECG',
+    text: 'IEC 60601-1. Medical electrical equipment — Part 1: General requirements for basic safety and essential performance (edición vigente).',
+    status: 'pendiente de verificación',
+    note: 'Norma de referencia para aislamiento y corrientes de fuga; consultar la edición y enmiendas vigentes.',
   },
   {
     id: 'abraham2021',
@@ -247,16 +281,16 @@ export const refIndex = (id: string) => REFERENCES.findIndex((r) => r.id === id)
 
 // ─────────────────────────── Notas del expositor ───────────────────────────
 export const NOTES: Record<string, string> = {
-  cover: 'Presentar al equipo CardioValveAI y ambas carreras. Señalar la válvula trivalva animada: es el modelo que usaremos durante toda la presentación.',
-  s1: 'Explicar el nombre y la propuesta en tres frases. Recorrer la secuencia: lo que existe hoy (contorno continuo) y lo que es proyección futura (contorno discontinuo).',
-  s2: 'Seleccionar 2 o 3 nodos del mapa. Mensaje: la recuperación no depende solo de la prótesis; también de la respuesta funcional, los síntomas, la adherencia y el acceso.',
-  s3: 'Mostrar el aporte de cada carrera y cómo convergen en una pregunta compartida. Completar con los hallazgos del Toolkit.',
-  s4: 'Seleccionar componentes en el modelo. Aclarar qué está definido y qué es propuesta (dimensiones, torque del servo, mecanismo).',
-  s5: 'Recorrer las fases y los hitos del 20 y 21 de octubre y del 4 de noviembre. Los estados solo se marcan con respaldo documental.',
-  s6: 'Entrevista pendiente: explicar a quién se entrevistará y qué preguntas haremos. Actualizar esta diapositiva cuando se realice.',
-  s7: 'Demostración en vivo: cambiar condiciones (60°, 45°, cierre incompleto, asimetría) y mostrar cómo cambian las señales simuladas sincronizadas.',
-  s8: 'Límites → velocidad angular; derivadas → qué tan rápido abre/cierra; integrales → señal acumulada en una ventana. Cambiar la frecuencia y ver cómo se actualiza todo.',
-  s9: 'Separar lo demostrado, lo pendiente de probar y la proyección. El panel funcional es sintético: ilustra la idea futura.',
-  s10: 'Mostrar el llavero y el QR. Cerrar con la frase final.',
+  cover: 'Presentar al equipo CardioValveAI y la idea principal. La válvula animada es nuestro modelo universitario bileaflet.',
+  s1: 'Problema clínico: la recuperación depende de la prótesis y de la respuesta funcional. Seleccionar 2–3 factores del mapa.',
+  s2: 'La válvula aórtica natural tiene 3 valvas; nos inspiramos en una prótesis mecánica bileaflet. Las válvulas reales son pasivas: se abren cuando la presión ventricular supera la aórtica. Nuestro modelo NO tiene presión: lo mueve un actuador.',
+  s3: 'ValveSense como sistema: sensores en la válvula, ECG, IA y dashboard, conectados con la respuesta funcional que aporta Kinesiología. Distinguir actual / propuesto / futuro.',
+  s4: 'Mostrar el modelo con vista interna: piezo en el anillo, MEMS en su alojamiento, cableado interno, actuador. Comparar Alternativa A (servo, versión 1) con B (presión).',
+  s5: 'Demostración: ECG simulado → detección de R → retardo τ → apertura. Cambiar la FC y el retardo. Recalcar: el ECG es eléctrico; es una representación educativa sincronizada. ECG real solo con adquisición aislada.',
+  s6: 'Comparar normal vs apertura restringida. Luego subir la FC: la IA no lo marca como falla porque la firma de cada evento no cambia y el ciclo coincide con el RR.',
+  s7: 'Recorrer las ecuaciones: RR → FC, temporización desde el pico R, RMS/energía, Fourier y similitud con la basal. La pestaña de cálculo conserva límites, derivadas e integrales.',
+  s8: 'Dashboard actualizado: cada panel indica si el dato es sintético, experimental (pendiente) o una aplicación clínica futura.',
+  s9: 'Integración clínica futura y resultados esperados. Dejar claro lo que NO afirmamos.',
+  s10: 'Cronograma, entrevista pendiente y souvenir. Cerrar con la idea principal.',
   biblio: 'Referencias verificadas y pendientes marcadas explícitamente.',
 };

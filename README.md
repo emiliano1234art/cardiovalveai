@@ -13,75 +13,58 @@ Proyecto Interdisciplinario (Ingeniería Civil en Biomedicina + Kinesiología). 
 
 ## Presentación interactiva (entrega 20–21 de octubre)
 
+**Idea principal:** ValveSense busca transformar las señales mecánicas y acústicas de una prótesis valvular en información útil para explorar nuevas formas de monitoreo cardiovascular y apoyar, en el futuro, una rehabilitación más personalizada.
+
+Portada + 10 diapositivas de contenido + bibliografía, con la narrativa:
+problema clínico → válvula real → solución ValveSense → prototipo con sensores integrados → sincronización ECG → vibración, sonido e IA → matemática → dashboard → integración clínica e impacto → plan y cierre.
+
+| # | Diapositiva | Cubre de la pauta |
+|---|---|---|
+| — | Portada | nombre, equipo, carreras |
+| 1 | Problema clínico (mapa interactivo) | nombre + wicked problem |
+| 2 | Cómo funciona una válvula real (natural vs. bileaflet vs. modelo) | fundamentación |
+| 3 | Solución ValveSense · Biomedicina + Kinesiología | integración interdisciplinaria |
+| 4 | Prototipo con sensores integrados (3D, despiece, vista interna, antes/después, accionamiento A/B) | materiales + prototipo |
+| 5 | Sincronización con ECG (simulado; arquitectura segura propuesta para ECG real) | prototipo: cómo funciona y qué mide |
+| 6 | Vibración, sonido e IA: ¿falla mecánica o cambio de FC? | resultados esperados |
+| 7 | Matemática aplicada (LaTeX + límites, derivadas, integrales) | modelo matemático |
+| 8 | Dashboard actualizado (sintético / experimental / clínico futuro) | registro de variables |
+| 9 | Integración clínica, resultados esperados e impacto futuro | resultados y conclusiones |
+| 10 | Carta Gantt, entrevista docente, souvenir y cierre | línea de tiempo, entrevista, souvenir |
+| — | Bibliografía | |
+
 ### Abrir
 
 | Opción | Cómo |
 |---|---|
-| **Sin internet** | Abrir `entrega/ValveSense_presentacion.html` con doble clic (archivo autocontenido, ~2 MB). |
-| **PDF para Canvas** | `entrega/ValveSense_presentacion.pdf` (12 páginas, una diapositiva por página). Regenerarlo tras completar los campos pendientes. |
-| **En línea** | https://emiliano1234art.github.io/cardiovalveai/ (GitHub Pages, se actualiza al hacer merge en `main`). |
+| **Sin internet** | `entrega/ValveSense_presentacion.html` (doble clic; autocontenido). |
+| **PDF para Canvas** | `entrega/ValveSense_presentacion.pdf` (12 páginas). Regenerar tras completar los campos pendientes (botón *Imprimir / PDF*). |
+| **Imágenes** | `entrega/imagenes/*.jpg`: renders 3D (modelo universitario, despiece, prótesis bileaflet, concepto futuro) y vistas de ECG, comparación normal vs. restringida, válvula real y dashboard. |
+| **En línea** | https://emiliano1234art.github.io/cardiovalveai/ (se actualiza al hacer merge en `main`). |
 | **Desarrollo** | `npm install && npm run dev` → http://localhost:5173/cardiovalveai/ |
 
-`npm run build:offline` regenera `entrega/ValveSense_presentacion.html`.
+`npm run build:offline` regenera el HTML autocontenido. Con el servidor de desarrollo activo, `node scripts/make-renders.cjs` regenera los renders 3D (requiere Playwright con Chromium).
 
 ### Controles
 
-| Acción | Botón / tecla |
-|---|---|
-| Anterior / siguiente | `‹ ›`, flechas ← →, PageUp/PageDown, deslizar en tablet |
-| Índice lateral | `☰` o **I** |
-| Modo Presentación / Exploración | barra inferior o **E** (Presentación oculta controles secundarios) |
-| Notas del expositor | **N** (no se imprimen) |
-| Animación completa → reducida → pausa | **A** |
-| Pantalla completa | `⛶` o **F** |
-| Imprimir / Guardar como PDF | botón `Imprimir / PDF` (diseño de impresión claro, 1 diapositiva por página, estados estáticos representativos y pestañas desplegadas) |
-| Enlace directo | `#/s7`, `#/s8`, `#/biblio`… |
+← → / PageUp / PageDown / deslizar · **I** índice · **E** modo Presentación/Exploración · **N** notas del expositor (no se imprimen) · **A** animación completa → reducida → pausa · **F** pantalla completa · botón *Imprimir / PDF* · enlaces directos `#/s5`, `#/biblio`…
 
 ### Dónde editar el contenido
 
-**Todo el contenido editable está en `src/presentation/content.ts`**: integrantes, entrevista, dibujo inicial, hallazgos del Toolkit, Carta Gantt, hitos, URL del QR, referencias y notas del expositor. Un texto entre `[corchetes]` es un **campo pendiente** y se muestra resaltado en rosa.
-
-Pendiente de completar con información real del equipo (no se inventó):
-
-- Nombres de integrantes (`META.members`).
-- Entrevista al docente (`INTERVIEW`): nombre, cargo, fecha, foto, extracto, observación → implicación → ajuste. Mientras esté pendiente, la diapositiva 6 muestra el guion de preguntas preparado.
-- Dibujo inicial a mano (`DRAWING_BEFORE`): copiar la imagen a `public/` y poner su ruta.
-- Hallazgos del Toolkit — Encargo 1 (`TOOLKIT_FINDINGS`).
-- Carta Gantt — Encargo 2 (`GANTT`): fechas, responsables y estados. Hoy es una **propuesta editable**; solo "Dashboard y presentación" figura *en curso* porque tiene respaldo en el repositorio.
-- Referencias marcadas *pendiente de verificación* (DOI de Fritzsche 2007, hoja oficial del MG90S, enlace ESP-IDF).
+Todo el contenido editable está en **`src/presentation/content.ts`** (integrantes, entrevista, dibujo inicial, hallazgos del Toolkit, Carta Gantt, URL del QR, referencias, notas). Un texto entre `[corchetes]` es un **campo pendiente** y se resalta en rosa. Pendientes: integrantes, entrevista (aún no realizada), dibujo inicial, hallazgos del Toolkit, fechas/responsables del Encargo 2, y referencias marcadas *pendiente de verificación*.
 
 ### Modelo de simulación (fuente única de verdad)
 
-`src/presentation/sim/model.ts` define la cinemática trivalva y las señales; `sim/store.ts` tiene **un solo reloj**. El modelo 3D, el indicador de fase, las ondas de vibración y sonido y los gráficos de límites, derivadas e integrales leen el mismo estado, así que **pausar detiene todo** y cambiar la frecuencia modifica el período en todas partes.
+`src/presentation/sim/model.ts` (ECG, latidos, válvula bileaflet y señales), `sim/analysis.ts` (IA experimental) y `sim/physiology.ts` (presiones ilustrativas). Un solo reloj (`sim/store.ts`) mueve el 3D, las señales y los gráficos: pausar detiene todo.
 
-Supuestos documentados:
+- **ECG → R → τ → actuador:** la apertura comienza τ (configurable) después del pico R; dura D (configurable) y se acota al intervalo RR. El ECG mide actividad eléctrica: es una **representación educativa sincronizada**, no fisiología exacta.
+- **Detección de R** sobre la señal (derivada → cuadrado → integración 150 ms → umbral adaptativo, inspirado en Pan–Tompkins). La FC mostrada se calcula de los RR detectados.
+- **Rampas del servo fijas** (120 ms apertura, 100 ms cierre) ⇒ la firma de cada evento no depende de la FC.
+- **IA experimental:** descriptores sincronizados con cada evento (energía, RMS, frecuencia dominante, apertura, desfase, variabilidad) + comparación del ciclo valvular con el RR del ECG. Un aumento de FC no se clasifica como falla. Umbrales = heurística demostrativa.
+- **Condiciones:** normal · apertura restringida (45°) · cierre incompleto (12° residuales) · movimiento irregular (valva 2 variable ciclo a ciclo) · variación de FC.
+- **ECG real:** no implementado. Solo con un módulo de adquisición aislado, a batería y preferentemente inalámbrico; nunca electrodos conectados a circuitos alimentados por USB/red sin aislamiento.
 
-- Ciclo en fracciones fijas de T: apertura 0–0,15T · abierta hasta 0,40T · cierre hasta 0,52T · cerrada.
-- Perfil suave θ = θmín + Δθ·(1 − cos πu)/2 ⇒ ω = Δθ·π/(2D)·sin πu.
-- Cada evento (tope de apertura, asiento de cierre) excita una oscilación amortiguada con amplitud ∝ ω máx del tramo (supuesto a validar).
-- Condiciones: normal (80°, editable) · limitada a 60° · limitada a 45° · cierre incompleto (12° residuales, separación visible) · asimétrica (valva 3 al 55 % y con retardo 0,05T).
-- Ruido de fondo con semilla fija (reproducible). Sin circuito de presión ni flujo.
-- Eₓ = ∫x²dt en V²·s (no es energía mecánica en joules); RMS = √(Eₓ/Δt).
-- "Diferencia vs. normal" (diapositiva 9) = promedio de diferencias relativas de 4 descriptores: **heurística demostrativa**, no IA entrenada ni diagnóstico.
-
-El ángulo del servo **no** es el ángulo de las valvas: su relación depende del mecanismo de transmisión y requiere calibración.
-
-### Estructura
-
-```
-src/presentation/
-├── content.ts              ← contenido editable centralizado
-├── Presentation.tsx        shell: escenario 16:9, navegación, modos, notas, impresión
-├── sim/model.ts            cinemática trivalva + señales sintéticas
-├── sim/store.ts            reloj y parámetros únicos
-├── geometry/trivalve.ts    geometría compartida 3D / SVG
-├── three/                  escena Three.js (rotación, vistas, despiece, etiquetas)
-├── components/             gráficos, controles, conexión ESP32, valva SVG
-├── slides/                 Portada, S01…S10, Bibliografía
-└── styles/presentation.css tema azul noche + tema de impresión
-```
-
-La conexión real del dashboard v1 (`src/sources/Esp32WebSocketSource.ts`) se conserva y se usa en la diapositiva 7 (modo Exploración → URL → Conectar). Sin conexión, la diapositiva muestra «Sin conexión al prototipo» y las señales son simulación.
+El prototipo de referencia es **bileaflet (2 valvas)**, inspirado en una prótesis aórtica mecánica; la válvula aórtica natural (3 valvas) se usa solo como explicación fisiológica.
 
 ---
 
