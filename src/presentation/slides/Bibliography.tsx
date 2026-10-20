@@ -1,7 +1,14 @@
 import { REFERENCES, type Reference } from '../content';
 import { SlideHead, useDeck } from '../components/deck';
 
-const TOPICS: Reference['topic'][] = ['Prótesis valvulares', 'Fisiología y ECG', 'Rehabilitación y respuesta funcional', 'Análisis acústico y vibracional', 'Componentes electrónicos'];
+const TOPICS: Reference['topic'][] = [
+  'Problemas complejos e interdisciplina',
+  'Prótesis valvulares',
+  'Fisiología y ECG',
+  'Rehabilitación y respuesta funcional',
+  'Análisis acústico y vibracional',
+  'Componentes electrónicos',
+];
 
 export function Bibliography() {
   const { print } = useDeck();

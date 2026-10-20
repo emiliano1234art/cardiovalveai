@@ -38,7 +38,11 @@ export function Screen({ num, kicker, title, lead, states, actions, children, st
               ))}
             </div>
           )}
-          {actions && <div className="v-row" style={{ gap: 8, justifyContent: 'flex-end' }}>{actions}</div>}
+          {actions && (
+            <div className="v-row" style={{ gap: 8, justifyContent: 'flex-end' }}>
+              {actions}
+            </div>
+          )}
         </div>
       </header>
       <div className="v-body">{children}</div>

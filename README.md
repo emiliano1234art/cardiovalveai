@@ -1,13 +1,16 @@
-# ValveSense · CardioValveAI
+# CardioVal AI
 
-**Del movimiento valvular al seguimiento funcional: una base para la rehabilitación cardiorrespiratoria personalizada.**
+**Tecnología e inteligencia artificial para explorar el funcionamiento valvular y su relación con la rehabilitación cardiovascular.**
 
-Proyecto Interdisciplinario (Ingeniería Civil en Biomedicina + Kinesiología). Una misma aplicación con **dos modos conectados** (menú superior **Presentación | Laboratorio interactivo**):
+Universidad del Desarrollo · Facultad de Medicina y Facultad de Ingeniería · Ingeniería Civil en Biomedicina × Kinesiología.
+Integrantes: Francisco Rojas, Johan Denis, Vicente Brito, Benjamín Saldívar y Emiliano Hernández. Profesor asesor: Gustavo Castro.
 
-1. **Presentación interactiva** (por defecto, `#/`): portada + 9 pantallas + bibliografía, con estilo de aplicación, modelos 3D, gráficos interactivos y explicaciones «ⓘ» a pedido.
-2. **Laboratorio interactivo** (`#/dashboard`): válvula 3D trivalva, ECG, vibración, sonido, mapa de sonidos, IA, paciente simulado e historial; conexión opcional al ESP32.
+Una misma aplicación con **dos modos conectados** (menú superior **Presentación | Laboratorio interactivo**):
 
-Ambos comparten el mismo modelo de simulación, los componentes 3D y las explicaciones (`src/content/explanations.ts`).
+1. **Presentación interactiva oficial** (por defecto, `#/`): portada + 10 pantallas + bibliografía.
+2. **Dashboard experimental / laboratorio interactivo** (`#/dashboard`): válvula 3D trivalva, ECG, vibración, sonido, IA, paciente simulado e historial; conexión opcional al ESP32.
+
+> Nombre oficial visible: **CardioVal AI**. La dirección del repositorio (`cardiovalveai`), la URL de GitHub Pages y algunos nombres internos de archivos e identificadores (`ValveSense_*.html`, `useValveSense`, …) se mantienen a propósito para no romper enlaces ni configuraciones.
 
 > ⚠️ Prototipo académico. No es un dispositivo médico, no es una prótesis implantable y no entrega diagnósticos. Cada elemento indica su estado: **IMPLEMENTADO**, **SIMULADO**, **EXPERIMENTO**, **PROPUESTO** o **VISIÓN FUTURA**.
 
@@ -23,44 +26,52 @@ El modelo es una **válvula aórtica de tres valvas semilunares** (≈ 120° ent
 
 ## Presentación (`#/`)
 
-| # | Pantalla | Elemento protagonista |
+| # | Pantalla (ruta) | Elemento protagonista |
 |---|---|---|
-| — | Portada «VALVESENSE» | válvula aórtica 3D abriendo y cerrando lentamente · «Explorar proyecto →» |
-| 1 | ¿Cuál es el problema? | corazón → válvula → señal · «¿Y si pudiéramos analizar una válvula por sus sonidos y vibraciones?» |
-| 2 | ¿Cómo funciona una válvula aórtica? | 3D con control **Abierta ↔ Cerrada**, 4 pasos y presiones ilustrativas · «¿Por qué se mueve sin motores?» |
-| 3 | Nuestro prototipo ValveSense | 3D interactivo: piezas seleccionables, vista explotada, sistema de movimiento, vista interna |
-| 4 | ¿Podemos sincronizarla con nuestro corazón? | ECG con picos R, cadena ECG → ESP32 → actuador → válvula, temporización R → τ → D, FC ajustable |
-| 5 | ¿Qué escuchan nuestros sensores? | vibración (piezo) y sonido (MEMS) en vivo; tocar un pico explica qué evento lo produjo; mapa de sonidos |
-| 6 | ¿Cómo reconocemos cambios? | referencia vs. condición alterada lado a lado (valva afectada en naranja) y diferencias |
-| 7 | ¿Qué hace nuestra IA? | flujo Sensores → Señales → Análisis → Comparación → Resultado; patrón similar / cambio detectado / desviación experimental |
-| 8 | Dashboard y Kinesiología | vista del laboratorio con datos simulados y paciente sintético |
-| 9 | Impacto y futuro | Hoy vs. Visión futura + «Plan y próximos pasos» (Gantt, entrevista, Toolkit, souvenir y QR) |
-| — | Bibliografía | |
+| — | Portada (`#/cover`) | válvula aórtica 3D abriéndose lentamente · CARDIOVAL AI · integrantes, profesor asesor y UDD · «Comenzar presentación →» |
+| 1 | ¿Qué es CardioVal AI? (`#/que-es`) | Válvula → Sensores → IA y flujo animado Válvula → Piezo/MEMS → ESP32 → Análisis → Dashboard |
+| 2 | Wicked problem (`#/problema`) | pregunta del problema, corazón · prótesis · señales · rehabilitación, flujo Problema → Necesidad → Propuesta y «¿Por qué es un wicked problem?» (Rittel y Webber, 1973) |
+| 3 | Integración interdisciplinaria (`#/interdisciplina`) | diagrama conectado Biomedicina ↔ aportes conjuntos ↔ Kinesiología (seleccionable) |
+| 4 | Materiales (`#/materiales`) | 10 tarjetas ilustradas; al tocarlas: qué es, para qué sirve, dónde se ubica y cómo participa |
+| 5 | Carta Gantt (`#/gantt`) | línea de tiempo animada de 10 etapas con hito Feria 4 nov · **cronograma propuesto** |
+| 6 | Entrevista (`#/entrevista`) | validación interdisciplinaria con campos pendientes (no realizada aún) |
+| 7 | Prototipo antes/después (`#/prototipo`) | dibujo inicial (pendiente) vs. 3D: Abrir/Cerrar, normal, apertura restringida, sensores, mecanismo, vista explotada y comparación con la válvula real |
+| 8 | Modelos matemáticos (`#/modelos`) | pestañas Movimiento (θ, dθ/dt, límites) · Vibración (E = ∫x² dt) · Latido (FC = 60/RR, retardo τ) |
+| 9 | Resultados esperados (`#/resultados`) | 4 metas (no logradas aún) + proyección interdisciplinaria y vuelta a la pregunta |
+| 10 | Souvenir y cierre (`#/cierre`) | llavero 3D (propuesta), QR al dashboard y «Explorar el dashboard →» |
+| — | Bibliografía (`#/biblio`) | referencias verificadas y pendientes de verificación marcadas |
 
-Las ecuaciones (gradiente de presión, RR y FC, retardo τ, RMS y energía, FFT, puntajes z y similitud) están en LaTeX dentro de las explicaciones técnicas. El PDF incluye un anexo con el plan de trabajo.
+**Dashboard:** el botón «Dashboard ↗» de la barra superior y los botones de las pantallas 1, 9 y 10 abren una vista previa del laboratorio (el de este mismo archivo, funciona sin conexión), con «Abrir en pestaña nueva», «Versión en línea» y «← Volver a la presentación». La versión en línea se actualiza al integrar los cambios a `main`.
 
 ### Abrir
 
 | Opción | Cómo |
 |---|---|
-| **Sin internet** | `entrega/ValveSense_presentacion.html` (doble clic; autocontenido). |
+| **Presentación sin internet** | `entrega/index.html` (doble clic en Chrome; autocontenido, sin dependencias). Copia idéntica: `entrega/ValveSense_presentacion.html`. |
 | **Laboratorio sin internet** | `entrega/ValveSense_dashboard.html` (abre directo en `#/dashboard`). |
 | **Presentación con panel en vivo** | `#/panel` o `entrega/ValveSense_panel.html`. |
-| **PDF para Canvas** | `entrega/ValveSense_presentacion.pdf`. Regenerar tras completar los campos pendientes (botón ⎙). |
-| **Imágenes** | `entrega/imagenes/*.jpg`: renders 3D (válvula aórtica, prototipo, mecanismo, despiece, concepto futuro) y capturas de pantallas clave. |
-| **En línea** | https://emiliano1234art.github.io/cardiovalveai/ (se actualiza al hacer merge en `main`). |
+| **PDF** | `entrega/ValveSense_presentacion.pdf` (12 páginas). Regenerar tras completar campos pendientes (botón ⎙). |
+| **En línea** | https://emiliano1234art.github.io/cardiovalveai/ |
 | **Desarrollo** | `npm install && npm run dev` → http://localhost:5173/cardiovalveai/ |
 
-`npm run build:offline` regenera los HTML autocontenidos. Con el servidor de desarrollo activo, `node scripts/make-renders.cjs` regenera los renders 3D.
+`npm run build:offline` regenera los HTML autocontenidos. Con el servidor de desarrollo activo, `node scripts/make-renders.cjs` regenera los renders 3D (incluido `souvenir`). Dependencias (incluidas en el HTML): React, Three.js, KaTeX, Recharts, qrcode y fuentes Inter / JetBrains Mono.
 
 ### Controles
 
-← → / PageUp / PageDown / deslizar · pestañas superiores · **N** notas del expositor · **A** animación completa → reducida → pausa · **F** pantalla completa · ⎙ imprimir / PDF · enlaces directos `#/s4`, `#/biblio`…
+← → / PageUp / PageDown / deslizar · pestañas superiores · barra de progreso · **N** notas del expositor · **A** animación completa → reducida → pausa · **F** pantalla completa · ⎙ imprimir / PDF · Esc cierra la vista previa del dashboard.
 
 ### Dónde editar el contenido
 
-- **`src/presentation/content.ts`**: integrantes, entrevista, hallazgos del Toolkit, Carta Gantt, URL del QR, referencias y notas. Un texto entre `[corchetes]` es un **campo pendiente** y se resalta en rosa.
-- **`src/content/explanations.ts`**: todas las explicaciones «ⓘ» (sencilla + técnica + ecuaciones), compartidas por los dos modos.
+- **`src/presentation/content.ts`**: portada, pregunta del problema, aportes conjuntos, materiales, Carta Gantt (`GANTT`, `GANTT_IS_PROPOSAL`), entrevista (`INTERVIEW`), dibujo inicial (`DRAWING_BEFORE`), resultados esperados, URL del dashboard, referencias y notas. Un texto entre `[corchetes]` es un **campo pendiente** y se resalta en rosa.
+- **`src/presentation/explain.ts`**: explicaciones «ⓘ» de la presentación (sencilla + «Ver explicación científica»).
+- **`src/content/explanations.ts`**: explicaciones del laboratorio.
+
+### Información pendiente
+
+- Fechas oficiales del Encargo 2 (la Carta Gantt es una propuesta).
+- Entrevista: nombre, área, extracto, observaciones, impacto y foto.
+- Foto del dibujo inicial del prototipo.
+- Hallazgos del Toolkit (Encargo 1).
 
 ### Modelo de simulación (fuente única de verdad)
 

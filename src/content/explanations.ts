@@ -2,7 +2,7 @@
  * Explicaciones del dashboard en dos niveles.
  * Guía interna de cada texto sencillo (no se muestra): ¿qué vemos?, ¿de dónde
  * vienen los datos?, ¿qué significa que suba o baje?, ¿por qué importa?,
- * ¿cómo se relaciona con ValveSense?  Sencilla: 30–60 palabras.
+ * ¿cómo se relaciona con CardioVal AI?  Sencilla: 30–60 palabras.
  */
 export interface Explanation {
   title: string;
@@ -190,7 +190,7 @@ export const EXPLAIN = {
     look: ['No reemplaza ningún examen clínico.', 'Trabajamos con un modelo experimental, no con pacientes.'],
     tech: [
       'Las guías de enfermedad valvular recomiendan seguimiento clínico y ecocardiográfico periódico de las prótesis (ACC/AHA 2020; ESC/EACTS 2021).',
-      'ValveSense estudia si las señales mecánicas (piezoeléctrico) y acústicas (MEMS) de un modelo cambian de forma reconocible cuando cambia el movimiento de las valvas. Es investigación de base, no un método diagnóstico.',
+      'CardioVal AI estudia si las señales mecánicas (piezoeléctrico) y acústicas (MEMS) de un modelo cambian de forma reconocible cuando cambia el movimiento de las valvas. Es investigación de base, no un método diagnóstico.',
     ],
   },
   p_aortic_how: {

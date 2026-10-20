@@ -1,5 +1,5 @@
 /**
- * Modelo de datos de ValveSense.
+ * Modelo de datos de CardioVal AI.
  *
  * Todo lo que circula por la aplicación —venga del simulador o del ESP32—
  * respeta estos contratos. Ver README §5 «Estructura de datos esperada».

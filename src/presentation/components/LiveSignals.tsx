@@ -141,7 +141,14 @@ export function LiveSignals({ width, height, windowS = 2.5, lanes = ['vib', 'snd
           for (let i = 0; i < x.length; i++) m = Math.max(m, Math.abs(x[i]));
           lane(y, x, ln === 'vib' ? C.vib : C.snd, ln === 'vib' ? 'Piezo' : 'MEMS', 'datos reales', m * 1.1);
         } else {
-          lane(y, ln === 'vib' ? s!.vib : s!.snd, ln === 'vib' ? C.vib : C.snd, ln === 'vib' ? 'Piezo' : 'MEMS', ln === 'vib' ? 'x(t) [V]' : 's(t) [u.a.]', LIM);
+          lane(
+            y,
+            ln === 'vib' ? s!.vib : s!.snd,
+            ln === 'vib' ? C.vib : C.snd,
+            ln === 'vib' ? 'Piezo' : 'MEMS',
+            ln === 'vib' ? 'x(t) [V]' : 's(t) [u.a.]',
+            LIM,
+          );
         }
         y += laneH;
       }

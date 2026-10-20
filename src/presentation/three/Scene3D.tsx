@@ -41,7 +41,25 @@ interface Props {
 }
 
 /** Escena 3D sincronizada con el reloj único de simulación. */
-export function Scene3D({ kind, hotspots, activeHotspot = null, onHotspot, clock, manualOpen = null, showMech = false, camera = 'iso', cameraNonce = 0, exploded = false, xray = false, showLabels = true, selected = null, onSelect, autoRotate = false, interactive = true, onReady }: Props) {
+export function Scene3D({
+  kind,
+  hotspots,
+  activeHotspot = null,
+  onHotspot,
+  clock,
+  manualOpen = null,
+  showMech = false,
+  camera = 'iso',
+  cameraNonce = 0,
+  exploded = false,
+  xray = false,
+  showLabels = true,
+  selected = null,
+  onSelect,
+  autoRotate = false,
+  interactive = true,
+  onReady,
+}: Props) {
   const host = useRef<HTMLDivElement>(null);
   const labelsRef = useRef<HTMLDivElement>(null);
   const state = useRef({ exploded, xray, selected, autoRotate, clock, manualOpen, showMech });
@@ -146,7 +164,14 @@ export function Scene3D({ kind, hotspots, activeHotspot = null, onHotspot, clock
       controls.autoRotateSpeed = 0.7;
       controls.update();
       explodeK += ((st.exploded ? 1 : 0) - explodeK) * 0.12;
-      B.update(st.clock ? st.clock() : sim.t, sim.state.params, { exploded: explodeK, xray: st.xray, selected: st.selected, now: sim.running ? now : 0, manual: st.manualOpen, mech: st.showMech });
+      B.update(st.clock ? st.clock() : sim.t, sim.state.params, {
+        exploded: explodeK,
+        xray: st.xray,
+        selected: st.selected,
+        now: sim.running ? now : 0,
+        manual: st.manualOpen,
+        mech: st.showMech,
+      });
       renderer.render(B.scene, cam);
       const w = el.clientWidth;
       const h = el.clientHeight;
@@ -193,17 +218,20 @@ export function Scene3D({ kind, hotspots, activeHotspot = null, onHotspot, clock
   return (
     <div className="scene" ref={host}>
       <div className="scene-labels" ref={labelsRef} style={{ display: showLabels ? undefined : 'none' }}>
-        {labelDefs.map((l) => (
-          <button
-            key={l.id}
-            className={`scene-label${(hotspots ? activeHotspot : selected) === l.id ? ' active' : ''}`}
-            onClick={() => (hotspots ? onHotspot?.(activeHotspot === l.id ? null : l.id) : onSelect?.(selected === l.id ? null : l.id))}
-            tabIndex={onSelect || onHotspot ? 0 : -1}
-            aria-pressed={(hotspots ? activeHotspot : selected) === l.id}
-          >
-            {l.num !== undefined && <b>{l.num}</b>} {l.text}
-          </button>
-        ))}
+        {labelDefs.map((l) => {
+          const on = hotspots ? activeHotspot === l.id : !!selected && selected.split(',').includes(l.id);
+          return (
+            <button
+              key={l.id}
+              className={`scene-label${on ? ' active' : ''}`}
+              onClick={() => (hotspots ? onHotspot?.(activeHotspot === l.id ? null : l.id) : onSelect?.(selected === l.id ? null : l.id))}
+              tabIndex={onSelect || onHotspot ? 0 : -1}
+              aria-pressed={on}
+            >
+              {l.num !== undefined && <b>{l.num}</b>} {l.text}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

@@ -8,6 +8,8 @@ export interface DeckCtx {
   print: boolean;
   goTo: (id: string) => void;
   active: boolean;
+  /** abre la vista previa del dashboard experimental */
+  openDashboard?: () => void;
 }
 
 export const Deck = createContext<DeckCtx>({ mode: 'explore', print: false, goTo: () => {}, active: true });
@@ -33,7 +35,11 @@ export function SlideHead({ num, kicker, title, lead, right }: HeadProps) {
           {lead && <p className="v-lead">{lead}</p>}
         </div>
       </div>
-      {right && <div className="v-row" style={{ justifyContent: 'flex-end', flexWrap: 'nowrap' }}>{right}</div>}
+      {right && (
+        <div className="v-row" style={{ justifyContent: 'flex-end', flexWrap: 'nowrap' }}>
+          {right}
+        </div>
+      )}
     </header>
   );
 }

@@ -138,7 +138,7 @@ export function GraphExplanation({ id, content, compact = false, label = '¿Qué
                 </ul>
               )}
               <button type="button" className="explain-tech-btn" onClick={() => setTech((v) => !v)} aria-expanded={tech}>
-                {tech ? 'Ocultar explicación técnica ▴' : 'Ver explicación técnica ▾'}
+                {tech ? 'Ocultar explicación científica ▴' : 'Ver explicación científica ▾'}
               </button>
               {tech && (
                 <div className="explain-tech">

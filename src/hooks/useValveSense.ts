@@ -5,7 +5,7 @@ import type { ExperimentalMode } from '../types/valvesense';
 
 const UI_HZ = 10;
 
-/** Hook React que expone el motor de ValveSense con refresco a 10 Hz. */
+/** Hook React que expone el motor de CardioVal AI con refresco a 10 Hz. */
 export function useValveSense() {
   const engineRef = useRef<ValveSenseEngine | null>(null);
   if (!engineRef.current) engineRef.current = new ValveSenseEngine();

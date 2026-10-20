@@ -40,7 +40,23 @@ export function PlaybackButtons({ small = false }: { small?: boolean }) {
   );
 }
 
-function Slider({ label, min, max, step, value, unit, onChange }: { label: string; min: number; max: number; step: number; value: number; unit: string; onChange: (v: number) => void }) {
+function Slider({
+  label,
+  min,
+  max,
+  step,
+  value,
+  unit,
+  onChange,
+}: {
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  unit: string;
+  onChange: (v: number) => void;
+}) {
   return (
     <label className="v-slider">
       {label}
@@ -61,14 +77,42 @@ export function ParamSliders({ timing = true, angle = true }: { timing?: boolean
       <Slider label="FC (ECG)" min={LIMITS.bpm[0]} max={LIMITS.bpm[1]} step={1} value={params.bpm} unit="lpm" onChange={(bpm) => sim.setParams({ bpm })} />
       {timing && (
         <>
-          <Slider label="Retardo τ" min={LIMITS.delayMs[0]} max={LIMITS.delayMs[1]} step={5} value={params.delayMs} unit="ms" onChange={(delayMs) => sim.setParams({ delayMs })} />
-          <Slider label="Apertura D" min={LIMITS.openMs[0]} max={LIMITS.openMs[1]} step={10} value={params.openMs} unit="ms" onChange={(openMs) => sim.setParams({ openMs })} />
+          <Slider
+            label="Retardo τ"
+            min={LIMITS.delayMs[0]}
+            max={LIMITS.delayMs[1]}
+            step={5}
+            value={params.delayMs}
+            unit="ms"
+            onChange={(delayMs) => sim.setParams({ delayMs })}
+          />
+          <Slider
+            label="Apertura D"
+            min={LIMITS.openMs[0]}
+            max={LIMITS.openMs[1]}
+            step={10}
+            value={params.openMs}
+            unit="ms"
+            onChange={(openMs) => sim.setParams({ openMs })}
+          />
         </>
       )}
-      {angle && <Slider label="Ángulo máx." min={LIMITS.thetaMax[0]} max={LIMITS.thetaMax[1]} step={1} value={params.thetaMax} unit="°" onChange={(thetaMax) => sim.setParams({ thetaMax })} />}
+      {angle && (
+        <Slider
+          label="Ángulo máx."
+          min={LIMITS.thetaMax[0]}
+          max={LIMITS.thetaMax[1]}
+          step={1}
+          value={params.thetaMax}
+          unit="°"
+          onChange={(thetaMax) => sim.setParams({ thetaMax })}
+        />
+      )}
       <div className="v-tiny">
         RR = 60/FC = {RR.toFixed(3).replace('.', ',')} s
-        {eff.truncated && <span className="v-coral"> · apertura acortada a {(eff.dOpen * 1000).toFixed(0)} ms para completar el ciclo antes del siguiente latido</span>}
+        {eff.truncated && (
+          <span className="v-coral"> · apertura acortada a {(eff.dOpen * 1000).toFixed(0)} ms para completar el ciclo antes del siguiente latido</span>
+        )}
       </div>
     </div>
   );

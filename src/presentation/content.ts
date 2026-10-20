@@ -1,144 +1,294 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════
- *  CONTENIDO EDITABLE DE LA PRESENTACIÓN — ValveSense · CardioValveAI
+ *  CONTENIDO EDITABLE DE LA PRESENTACIÓN — CardioVal AI
  * ═══════════════════════════════════════════════════════════════════════
  *
  *  Todo lo que el equipo debe completar o actualizar está en este archivo:
- *  integrantes, entrevista, cronograma, hallazgos del Toolkit, referencias,
- *  URL del QR y notas del expositor.
+ *  datos de portada, entrevista, dibujo inicial, cronograma, materiales,
+ *  referencias, URL del dashboard y notas del expositor.
  *
  *  Regla: un texto entre [corchetes] es un CAMPO PENDIENTE y se muestra
  *  resaltado en la presentación. No reemplazar con información no verificada.
  */
 
 export const PENDING = (label: string) => `[${label}]`;
-
-/** Idea principal que debe recordar el público. */
-export const KEY_IDEA =
-  'ValveSense busca transformar las señales mecánicas y acústicas de una prótesis valvular en información útil para explorar nuevas formas de monitoreo cardiovascular y apoyar, en el futuro, una rehabilitación más personalizada.';
 export const isPending = (s: string | null | undefined) => !s || /^\[.*\]$/.test(s.trim());
 
 // ─────────────────────────────── Portada ───────────────────────────────
 export const META = {
-  project: 'ValveSense',
-  subtitle: 'Señales mecánicas y acústicas de una prótesis valvular, sincronizadas con el ECG, para explorar un monitoreo cardiovascular más personalizado',
-  team: 'CardioValveAI',
+  project: 'CardioVal AI',
+  subtitle: 'Escuchamos el funcionamiento de una válvula para comprender sus cambios.',
+  tagline: 'Tecnología e inteligencia artificial para explorar el funcionamiento valvular y su relación con la rehabilitación cardiovascular.',
   careers: ['Ingeniería Civil en Biomedicina', 'Kinesiología'],
-  course: 'Proyecto Interdisciplinario (ID)',
-  institution: 'Facultad de Ingeniería',
+  faculties: 'Facultad de Medicina · Facultad de Ingeniería',
+  institution: 'Universidad del Desarrollo',
   date: '21 de octubre de 2026',
-  /** Integrantes: reemplazar los marcadores por nombres reales. */
-  members: [
-    { name: PENDING('Integrante 1'), career: 'Ingeniería Civil en Biomedicina' },
-    { name: PENDING('Integrante 2'), career: 'Ingeniería Civil en Biomedicina' },
-    { name: PENDING('Integrante 3'), career: 'Kinesiología' },
-    { name: PENDING('Integrante 4'), career: 'Kinesiología' },
-  ],
-  focus:
-    'Sistema inteligente de seguimiento de pacientes con prótesis valvulares que busca relacionar el funcionamiento valvular con la respuesta funcional del paciente para apoyar una rehabilitación cardiorrespiratoria personalizada.',
+  /** Integrantes (orden de la portada). */
+  members: ['Francisco Rojas', 'Johan Denis', 'Vicente Brito', 'Benjamín Saldívar', 'Emiliano Hernández'],
+  advisor: 'Gustavo Castro',
+  description:
+    'Sistema experimental de seguimiento de una válvula aórtica trivalva mediante sensores acústicos y vibratorios, con análisis por inteligencia artificial y una futura integración con indicadores funcionales del paciente para investigación en rehabilitación cardiorrespiratoria.',
+  closing: 'Tecnología, señales y rehabilitación: una nueva manera de explorar el funcionamiento valvular.',
 };
 
-// ──────────────────────── QR / enlace del dashboard ────────────────────────
+// ──────────────────────── Dashboard experimental ────────────────────────
 /**
- * URL pública del despliegue (GitHub Pages, workflow `deploy.yml`, ejecución
- * exitosa del 2 oct 2026). Si cambia, actualizar aquí; si se deja vacío, el QR
- * no se genera y aparece un campo pendiente.
+ * URL pública (GitHub Pages). La versión publicada se actualiza cuando los
+ * cambios se integran a la rama principal; hasta entonces puede mostrar una
+ * versión anterior. El laboratorio de este mismo archivo (#/dashboard) está
+ * siempre actualizado y funciona sin conexión.
  */
 export const DASHBOARD_URL = 'https://emiliano1234art.github.io/cardiovalveai/';
 
-// ─────────────────── Toolkit (Encargo 1) — hallazgos reales ───────────────────
-/** Reemplazar por los hallazgos documentados en el Toolkit. */
+// ─────────────────────── Pantalla 2 · Wicked problem ───────────────────────
+export const WICKED_QUESTION =
+  '¿Cómo contribuir a un seguimiento cardiovascular más integrado, relacionando el funcionamiento de prótesis valvulares con la recuperación funcional de las personas?';
+
+export const WICKED_POINTS = [
+  {
+    t: 'Evaluaciones especializadas',
+    d: 'El seguimiento de una prótesis valvular se apoya en controles clínicos e imágenes realizados por especialistas.',
+    refs: ['otto2021', 'zoghbi2024'],
+  },
+  {
+    t: 'Dos miradas complementarias',
+    d: 'El funcionamiento de la válvula y la capacidad funcional de la persona se evalúan por separado y se complementan.',
+    refs: ['abraham2021', 'ambrosetti2021'],
+  },
+  { t: 'Varias disciplinas', d: 'Cardiología, kinesiología, ingeniería y la propia persona participan en la recuperación.', refs: ['ambrosetti2021'] },
+  {
+    t: 'Una oportunidad futura',
+    d: 'Las señales mecánicas y acústicas se investigan como fuente complementaria de información.',
+    refs: ['taebi2019', 'fritzsche2007'],
+  },
+];
+
+/** Rasgos de un «wicked problem» (Rittel y Webber, 1973) aplicados al proyecto. */
+export const WICKED_TRAITS = [
+  { t: 'No tiene una formulación única', d: 'Para cardiología es la prótesis; para kinesiología, la capacidad funcional; para la persona, su vida diaria.' },
+  { t: 'No hay respuesta correcta o incorrecta', d: 'Las propuestas son mejores o peores según el contexto, no verdaderas o falsas.' },
+  { t: 'Cada caso es único', d: 'Tipo de prótesis, condición física y metas de rehabilitación cambian de una persona a otra.' },
+  { t: 'Sin punto final claro', d: 'El seguimiento continúa en el tiempo: siempre puede mejorarse cómo se integra la información.' },
+];
+
+// ─────────────────── Pantalla 3 · Integración interdisciplinaria ───────────────────
+export const BIOMED = [
+  { id: 'proto', t: 'Diseño del prototipo' },
+  { id: 'elec', t: 'Electrónica y sensores' },
+  { id: 'dsp', t: 'Procesamiento de señales' },
+  { id: 'math', t: 'Modelos matemáticos' },
+  { id: 'ai', t: 'Inteligencia artificial' },
+];
+export const KINE = [
+  { id: 'phys', t: 'Fisiología cardiovascular' },
+  { id: 'valve', t: 'Funcionamiento valvular' },
+  { id: 'vars', t: 'Variables funcionales del paciente' },
+  { id: 'rehab', t: 'Rehabilitación cardiorrespiratoria' },
+  { id: 'need', t: 'Necesidades clínicas' },
+];
+/** Aportes conjuntos: cada uno conecta saberes de ambas carreras. */
+export const JOINT = [
+  {
+    t: 'Qué movimiento debe imitar el prototipo',
+    bio: ['proto', 'math'],
+    kine: ['phys', 'valve'],
+    d: 'Kinesiología explica el ciclo de la válvula aórtica; Biomedicina lo traduce a un mecanismo y a un modelo θ(t).',
+  },
+  {
+    t: 'Qué señales registrar y cómo leerlas',
+    bio: ['elec', 'dsp'],
+    kine: ['valve', 'phys'],
+    d: 'Vibración (piezo) y sonido (MEMS) se eligen porque acompañan la apertura y el cierre de las valvas.',
+  },
+  {
+    t: 'Qué indicadores funcionales sumar en el futuro',
+    bio: ['ai', 'dsp'],
+    kine: ['vars', 'rehab'],
+    d: 'FC, SpO₂, percepción de esfuerzo (Borg) y recuperación de la FC como variables a integrar en investigación.',
+  },
+  {
+    t: 'Cómo comunicar resultados sin diagnosticar',
+    bio: ['ai'],
+    kine: ['need', 'rehab'],
+    d: 'El dashboard muestra cambios respecto de una referencia; la interpretación clínica corresponde a profesionales.',
+  },
+];
+/** Hallazgos del Toolkit (Encargo 1). Reemplazar los marcadores por los hallazgos reales. */
 export const TOOLKIT_FINDINGS: string[] = [
   PENDING('Hallazgo 1 del Toolkit — copiar desde Encargo 1'),
   PENDING('Hallazgo 2 del Toolkit — copiar desde Encargo 1'),
-  PENDING('Hallazgo 3 del Toolkit — copiar desde Encargo 1'),
 ];
 
-/** Decisiones conjuntas ya definidas en el planteamiento del equipo. */
-export const JOINT_DECISIONS: { decision: string; from: string }[] = [
-  { decision: 'Enfocar el proyecto en seguimiento y rehabilitación, no en diagnóstico.', from: 'Biomedicina + Kinesiología' },
-  { decision: 'Registrar vibración (piezoeléctrico) y sonido (MEMS) del movimiento valvular en un prototipo a escala.', from: 'Biomedicina' },
-  { decision: 'Seleccionar como variables funcionales futuras: FC, SpO₂, percepción de esfuerzo (Borg) y recuperación de FC.', from: 'Kinesiología' },
-  { decision: 'Construir una línea basal del prototipo y comparar condiciones mecánicas controladas.', from: 'Biomedicina + Kinesiología' },
-  { decision: 'Sincronizar la válvula demostrativa con el ECG como representación educativa (no fisiológica).', from: 'Biomedicina + Kinesiología' },
+// ─────────────────────────── Pantalla 4 · Materiales ───────────────────────────
+export type MaterialIcon = 'esp32' | 'mems' | 'piezo' | 'servo' | 'petg' | 'hardware' | 'breadboard' | 'power' | 'base' | 'laptop';
+export interface Material {
+  id: MaterialIcon;
+  name: string;
+  /** ¿Qué es? */
+  what: string;
+  /** ¿Para qué sirve? */
+  why: string;
+  /** ¿Dónde se ubica? */
+  where: string;
+  /** ¿Cómo participa? */
+  how: string;
+  /** componente del modelo 3D que se resalta (opcional) */
+  model?: string;
+}
+export const MATERIALS: Material[] = [
+  {
+    id: 'esp32',
+    name: 'ESP32 DevKit',
+    model: 'esp32',
+    what: 'Microcontrolador con Wi-Fi y Bluetooth.',
+    why: 'Lee los sensores, controla el servo y envía los datos.',
+    where: 'Sobre la base, junto a la protoboard.',
+    how: 'Muestrea el piezo (ADC) y el MEMS (I²S) y transmite al computador.',
+  },
+  {
+    id: 'mems',
+    name: 'Micrófono MEMS INMP441',
+    model: 'mic',
+    what: 'Micrófono digital miniatura.',
+    why: 'Registra el sonido de apertura y cierre.',
+    where: 'En un brazo, orientado hacia el anillo valvular.',
+    how: 'Entrega audio digital al ESP32 por I²S.',
+  },
+  {
+    id: 'piezo',
+    name: 'Sensor piezoeléctrico 12–15 mm',
+    model: 'piezo',
+    what: 'Disco que genera voltaje al deformarse.',
+    why: 'Capta la vibración de cada apertura y cierre.',
+    where: 'Integrado en la estructura rígida del anillo.',
+    how: 'Su voltaje se acondiciona y lo lee el ADC del ESP32.',
+  },
+  {
+    id: 'servo',
+    name: 'Servomotor MG90S',
+    model: 'actuator',
+    what: 'Motor pequeño con control de posición.',
+    why: 'Mueve las tres valvas de forma repetible.',
+    where: 'Bajo el anillo, en el soporte.',
+    how: 'Gira una leva que desplaza el anillo actuador y las 3 bielas.',
+  },
+  {
+    id: 'petg',
+    name: 'Filamento PETG',
+    model: 'valve',
+    what: 'Plástico para impresión 3D.',
+    why: 'Fabricar anillo, valvas y soportes.',
+    where: 'En todas las piezas impresas.',
+    how: 'Da rigidez al anillo y resistencia a las piezas móviles.',
+  },
+  {
+    id: 'hardware',
+    name: 'Bisagras, ejes, tornillos y montaje',
+    model: 'hardware',
+    what: 'Piezas mecánicas de unión y giro.',
+    why: 'Permitir que cada valva gire y quede fija.',
+    where: 'En las comisuras, bielas y soportes.',
+    how: 'Definen el eje de giro y la holgura de cada valva.',
+  },
+  {
+    id: 'breadboard',
+    name: 'Protoboard y cables Dupont',
+    model: 'wiring',
+    what: 'Placa de conexiones sin soldadura.',
+    why: 'Conectar sensores, servo y ESP32.',
+    where: 'Sobre la base.',
+    how: 'Permite probar y cambiar el circuito con rapidez.',
+  },
+  {
+    id: 'power',
+    name: 'Fuente de alimentación',
+    model: 'power',
+    what: 'Fuente externa de 5 V.',
+    why: 'Alimentar el servo y la electrónica.',
+    where: 'Sobre la base, separada de los sensores.',
+    how: 'Evita que el consumo del servo afecte las mediciones.',
+  },
+  {
+    id: 'base',
+    name: 'Base y soportes',
+    model: 'base',
+    what: 'Plataforma con columna y brazos.',
+    why: 'Mantener todo fijo y alineado.',
+    where: 'Bajo el conjunto.',
+    how: 'Reduce vibraciones externas y fija la posición de los sensores.',
+  },
+  {
+    id: 'laptop',
+    name: 'Computador con dashboard',
+    what: 'Equipo que recibe y muestra los datos.',
+    why: 'Visualizar, comparar y guardar señales.',
+    where: 'Fuera del prototipo.',
+    how: 'Ejecuta el dashboard y el análisis con IA.',
+  },
 ];
 
-// ─────────────────────── Entrevista al docente (pendiente) ───────────────────────
-export const INTERVIEW = {
-  status: 'pendiente' as 'pendiente' | 'realizada',
-  name: PENDING('Nombre del profesor(a)'),
-  role: PENDING('Especialidad o cargo'),
-  date: PENDING('Fecha de la entrevista'),
-  /** Ruta a la foto institucional (p. ej. '/interview.jpg' dentro de /public) o null. */
-  photo: null as string | null,
-  quote: PENDING('Extracto real pendiente'),
-  observation: PENDING('Observación del académico'),
-  implication: PENDING('Implicación para el proyecto'),
-  adjustment: PENDING('Ajuste propuesto por el equipo'),
-  verdict: null as null | 'valida' | 'complementa' | 'cuestiona',
-  /** Preguntas preparadas para la entrevista (guion, NO respuestas). */
-  questions: [
-    '¿Qué variables funcionales considera más útiles para seguir a una persona con prótesis valvular durante la rehabilitación?',
-    '¿Qué limitaciones ve en usar un prototipo accionado por servo, sin circuito de presión ni flujo?',
-    '¿Cómo validaría que el registro de vibración y sonido es repetible entre sesiones?',
-    '¿Qué riesgos éticos o de interpretación debemos evitar al mostrar indicadores de “anomalía”?',
-    '¿Qué resultado mínimo esperaría ver en la Feria Científica?',
-  ],
-};
-
-// ─────────────────────────── Dibujo inicial (antes) ───────────────────────────
-/** Ruta a la foto/escaneo del dibujo a mano (p. ej. '/dibujo-inicial.jpg' en /public) o null. */
-export const DRAWING_BEFORE: string | null = null;
-
-// ─────────────────────────── Carta Gantt (Encargo 2) ───────────────────────────
-export type TaskStatus = 'realizado' | 'en curso' | 'pendiente' | 'por confirmar';
-
+// ─────────────────────────── Pantalla 5 · Carta Gantt ───────────────────────────
+/**
+ * IMPORTANTE: El Encargo 2 no estaba disponible al construir esta versión.
+ * Las fechas son un CRONOGRAMA PROPUESTO editable.
+ * Reemplazar `start` / `end` con las fechas oficiales y cambiar GANTT_IS_PROPOSAL a false.
+ */
+export const GANTT_IS_PROPOSAL = true;
 export interface GanttTask {
   name: string;
   start: string; // ISO yyyy-mm-dd
   end: string;
-  status: TaskStatus;
-  owner?: string;
-  /** Respaldo documental del estado (obligatorio para «realizado» / «en curso»). */
-  evidence?: string;
+  area: 'Ambas' | 'Biomedicina' | 'Kinesiología';
 }
-
-/**
- * IMPORTANTE: El Encargo 2 no estaba disponible al construir esta versión.
- * Las fechas son una PROPUESTA editable; los estados quedan «por confirmar»
- * salvo los que tienen respaldo en el repositorio.
- */
-export const GANTT_IS_PROPOSAL = true;
 export const GANTT: GanttTask[] = [
-  { name: 'Diseño de válvula y mecanismo', start: '2026-09-21', end: '2026-10-09', status: 'por confirmar' },
-  { name: 'Impresión 3D (anillo y valvas)', start: '2026-10-05', end: '2026-10-16', status: 'por confirmar' },
-  { name: 'Montaje mecánico', start: '2026-10-12', end: '2026-10-23', status: 'por confirmar' },
-  { name: 'Integración de sensores', start: '2026-10-19', end: '2026-10-28', status: 'por confirmar' },
-  { name: 'Adquisición de datos (ESP32)', start: '2026-10-22', end: '2026-10-31', status: 'por confirmar' },
-  { name: 'Análisis de señales', start: '2026-10-26', end: '2026-11-02', status: 'por confirmar' },
-  {
-    name: 'Sincronización ECG (modo simulado)',
-    start: '2026-10-15',
-    end: '2026-10-28',
-    status: 'en curso',
-    evidence: 'Repositorio: ECG sintético, detección de R y sincronización en la presentación (oct.)',
-  },
-  { name: 'Adquisición ECG real segura (propuesta)', start: '2026-10-27', end: '2026-11-03', status: 'por confirmar' },
-  {
-    name: 'Dashboard y presentación interactiva',
-    start: '2026-10-01',
-    end: '2026-10-20',
-    status: 'en curso',
-    evidence: 'Repositorio: dashboard v1 (1 oct), presentación interactiva y dashboard con ECG simulado (19 oct)',
-  },
-  { name: 'Pruebas por condición', start: '2026-10-28', end: '2026-11-03', status: 'por confirmar' },
-  { name: 'Preparación Feria y souvenir', start: '2026-10-26', end: '2026-11-04', status: 'por confirmar' },
+  { name: 'Investigación', start: '2026-09-07', end: '2026-09-25', area: 'Ambas' },
+  { name: 'Diseño 3D', start: '2026-09-21', end: '2026-10-09', area: 'Biomedicina' },
+  { name: 'Selección y adquisición de materiales', start: '2026-09-28', end: '2026-10-14', area: 'Ambas' },
+  { name: 'Impresión y ensamblaje', start: '2026-10-12', end: '2026-10-23', area: 'Biomedicina' },
+  { name: 'Integración piezo + MEMS', start: '2026-10-19', end: '2026-10-27', area: 'Biomedicina' },
+  { name: 'Programación ESP32', start: '2026-10-19', end: '2026-10-28', area: 'Biomedicina' },
+  { name: 'Adquisición y análisis de señales', start: '2026-10-26', end: '2026-11-01', area: 'Ambas' },
+  { name: 'Integración del dashboard', start: '2026-10-01', end: '2026-10-30', area: 'Ambas' },
+  { name: 'Pruebas y validación', start: '2026-10-28', end: '2026-11-03', area: 'Ambas' },
+  { name: 'Feria', start: '2026-11-04', end: '2026-11-04', area: 'Ambas' },
+];
+export const MILESTONES = [
+  { date: '2026-10-21', label: 'Presentación de avance' },
+  { date: '2026-11-04', label: 'Feria' },
 ];
 
-export const MILESTONES = [
-  { date: '2026-10-20', label: 'Entrega Canvas · 19:00' },
-  { date: '2026-10-21', label: 'Presentación de avance' },
-  { date: '2026-11-04', label: 'Feria Científica' },
+// ─────────────────────── Pantalla 6 · Entrevista (pendiente) ───────────────────────
+/**
+ * La entrevista AÚN NO SE REALIZA. No completar con respuestas supuestas.
+ * Al realizarla: cambiar `status`, completar los campos y, si hay foto,
+ * copiarla a /public y escribir su ruta en `photo` (p. ej. 'entrevista.jpg').
+ */
+export const INTERVIEW = {
+  status: 'pendiente' as 'pendiente' | 'realizada',
+  photo: null as string | null,
+  name: PENDING('POR CONFIRMAR'),
+  area: PENDING('POR COMPLETAR'),
+  extract: PENDING('PENDIENTE'),
+  observations: PENDING('PENDIENTE'),
+  impact: PENDING('PENDIENTE'),
+  /** Guion preparado (preguntas, NO respuestas). */
+  questions: [
+    '¿Qué variables funcionales considera más útiles durante la rehabilitación de una persona con prótesis valvular?',
+    '¿Qué limitaciones ve en un prototipo accionado por servo, sin presión ni flujo?',
+    '¿Cómo validaría que el registro de vibración y sonido es repetible?',
+  ],
+};
+
+// ─────────────────────────── Pantalla 7 · Dibujo inicial ───────────────────────────
+/** Foto o escaneo del dibujo a mano (copiar a /public y escribir la ruta, p. ej. 'dibujo-inicial.jpg') o null. */
+export const DRAWING_BEFORE: string | null = null;
+
+// ─────────────────────────── Pantalla 9 · Resultados esperados ───────────────────────────
+export const EXPECTED = [
+  { id: 'proto', t: 'Prototipo trivalva funcional', d: 'Tres valvas que abren y cierran de forma repetible con un solo servo.' },
+  { id: 'signals', t: 'Señales registradas', d: 'Vibración y sonido de cada apertura y cierre, guardados por ciclo.' },
+  { id: 'compare', t: 'Comparación de patrones', d: 'Diferencias entre el funcionamiento normal y una apertura restringida.' },
+  { id: 'dash', t: 'Dashboard interactivo', d: 'Señales, ciclo valvular y alertas de cambio en una sola vista.' },
 ];
 
 // ─────────────────────────────── Bibliografía ───────────────────────────────
@@ -148,11 +298,24 @@ export interface Reference {
   url?: string;
   /** verificada = autores, título, revista y DOI comprobados; pendiente = falta verificar. */
   status: 'verificada' | 'pendiente de verificación';
-  topic: 'Prótesis valvulares' | 'Fisiología y ECG' | 'Rehabilitación y respuesta funcional' | 'Análisis acústico y vibracional' | 'Componentes electrónicos';
+  topic:
+    | 'Problemas complejos e interdisciplina'
+    | 'Prótesis valvulares'
+    | 'Fisiología y ECG'
+    | 'Rehabilitación y respuesta funcional'
+    | 'Análisis acústico y vibracional'
+    | 'Componentes electrónicos';
   note?: string;
 }
 
 export const REFERENCES: Reference[] = [
+  {
+    id: 'rittel1973',
+    topic: 'Problemas complejos e interdisciplina',
+    text: 'Rittel HWJ, Webber MM. Dilemmas in a general theory of planning. Policy Sciences. 1973;4(2):155–169.',
+    url: 'https://doi.org/10.1007/BF01405730',
+    status: 'verificada',
+  },
   {
     id: 'otto2021',
     topic: 'Prótesis valvulares',
@@ -281,15 +444,18 @@ export const refIndex = (id: string) => REFERENCES.findIndex((r) => r.id === id)
 
 // ─────────────────────────── Notas del expositor ───────────────────────────
 export const NOTES: Record<string, string> = {
-  cover: 'Presentar al equipo CardioValveAI. La animación es una válvula aórtica de tres valvas. Invitar a explorar: «Explorar proyecto».',
-  s1: 'Plantear la pregunta: ¿podemos estudiar cómo funciona una válvula a partir de sus vibraciones y sonidos? Aclarar que no reemplaza exámenes clínicos.',
-  s2: 'Explicar el ciclo con el control Abierta ↔ Cerrada. Tres valvas semilunares; es la válvula aórtica, no la tricúspide. Botón «¿Por qué se mueve sin motores?»: las válvulas reales son pasivas.',
-  s3: 'Recorrer el prototipo tocando las piezas: piezo integrado en el anillo, MEMS orientado a la línea de cierre, ESP32 y el mecanismo (un servo → leva → anillo actuador → 3 bielas). Es un diseño propuesto.',
-  s4: 'Mostrar el ECG simulado, el pico R y el retraso τ antes de la apertura. Cambiar la FC. ECG real solo con módulo aislado.',
-  s5: 'Tocar un pico de vibración y uno de sonido para ver qué evento lo produce. Mostrar el mapa de sonidos.',
-  s6: 'Comparar referencia vs. cada condición sobre una valva. Las señales cambian cuando cambia el movimiento.',
-  s7: 'Recorrer el flujo Sensores → Resultado. Probar «Ejercicio 110 lpm»: cambio de ritmo, no falla. Insistir: reconoce cambios mecánicos, no diagnostica.',
-  s8: 'Abrir el laboratorio interactivo si hay tiempo. Datos del paciente: sintéticos. Kinesiología: visión futura.',
-  s9: 'Separar lo implementado/simulado de lo propuesto y de la visión futura. Abrir «Plan y próximos pasos» para el Gantt y la entrevista (pendiente).',
-  biblio: 'Referencias verificadas y pendientes marcadas explícitamente.',
+  cover: 'Presentar CardioVal AI y al equipo de Biomedicina y Kinesiología. La válvula es aórtica, de tres valvas.',
+  'que-es': 'Válvula → sensores → IA. Recorrer el flujo: piezo y MEMS registran, el ESP32 transmite, el análisis compara y el dashboard muestra.',
+  problema:
+    'Leer la pregunta. No decir que las evaluaciones actuales son insuficientes: son especializadas y complementarias. Abrir «¿Por qué es un wicked problem?».',
+  interdisciplina: 'Tocar cada aporte conjunto para mostrar qué conocimiento aporta cada carrera.',
+  materiales: 'Tocar 2–3 tarjetas (ESP32, piezo, MEMS). No hay costos ni proveedores en esta versión.',
+  gantt: 'Cronograma propuesto (Encargo 2 por incorporar). Destacar la Feria el 4 de noviembre.',
+  entrevista: 'La entrevista aún no se realiza. Mostrar el guion y que los campos quedarán completos tras la entrevista.',
+  prototipo:
+    'Funcionamiento normal vs. apertura restringida; ver sensores y mecanismo. Diseño conceptual por validar. Una válvula real se mueve por presión, no por motor.',
+  modelos: 'Movimiento: θ(t) y su derivada. Vibración: energía de la señal, no joules. Latido: FC = 60/RR y retardo τ configurable.',
+  resultados: 'Son resultados esperados, no logrados. Conectar con la pregunta del wicked problem.',
+  cierre: 'Mostrar el souvenir (propuesta) y el QR. Invitar a explorar el dashboard.',
+  biblio: 'Referencias verificadas y pendientes de verificación marcadas explícitamente.',
 };

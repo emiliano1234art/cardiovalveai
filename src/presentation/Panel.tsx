@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { BrandMark } from '../components/shared/Brand';
 import { NOTES } from './content';
 import { Deck } from './components/deck';
 import { LiveSignals } from './components/LiveSignals';
@@ -160,7 +161,7 @@ export function Panel() {
     document.querySelector('.p-main')?.scrollTo({ top: 0 });
   }, []);
   const goTo = useCallback((id: string) => go(SLIDES.findIndex((x) => x.id === id)), [go]);
-  const ctx = useMemo(() => ({ mode: 'explore' as const, print: false, goTo, active: true }), [goTo]);
+  const ctx = useMemo(() => ({ mode: 'explore' as const, print: false, goTo, active: true, openDashboard: () => (location.hash = '#/dashboard') }), [goTo]);
 
   useEffect(() => {
     const on = () => setIndex(readHash());
@@ -185,13 +186,9 @@ export function Panel() {
     <div className={`p-root v-root v-explore v-motion-${s.motion}`}>
       <nav className="p-side" aria-label="Temas de la presentación">
         <div className="p-brand">
-          <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden>
-            <rect width="40" height="40" rx="11" fill="#0891b2" />
-            <circle cx="20" cy="20" r="11" fill="none" stroke="#fff" strokeWidth="2.2" />
-            <path d="M8 22h6l2.5-6 3.5 11 3-8 2 3h7" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <BrandMark />
           <div>
-            <b>ValveSense</b>
+            <b>CardioVal AI</b>
             <span>Presentación con panel en vivo</span>
           </div>
         </div>
@@ -213,7 +210,7 @@ export function Panel() {
       <div className="p-body">
         <header className="p-top">
           <div className="p-title">
-            <span className="v-kicker">{slide.num ? `Tema ${slide.num} de 10` : 'ValveSense'}</span>
+            <span className="v-kicker">{slide.num ? `Tema ${slide.num} de 10` : 'CardioVal AI'}</span>
             <h1>{slide.title}</h1>
           </div>
           <div className="p-kpis">

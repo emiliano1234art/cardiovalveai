@@ -1,23 +1,26 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ComponentType } from 'react';
 import { flushSync } from 'react-dom';
+import { BrandMark, BrandName } from '../components/shared/Brand';
 import { ModeSwitch, rememberSlide } from '../components/shared/ModeSwitch';
 import { NOTES } from './content';
 import { Deck } from './components/deck';
-import { PlanPanel } from './components/PlanPanel';
+import { DashboardOverlay } from './components/DashboardOverlay';
 import { sim, useSim, type MotionPref } from './sim/store';
 import { Bibliography } from './slides/Bibliography';
 import { Cover } from './slides/Cover';
-import { S01Problem } from './slides/S01Problem';
-import { S02Aortic } from './slides/S02Aortic';
-import { S03Prototype } from './slides/S03Prototype';
-import { S04Ecg } from './slides/S04Ecg';
-import { S05Sensors } from './slides/S05Sensors';
-import { S06Changes } from './slides/S06Changes';
-import { S07AI } from './slides/S07AI';
-import { S08Dashboard } from './slides/S08Dashboard';
-import { S09Future } from './slides/S09Future';
+import { D01What } from './slides/D01What';
+import { D02Wicked } from './slides/D02Wicked';
+import { D03Interdisciplinary } from './slides/D03Interdisciplinary';
+import { D04Materials } from './slides/D04Materials';
+import { D05Gantt } from './slides/D05Gantt';
+import { D06Interview } from './slides/D06Interview';
+import { D07Prototype } from './slides/D07Prototype';
+import { D08Math } from './slides/D08Math';
+import { D09Results } from './slides/D09Results';
+import { D10Closing } from './slides/D10Closing';
 import './styles/presentation.css';
 import './styles/presentation2.css';
+import './styles/presentation3.css';
 
 interface SlideDef {
   id: string;
@@ -28,18 +31,19 @@ interface SlideDef {
   C: ComponentType;
 }
 
-/** Portada + 9 pantallas de contenido + bibliografía. */
+/** Portada + 10 pantallas de contenido + bibliografía. */
 export const SLIDES: SlideDef[] = [
   { id: 'cover', num: null, tab: 'Inicio', title: 'Portada', C: Cover },
-  { id: 's1', num: 1, tab: 'Problema', title: '¿Cuál es el problema?', C: S01Problem },
-  { id: 's2', num: 2, tab: 'Válvula aórtica', title: '¿Cómo funciona una válvula aórtica?', C: S02Aortic },
-  { id: 's3', num: 3, tab: 'Prototipo', title: 'Nuestro prototipo ValveSense', C: S03Prototype },
-  { id: 's4', num: 4, tab: 'ECG', title: '¿Podemos sincronizarla con nuestro corazón?', C: S04Ecg },
-  { id: 's5', num: 5, tab: 'Sensores', title: '¿Qué escuchan nuestros sensores?', C: S05Sensors },
-  { id: 's6', num: 6, tab: 'Cambios', title: '¿Cómo reconocemos cambios?', C: S06Changes },
-  { id: 's7', num: 7, tab: 'IA', title: '¿Qué hace nuestra inteligencia artificial?', C: S07AI },
-  { id: 's8', num: 8, tab: 'Dashboard', title: 'Dashboard y Kinesiología', C: S08Dashboard },
-  { id: 's9', num: 9, tab: 'Futuro', title: 'Impacto y futuro', C: S09Future },
+  { id: 'que-es', num: 1, tab: 'CardioVal AI', title: '¿Qué es CardioVal AI?', C: D01What },
+  { id: 'problema', num: 2, tab: 'Problema', title: 'Wicked problem', C: D02Wicked },
+  { id: 'interdisciplina', num: 3, tab: 'Interdisciplina', title: 'Integración interdisciplinaria', C: D03Interdisciplinary },
+  { id: 'materiales', num: 4, tab: 'Materiales', title: 'Materiales', C: D04Materials },
+  { id: 'gantt', num: 5, tab: 'Gantt', title: 'Carta Gantt', C: D05Gantt },
+  { id: 'entrevista', num: 6, tab: 'Entrevista', title: 'Validación interdisciplinaria', C: D06Interview },
+  { id: 'prototipo', num: 7, tab: 'Prototipo', title: 'Prototipo: antes y después', C: D07Prototype },
+  { id: 'modelos', num: 8, tab: 'Modelos', title: 'Modelos matemáticos', C: D08Math },
+  { id: 'resultados', num: 9, tab: 'Resultados', title: 'Resultados esperados', C: D09Results },
+  { id: 'cierre', num: 10, tab: 'Cierre', title: 'Souvenir y cierre', C: D10Closing },
   { id: 'biblio', num: null, tab: 'Fuentes', title: 'Bibliografía', C: Bibliography },
 ];
 const N_CONTENT = SLIDES.filter((s) => s.num).length;
@@ -67,26 +71,13 @@ function useStageScale(ref: React.RefObject<HTMLDivElement | null>) {
   return scale;
 }
 
-function Logo() {
-  return (
-    <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden>
-      <defs>
-        <linearGradient id="vsg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#0a6f95" />
-          <stop offset="1" stopColor="#10a2a0" />
-        </linearGradient>
-      </defs>
-      <rect width="40" height="40" rx="11" fill="url(#vsg)" />
-      <circle cx="20" cy="20" r="11" fill="none" stroke="#fff" strokeWidth="2.2" />
-      <path d="M20 20L20 9M20 20l9.5 5.5M20 20l-9.5 5.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" opacity=".85" />
-    </svg>
-  );
-}
-
 export function Presentation() {
   const [index, setIndex] = useState(readHash);
   const [showNotes, setShowNotes] = useState(false);
   const [printing, setPrinting] = useState(false);
+  const [dash, setDash] = useState(false);
+  const openDashboard = useCallback(() => setDash(true), []);
+  const closeDashboard = useCallback(() => setDash(false), []);
   const { motion } = useSim();
   const wrap = useRef<HTMLDivElement>(null);
   const tabs = useRef<HTMLDivElement>(null);
@@ -139,7 +130,7 @@ export function Presentation() {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || e.metaKey || e.ctrlKey || e.altKey) return;
-      if (document.querySelector('.explain-pop')) return;
+      if (document.querySelector('.explain-pop, .v-dash-overlay')) return;
       const k = e.key;
       if (k === 'ArrowRight' || k === 'PageDown' || (k === ' ' && tag !== 'BUTTON')) {
         e.preventDefault();
@@ -178,11 +169,11 @@ export function Presentation() {
     };
   }, [index, go]);
 
-  const ctx = useMemo(() => ({ mode: 'explore' as const, print: false, goTo, active: true }), [goTo]);
+  const ctx = useMemo(() => ({ mode: 'explore' as const, print: false, goTo, active: !dash, openDashboard }), [goTo, dash, openDashboard]);
   const progress = (index / (SLIDES.length - 1)) * 100;
 
   if (printing) {
-    const pages = [...SLIDES.slice(0, -1), { id: 'plan', num: null, tab: 'Anexo', title: 'Anexo: plan y próximos pasos', C: PlanAppendix }, SLIDES[SLIDES.length - 1]];
+    const pages = SLIDES;
     return (
       <div className="v-root v-print-root v-theme-print v-explore">
         {pages.map((s) => (
@@ -190,7 +181,7 @@ export function Presentation() {
             <section className="v-print-page" aria-label={s.title}>
               <s.C />
               <div style={{ position: 'absolute', right: 28, bottom: 18, fontSize: 13, color: 'var(--muted)' }}>
-                ValveSense · CardioValveAI {s.num ? `· ${s.num} / ${N_CONTENT}` : ''}
+                CardioVal AI {s.num ? `· ${s.num} / ${N_CONTENT}` : ''}
               </div>
             </section>
           </Deck.Provider>
@@ -206,12 +197,12 @@ export function Presentation() {
     <div className={`v-root v-explore v-app v-motion-${motion}`}>
       <header className="v-appbar v-no-print">
         <div className="v-appbar-brand">
-          <Logo />
+          <BrandMark />
           <div>
             <b>
-              Valve<span>Sense</span>
+              <BrandName />
             </b>
-            <small>CardioValveAI</small>
+            <small>Universidad del Desarrollo</small>
           </div>
         </div>
         <nav className="v-tabs-bar" ref={tabs} aria-label="Pantallas">
@@ -222,12 +213,26 @@ export function Presentation() {
             </button>
           ))}
         </nav>
+        <button className="v-btn sm v-dash-btn" onClick={openDashboard} title="Abrir dashboard experimental">
+          Dashboard ↗
+        </button>
         <ModeSwitch active="presentation" />
         <div className="v-appbar-tools">
-          <button className="v-iconbtn" onClick={() => sim.setMotion(MOTION_NEXT[motion])} title={`${MOTION_LABEL[motion]} (A)`} aria-label={MOTION_LABEL[motion]}>
+          <button
+            className="v-iconbtn"
+            onClick={() => sim.setMotion(MOTION_NEXT[motion])}
+            title={`${MOTION_LABEL[motion]} (A)`}
+            aria-label={MOTION_LABEL[motion]}
+          >
             {motion === 'paused' ? '▶' : motion === 'reduced' ? '◐' : '●'}
           </button>
-          <button className="v-iconbtn" aria-pressed={showNotes} onClick={() => setShowNotes((v) => !v)} title="Notas del expositor (N)" aria-label="Notas del expositor">
+          <button
+            className="v-iconbtn"
+            aria-pressed={showNotes}
+            onClick={() => setShowNotes((v) => !v)}
+            title="Notas del expositor (N)"
+            aria-label="Notas del expositor"
+          >
             ✎
           </button>
           <button className="v-iconbtn" onClick={doPrint} title="Imprimir / Guardar como PDF" aria-label="Imprimir / Guardar como PDF">
@@ -249,6 +254,8 @@ export function Presentation() {
           </Deck.Provider>
         </div>
       </div>
+
+      {dash && <DashboardOverlay onClose={closeDashboard} />}
 
       {showNotes && (
         <div className="v-notes v-no-print" role="note">
@@ -273,19 +280,6 @@ export function Presentation() {
           Siguiente →
         </button>
       </footer>
-    </div>
-  );
-}
-
-/** Anexo impreso: plan de trabajo, entrevista, Toolkit y souvenir (en pantalla, dentro de «Plan y próximos pasos»). */
-function PlanAppendix() {
-  return (
-    <div className="v-slide" style={{ paddingTop: 40 }}>
-      <div className="v-kicker">Anexo</div>
-      <h2 className="v-h2" style={{ marginBottom: 14 }}>
-        Plan, entrevista y próximos pasos
-      </h2>
-      <PlanPanel />
     </div>
   );
 }

@@ -25,6 +25,7 @@ const JOBS = [
   { name: 'university-xray', q: 'university?camera=iso&xray=1&labels=1&open=0.7', w: 1600, h: 1000 },
   { name: 'university-exploded', q: 'university?camera=iso&exploded=1&labels=1&open=0.7', w: 1600, h: 1000 },
   { name: 'future', q: 'future?camera=iso&labels=1&open=0.6', w: 1600, h: 1000 },
+  { name: 'souvenir', q: 'souvenir?camera=iso&labels=1&open=0.55', w: 1100, h: 1200 },
 ];
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });

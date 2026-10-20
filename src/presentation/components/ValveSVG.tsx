@@ -27,7 +27,11 @@ interface Props {
 const N = 72;
 const toPts = (i: number, s: number, view: ViewName) =>
   leafletContour(i, s, 20)
-    .map((v) => project(v, view).map((c) => c.toFixed(2)).join(','))
+    .map((v) =>
+      project(v, view)
+        .map((c) => c.toFixed(2))
+        .join(','),
+    )
     .join(' ');
 
 function ring(view: ViewName, r: number, y = 0) {
@@ -51,7 +55,19 @@ export function openingsAt(t: number, p: SimParams, manual: number | null = null
 }
 
 /** Válvula aórtica trivalva en SVG: vista desde la aorta (top), lateral o isométrica. */
-export function ValveSVG({ view = 'top', angles, params, size = 220, highlight = null, title, tissue = false, clock, manual = null, numbers = false, getOpen }: Props) {
+export function ValveSVG({
+  view = 'top',
+  angles,
+  params,
+  size = 220,
+  highlight = null,
+  title,
+  tissue = false,
+  clock,
+  manual = null,
+  numbers = false,
+  getOpen,
+}: Props) {
   const polys = useRef<(SVGPolygonElement | null)[]>([]);
   const live = !angles;
   const mref = useRef(manual);
@@ -138,7 +154,15 @@ export function ValveSVG({ view = 'top', angles, params, size = 220, highlight =
         LEAF_IDX.map((i) => {
           const a = leafletCenter(i);
           return (
-            <text key={i} x={(R_IN * 0.72 * Math.cos(a)).toFixed(1)} y={(R_IN * 0.72 * Math.sin(a) + 2).toFixed(1)} textAnchor="middle" fontSize={6} fontWeight={700} fill={tissue ? '#7c5a36' : '#075985'}>
+            <text
+              key={i}
+              x={(R_IN * 0.72 * Math.cos(a)).toFixed(1)}
+              y={(R_IN * 0.72 * Math.sin(a) + 2).toFixed(1)}
+              textAnchor="middle"
+              fontSize={6}
+              fontWeight={700}
+              fill={tissue ? '#7c5a36' : '#075985'}
+            >
               {i + 1}
             </text>
           );

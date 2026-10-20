@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { ModeSwitch } from '../shared/ModeSwitch';
 import { IconBrain, IconHeart, IconHistory, IconPause, IconPerson, IconPlay, IconRotate, IconSound, IconSpark, IconValve, IconVibration } from '../ui/icons';
+import { BrandMark, BrandName } from '../shared/Brand';
 import type { EngineSnapshot } from '../../engine/ValveSenseEngine';
 import type { ConnectionStatus } from '../../types/valvesense';
 
@@ -19,20 +20,7 @@ const STATUS: Record<ConnectionStatus, { dot: string; text: string }> = {
 };
 
 export function Logo() {
-  return (
-    <svg className="brand-mark" viewBox="0 0 40 40" aria-hidden>
-      <defs>
-        <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#0a6f95" />
-          <stop offset="1" stopColor="#10a2a0" />
-        </linearGradient>
-      </defs>
-      <rect width="40" height="40" rx="11" fill="url(#lg)" />
-      <circle cx="20" cy="20" r="11" fill="none" stroke="#fff" strokeWidth="2.2" opacity=".95" />
-      <path d="M20 9.5v21" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity=".7" />
-      <path d="M8 22h6l2.5-6 3.5 11 3-8 2 3h7" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <BrandMark size={36} />;
 }
 
 export const NAV: { id: string; label: string; icon: ReactNode }[] = [
@@ -66,7 +54,7 @@ export function Header({ snap, onSimulation, onEsp32, paused, onPause, onLearn }
           <Logo />
           <div style={{ minWidth: 0 }}>
             <div className="brand-name">
-              Valve<span>Sense</span>
+              <BrandName />
             </div>
             <div className="brand-tag">Laboratorio interactivo · válvula aórtica trivalva</div>
           </div>

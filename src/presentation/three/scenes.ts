@@ -3,7 +3,7 @@ import { leafletCenter, leafletPoint, openFrac, OPEN_REF, R_IN, R_OUT, RING_H, Y
 import { commandState, LEAF_IDX, leafletBeat, leafletState, type SimParams } from '../sim/model';
 import { COMPONENTS, type ComponentId } from './components';
 
-export type SceneKind = 'university' | 'aortic' | 'future';
+export type SceneKind = 'university' | 'aortic' | 'future' | 'souvenir';
 export type CameraPreset = ViewName | 'hero';
 
 export interface LabelDef {
@@ -155,7 +155,8 @@ function setHighlight(scene: THREE.Scene, meshesById: Map<THREE.Object3D, string
     const m = (obj as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
     if (!m || !('emissive' in m) || skip.includes(m)) return;
     const id = meshesById.get(obj);
-    m.emissive.setHex(selected && id === selected ? 0x0e7490 : 0x000000);
+    // admite varios componentes separados por coma (p. ej. «piezo,mic»)
+    m.emissive.setHex(selected && id && selected.split(',').includes(id) ? 0x0e7490 : 0x000000);
   });
 }
 
@@ -540,4 +541,59 @@ export function buildFuture(): Built {
   };
 }
 
-export const BUILDERS: Record<SceneKind, () => Built> = { university: buildUniversity, aortic: buildAortic, future: buildFuture };
+// ═══════════════════════════ souvenir (llavero, propuesta) ═══════════════════════════
+
+export function buildSouvenir(): Built {
+  const scene = new THREE.Scene();
+  lights(scene);
+  const meshesById = new Map<THREE.Object3D, string>();
+  const g = new THREE.Group();
+  scene.add(g);
+  const petg = mat(0x0e9fb5, { roughness: 0.32, metalness: 0.05 });
+  const petgLight = mat(0xe0f7fa, { roughness: 0.4, metalness: 0.02 });
+  const steel = mat(0xcbd5e1, { metalness: 0.95, roughness: 0.2 });
+  // medallón: disco con el anillo valvular en relieve
+  const disc = annulus(R_OUT - 0.5, R_OUT + 9, 7, petg, 120);
+  g.add(disc);
+  const ring = annulus(R_IN, R_OUT, RING_H, petgLight, 120);
+  g.add(ring);
+  for (const i of LEAF_IDX) {
+    const a = leafletCenter(i) + Math.PI / 3;
+    const post = box(3.2, 7, 2.6, petgLight);
+    post.position.set((R_IN - 0.4) * Math.cos(a), Y_COM + 1.5, (R_IN - 0.4) * Math.sin(a));
+    post.lookAt(0, Y_COM + 1.5, 0);
+    g.add(post);
+  }
+  const cusps = cuspSet(g, mat(0x22d3ee, { roughness: 0.35, metalness: 0.05, side: THREE.DoubleSide }), meshesById, 'valve');
+  // argolla y anilla metálica
+  const tab = new THREE.Mesh(new THREE.TorusGeometry(6, 2.6, 16, 40), petg);
+  tab.position.set(0, 0, -(R_OUT + 13));
+  tab.rotation.x = Math.PI / 2;
+  g.add(tab);
+  const keyring = new THREE.Mesh(new THREE.TorusGeometry(15, 1.1, 14, 80), steel);
+  keyring.position.set(0, 0, -(R_OUT + 30));
+  keyring.rotation.y = Math.PI / 2;
+  g.add(keyring);
+  g.rotation.x = 0.18;
+  [disc, ring, tab].forEach((m) => meshesById.set(m, 'body'));
+  return {
+    scene,
+    meshesById,
+    labels: [
+      { id: 'valve', text: 'Tres valvas', anchor: new THREE.Vector3(0, 10, 12), group: g },
+      { id: 'body', text: 'PETG impreso en 3D', anchor: new THREE.Vector3(R_OUT + 6, 2, 14), group: g },
+    ],
+    cameras: {
+      iso: { pos: [105, 175, 215], target: [0, 0, -16] },
+      top: { pos: [0, 220, 0.01], target: [0, 0, -12] },
+      side: { pos: [0, 30, 220], target: [0, 0, -12] },
+      hero: { pos: [60, 110, 120], target: [0, 0, -14] },
+    },
+    update(t, p, o) {
+      const s = openings(t, p, o);
+      s.forEach((v, i) => updateCusp(cusps[i], i, v));
+    },
+  };
+}
+
+export const BUILDERS: Record<SceneKind, () => Built> = { university: buildUniversity, aortic: buildAortic, future: buildFuture, souvenir: buildSouvenir };
