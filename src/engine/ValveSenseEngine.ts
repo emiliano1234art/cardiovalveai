@@ -41,6 +41,8 @@ export interface EngineSnapshot {
   /** segundos desde el último R detectado */
   sinceBeat: number | null;
   hasEcg: boolean;
+  /** ¿llegaron muestras de la fuente activa? (con ESP32 desconectado: no) */
+  hasData: boolean;
   params: SimParams;
   /** fase de la válvula (en simulación, del modelo; con ESP32, por umbral de ángulo) */
   valvePhase: PhaseName | null;
@@ -90,8 +92,11 @@ export class ValveSenseEngine {
   private bpm = DEFAULT_BPM;
   private followPatient = false;
 
+  /** patrón de referencia simulado (se restaura al volver a la simulación) */
+  private simBaseline = calibrateSimulatedBaseline(40, DEFAULT_BPM);
+
   constructor() {
-    this.pipeline = new ValveAnalysisPipeline(calibrateSimulatedBaseline(40, DEFAULT_BPM));
+    this.pipeline = new ValveAnalysisPipeline(this.simBaseline);
     // pre-carga de 4 min de datos del paciente sintético para la tendencia
     this.patient = this.patientSim.step(0);
     for (let i = 0; i < 240; i++) this.stepPatient(1);
@@ -117,8 +122,11 @@ export class ValveSenseEngine {
     this.ecgBuf.clear();
     this.ecgCount = 0;
     this.pipeline.reset();
+    // con el prototipo real, la referencia debe registrarse con sus propios datos
+    this.pipeline.setBaseline(kind === 'simulation' ? this.simBaseline : null);
     this.latest = null;
     this.recent = [];
+    this.records = [];
     const src = make();
     this.simSource = src instanceof SyncedSimSource ? src : null;
     src.onChunk((c) => this.ingest(c));
@@ -154,7 +162,8 @@ export class ValveSenseEngine {
     if (this.recalTimer) clearTimeout(this.recalTimer);
     this.recalTimer = setTimeout(() => {
       const { delayMs, openMs, thetaMax } = simState.state.params;
-      this.pipeline.setBaseline(calibrateSimulatedBaseline(24, DEFAULT_BPM, { delayMs, openMs, thetaMax }));
+      this.simBaseline = calibrateSimulatedBaseline(24, DEFAULT_BPM, { delayMs, openMs, thetaMax });
+      if (this.sourceKind === 'simulation') this.pipeline.setBaseline(this.simBaseline);
     }, 400);
   }
   private recalTimer: ReturnType<typeof setTimeout> | null = null;
@@ -218,6 +227,18 @@ export class ValveSenseEngine {
     return Number.isFinite(v) ? Math.max(0, v) : 0;
   }
 
+  /**
+   * Reloj del modelo (s) en simulación, retrasado un bloque e interpolado con
+   * el reloj de pared (igual que la animación). `null` con datos reales.
+   */
+  modelTime(): number | null {
+    if (!this.simSource) return null;
+    const fs = ACQ.FS_PIEZO;
+    const running = simState.state.playing && simState.state.motion !== 'paused';
+    const ahead = running ? Math.min(this.lastChunkLen / fs, ((performance.now() - this.lastChunkWall) / 1000) * simState.state.speed) : this.lastChunkLen / fs;
+    return this.simSource.synth.t - this.lastChunkLen / fs + ahead;
+  }
+
   exportRecords(): CycleRecord[] {
     return [...this.records];
   }
@@ -242,9 +263,8 @@ export class ValveSenseEngine {
     }
     let valvePhase: PhaseName | null = null;
     let msSinceR: number | null = null;
-    if (this.simSource) {
-      // reloj del modelo retrasado un bloque (igual que la animación)
-      const t = this.simSource.synth.t - this.lastChunkLen / fs + Math.min(this.lastChunkLen / fs, (performance.now() - this.lastChunkWall) / 1000);
+    const t = this.modelTime();
+    if (t !== null) {
       valvePhase = phaseName(t, params);
       let k = Math.floor(t / rrOf(params)) + 1;
       while (rPeak(k, params) > t) k--;
@@ -260,6 +280,7 @@ export class ValveSenseEngine {
       ecgBpm,
       sinceBeat,
       hasEcg,
+      hasData: this.servo.written > 0,
       params,
       version: ++this.version,
       sourceKind: this.sourceKind,

@@ -60,7 +60,7 @@ export class ValveAnalysisPipeline {
   }
 
   /** Reemplaza la línea basal (p. ej. al cambiar la temporización programada). */
-  setBaseline(b: BaselineModel) {
+  setBaseline(b: BaselineModel | null) {
     this.baseline = b;
     this.emaSim = null;
     this.emaAnom = null;
@@ -147,8 +147,9 @@ export class ValveAnalysisPipeline {
       cycle_duration_ms: round(f.cycle_duration_ms, 1),
       opening_duration_ms: round(f.opening_duration_ms, 1),
       closing_duration_ms: round(f.closing_duration_ms, 1),
-      baseline_similarity: round(this.emaSim, 1),
-      anomaly_score: round(this.emaAnom, 3),
+      // sin patrón de referencia no hay comparación: no se inventa un valor
+      baseline_similarity: this.baseline ? round(this.emaSim, 1) : null,
+      anomaly_score: this.baseline ? round(this.emaAnom, 3) : null,
       regularity: round(regularity, 1),
       ecg_bpm: f.ecg_bpm !== null ? round(f.ecg_bpm, 1) : null,
       rr_ms: f.rr_ms !== null ? round(f.rr_ms, 0) : null,

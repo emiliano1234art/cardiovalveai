@@ -90,15 +90,19 @@ npm run preview    # sirve el build de producción
 npm run dataset    # regenera el dataset sintético de ejemplo (public/data/)
 ```
 
-En la barra superior puedes:
+### Pensado para cualquier visitante (feria científica)
 
-- Cambiar la **condición mecánica**: Normal · Apertura restringida (45°) · Cierre incompleto (12° residuales) · Movimiento irregular (valva 2).
-- Ajustar la **sincronización ECG**: FC del ECG simulado, retardo τ (R → apertura), duración de apertura D y ángulo máximo θ. Al cambiar τ, D o θ la línea basal se recalibra con esa temporización.
-- Botones **Reposo · 72 lpm** y **Variación de FC · 110 lpm** (la IA debe responder «cambio de FC», no falla). La FC simulada cambia de forma gradual (≤ 12 lpm/s).
-- Alternar **SIMULACIÓN / DATOS REALES** (ESP32 por WebSocket).
-- **Recapturar la línea basal** con los próximos 30 ciclos de la fuente activa.
+- **Portada con el modelo 3D** de la válvula experimental: seis puntos interactivos (valvas, anillo, sensor piezoeléctrico, micrófono MEMS, mecanismo de movimiento, ESP32) abren una tarjeta breve con su función, su estado (componente elegido o diseño propuesto) y una ficha técnica opcional. Vistas, «ver por dentro» y «separar piezas».
+- **4 indicadores clave**: latidos por minuto, válvula abierta/cerrada, análisis inteligente y parecido al patrón de referencia.
+- **ⓘ ¿Qué significa?** en cada gráfico: explicación sencilla (30–60 palabras) y, a pedido, *Ver explicación técnica*. En teléfonos aparece como hoja inferior. Textos en `src/content/explanations.ts`.
+- **Gráficos interactivos**: tooltip, zoom de tiempo (3 s · 1 s · 0,5 s), leyenda que muestra/oculta capas, marcas ▲ abre / ▼ cierra (a partir del ángulo del actuador), pausa/reanudación y **selección de un punto** con explicación breve. Un pico solo se describe como apertura o cierre cuando los datos sincronizados del actuador lo confirman.
+- **Mapa de sonidos** (espectrograma) con leyenda de colores y selección de zonas.
+- **Aprender cómo funciona**: recorrido guiado de 5 pasos (~1–2 min) con animaciones; se puede omitir en cualquier momento.
+- **Origen de los datos** siempre visible: **SIMULACIÓN**, **EXPERIMENTO** o **VISIÓN FUTURA**. Con el ESP32 desconectado no se muestran valores simulados como si fueran del prototipo, y el patrón de referencia debe registrarse con los datos reales.
 
-Secciones: **01 ECG y sincronización** (ECG con picos R, FC detectada, estado abierta/cerrada, línea de tiempo R → τ → apertura → D → cierre) · 02 Estado de válvula · 03 Vibración · 04 Audio y espectrograma · 05 IA (veredicto basal / cambio de FC / desviación leve / importante; normal vs actual) · 06 Respuesta funcional del paciente simulado (opción para acoplar el ECG a su FC) · 07 Historial y exportación. Cada sección indica el tipo de dato: **DATOS SINTÉTICOS**, **EXPERIMENTAL** o **CLÍNICO FUTURO**.
+Barra de control (simulación): condición mecánica (Normal · Apertura restringida · Cierre incompleto · Movimiento irregular), ritmo del corazón (Reposo · 72, Ejercicio · 110 o control deslizante) y **Ajustes avanzados** (τ, D, θ y registro del patrón de referencia). Al cambiar τ, D o θ la referencia se recalibra con esa temporización; la FC simulada cambia gradualmente (≤ 12 lpm/s).
+
+Secciones: portada 3D · 01 Latidos del corazón (ECG, picos R, qué pasa en cada latido) · 02 La válvula en movimiento · 03 Vibración · 04 Sonido y mapa de sonidos · 05 Análisis inteligente (normal / cambio de ritmo / diferencia leve / importante; normal vs. ahora; ¿qué cambió?) · 06 Paciente simulado y ejercicio (visión futura con Kinesiología) · 07 Historial y exportación.
 
 ---
 
@@ -152,10 +156,12 @@ src/
 ├── engine/                      Motor (sin React): buffers, espectrograma, snapshots
 ├── hooks/useValveSense.ts       Puente React
 ├── components/
-│   ├── layout/                  Header, barra de control
-│   ├── sections/                Las 7 secciones del dashboard (EcgSection, ValveSection, …)
-│   ├── charts/                  Gráfico de señal, espectrograma, tooltip, tema
-│   └── ui/                      Section, MetricCard, StatusBadge
+│   ├── layout/                  Header (navegación, pausa, «Aprender»), barra de control
+│   ├── sections/                Portada 3D (HeroSection) y las 7 secciones del dashboard
+│   ├── explain/                 GraphExplanation/InfoTooltip, InteractiveChartLegend, LearnMode, SensorHotspot
+│   ├── charts/                  InteractiveSignalChart/SignalCard, espectrograma, tooltip, tema
+│   └── ui/                      Section, MetricCard, StatusBadge, íconos
+├── content/                     Explicaciones (2 niveles) y puntos del modelo 3D
 └── lib/                         RingBuffer, formato, exportación CSV/JSON
 scripts/generate-dataset.ts      Generador del dataset de ejemplo
 public/data/                     valvesense_sample_dataset.{csv,json}

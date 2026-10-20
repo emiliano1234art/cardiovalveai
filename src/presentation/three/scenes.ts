@@ -27,6 +27,8 @@ export interface Built {
   scene: THREE.Scene;
   labels: LabelDef[];
   meshesById: Map<THREE.Object3D, string>;
+  /** grupos por componente (para anclar puntos interactivos externos) */
+  groups?: Record<string, THREE.Object3D>;
   cameras: Record<CameraPreset, { pos: [number, number, number]; target: [number, number, number] }>;
   update: (t: number, p: SimParams, o: UpdateOpts) => void;
 }
@@ -283,6 +285,7 @@ export function buildUniversity(): Built {
     scene,
     labels,
     meshesById,
+    groups,
     cameras: {
       iso: { pos: [255, 165, 255], target: [0, -28, 0] },
       top: { pos: [0, 330, 0.01], target: [0, -20, 0] },

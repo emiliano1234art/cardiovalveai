@@ -7,16 +7,19 @@ import { fmt, signed } from '../../lib/format';
 import type { DeviationLevel, FeatureDeviation } from '../../types/valvesense';
 import { axis, COLORS, grid, margin } from '../charts/chartTheme';
 import { ChartTooltip } from '../charts/ChartTooltip';
+import { GraphExplanation, InfoTooltip } from '../explain/GraphExplanation';
+import { InteractiveChartLegend, toggleIn } from '../explain/InteractiveChartLegend';
+import { VERDICT } from '../../lib/verdict';
+import { IconBrain, IconSpectrum, IconTarget } from '../ui/icons';
 import { Section } from '../ui/Section';
-import type { Verdict } from '../../types/valvesense';
-import { LEVEL_COLOR, StatusBadge } from '../ui/StatusBadge';
+import { LEVEL_COLOR } from '../ui/StatusBadge';
 
 function SimilarityGauge({ value }: { value: number }) {
   const r = 62;
   const c = Math.PI * r; // semicircunferencia
   const v = Math.max(0, Math.min(100, value));
   return (
-    <svg viewBox="0 0 160 112" width="100%" style={{ maxWidth: 230 }} role="img" aria-label={`Similitud con la línea basal ${v.toFixed(0)} %`}>
+    <svg viewBox="0 0 160 112" width="100%" style={{ maxWidth: 230 }} role="img" aria-label={`Parecido al patrón de referencia ${v.toFixed(0)} %`}>
       <defs>
         <linearGradient id="gsim" x1="0" x2="1">
           <stop offset="0" stopColor="#0a6f95" />
@@ -41,7 +44,7 @@ function SimilarityGauge({ value }: { value: number }) {
         </tspan>
       </text>
       <text x="80" y="106" textAnchor="middle" fontSize="9.5" fill="#7d8da0" letterSpacing=".06em">
-        SIMILITUD CON BASAL
+        PARECIDO A LA REFERENCIA
       </text>
     </svg>
   );
@@ -57,7 +60,7 @@ function AnomalyScale({ value }: { value: number }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <span className="kicker">Anomaly score</span>
+        <span className="kicker">Índice de diferencia</span>
         <span className="num" style={{ fontSize: 22, fontWeight: 650 }}>
           {fmt(v, 2)}
         </span>
@@ -101,7 +104,7 @@ function DeviationBars({ deviations }: { deviations: FeatureDeviation[] }) {
         const az = Math.min(Math.abs(d.z), max);
         const lvl: DeviationLevel = Math.abs(d.z) >= 4 ? 'major' : Math.abs(d.z) >= 2.5 ? 'mild' : 'normal';
         return (
-          <div className="zbar-row" key={d.key} title={`Actual ${fmt(d.value, 2)} ${d.unit} · basal ${fmt(d.baseline, 2)} ${d.unit}`}>
+          <div className="zbar-row" key={d.key} title={`Ahora ${fmt(d.value, 2)} ${d.unit} · referencia ${fmt(d.baseline, 2)} ${d.unit}`}>
             <span style={{ color: 'var(--text-2)' }}>{d.label}</span>
             <div className="zbar-track">
               <div className="zbar-fill" style={{ width: `${(az / max) * 100}%`, background: lvl === 'normal' ? '#9cc3e8' : LEVEL_COLOR[lvl] }} />
@@ -116,23 +119,11 @@ function DeviationBars({ deviations }: { deviations: FeatureDeviation[] }) {
         );
       })}
       <div className="note" style={{ marginTop: 6, fontSize: 11 }}>
-        Desviación en unidades de dispersión de la línea basal (z). Marcas en 2,5σ y 4σ.
+        Marcas: diferencia leve (2,5σ) e importante (4σ).
       </div>
     </div>
   );
 }
-
-const VERDICT: Record<Verdict, { label: string; color: string; bg: string; text: string }> = {
-  basal: { label: 'Dentro de la línea basal', color: 'var(--ok)', bg: 'var(--ok-soft)', text: 'FC y firma mecánica consistentes con la basal.' },
-  fc: {
-    label: 'Cambio de FC · sin desviación mecánica',
-    color: 'var(--brand)',
-    bg: 'var(--brand-softer)',
-    text: 'La FC del ECG cambió, el ciclo valvular sigue al RR y la firma de cada evento se mantiene: no se marca como falla.',
-  },
-  leve: { label: 'Desviación mecánica leve', color: 'var(--warn)', bg: 'var(--warn-soft)', text: 'La firma de los eventos se aparta levemente de la basal.' },
-  importante: { label: 'Desviación mecánica importante', color: 'var(--crit)', bg: 'var(--crit-soft)', text: 'La firma de los eventos se aparta claramente de la basal.' },
-};
 
 function interpretation(level: DeviationLevel, deviations: FeatureDeviation[]): string {
   const top = [...deviations]
@@ -141,127 +132,145 @@ function interpretation(level: DeviationLevel, deviations: FeatureDeviation[]): 
     .slice(0, 3)
     .map((d) => `${/^[A-Z]{2}/.test(d.label) ? d.label : d.label.toLowerCase()} (${signed(d.z, 1)}σ)`);
   if (level === 'normal' && top.length === 0)
-    return 'El patrón mecánico y acústico actual es consistente con la línea basal registrada. No se observan desviaciones relevantes en los descriptores.';
-  const base = level === 'normal' ? 'Patrón globalmente consistente con la basal; ' : level === 'mild' ? 'Desviación leve respecto de la basal; ' : 'Desviación importante respecto de la basal; ';
-  return top.length
-    ? `${base}los descriptores que más se apartan son ${top.join(', ')}.`
-    : `${base}la variabilidad entre ciclos es la principal fuente de diferencia.`;
+    return 'Vibración y sonido parecidos al patrón de referencia.';
+  const base = level === 'normal' ? 'Parecido a la referencia; ' : level === 'mild' ? 'Diferencia leve; ' : 'Diferencia importante; ';
+  return top.length ? `${base}lo que más cambió: ${top.join(', ')}.` : `${base}los ciclos varían entre sí.`;
 }
 
-export function AiSection({ snap }: { snap: EngineSnapshot }) {
+export function AiSection({ snap, onRecalibrate }: { snap: EngineSnapshot; onRecalibrate: () => void }) {
   const [tab, setTab] = useState<'piezo' | 'audio'>('piezo');
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
   const L = snap.latest;
-  const sim = L?.assessment.similarity ?? 100;
+  const ready = !!L && !!snap.baseline;
+  const sim = L?.assessment.similarity ?? 0;
   const anom = L?.assessment.anomaly ?? 0;
   const level = deviationLevel(anom);
   const color = tab === 'piezo' ? COLORS.piezo : COLORS.audio;
   const baseKey = tab === 'piezo' ? 'basePiezo' : 'baseAudio';
   const curKey = tab === 'piezo' ? 'curPiezo' : 'curAudio';
+  const V = ready ? VERDICT[L!.record.verdict] : null;
+  const capturing = snap.captureProgress !== null;
 
   return (
     <Section
       index="05"
-      title="Inteligencia artificial · Línea basal ValveSense"
-      subtitle="Detección de desviaciones respecto del comportamiento de referencia del propio prototipo"
+      icon={<IconBrain />}
+      title="Análisis inteligente"
+      subtitle="Compara la válvula con su propio patrón normal y señala las diferencias."
       kinds={snap.sourceKind === 'simulation' ? ['synthetic'] : ['experimental']}
-      aside="Heurística experimental: modelo estadístico + correlación de forma + sincronía con el ECG"
+      explain="ai"
     >
-      <div className="grid g-ai">
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
-            <span className="kicker">Estado</span>
-            <StatusBadge level={level} large />
+      {!snap.baseline ? (
+        <div className="card empty-card">
+          <IconBrain size={28} />
+          <div>
+            <b>{capturing ? `Registrando el patrón de referencia… ${Math.round((snap.captureProgress ?? 0) * 100)} %` : 'Falta el patrón de referencia'}</b>
+            <p>Con el prototipo funcionando normalmente, registra 30 ciclos. Luego la IA comparará cada ciclo con ese patrón.</p>
           </div>
-          {L && (
-            <div style={{ border: `1.5px solid ${VERDICT[L.record.verdict].color}`, background: VERDICT[L.record.verdict].bg, borderRadius: 10, padding: '8px 12px' }}>
-              <div className="kicker">¿Falla mecánica o cambio de ritmo?</div>
-              <div style={{ fontWeight: 650, color: VERDICT[L.record.verdict].color, fontSize: 14.5 }}>{VERDICT[L.record.verdict].label}</div>
-              <div className="note" style={{ margin: '2px 0 0', fontSize: 11.5 }}>
-                {VERDICT[L.record.verdict].text}
-                {L.record.ecg_bpm !== null && ` FC ECG ${fmt(L.record.ecg_bpm, 0)} lpm · basal ${fmt(snap.baseline?.bpm, 0)} lpm.`}
-              </div>
-            </div>
-          )}
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <SimilarityGauge value={sim} />
-          </div>
-          <AnomalyScale value={anom} />
-          <div className="divider" style={{ margin: 0 }} />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div>
-              <div className="kicker">Regularidad</div>
-              <div className="num" style={{ fontSize: 20, fontWeight: 650 }}>
-                {fmt(L?.record.regularity, 1)} <span style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 500 }}>%</span>
-              </div>
-            </div>
-            <div>
-              <div className="kicker">Correlación de forma</div>
-              <div className="num" style={{ fontSize: 20, fontWeight: 650 }}>
-                {fmt(L?.assessment.shapeCorrelation, 2)}
-              </div>
-            </div>
-          </div>
-          <p className="note" style={{ margin: 0, padding: '10px 12px', background: 'var(--surface-2)', borderRadius: 10, border: '1px solid var(--border)' }}>
-            {interpretation(level, L?.assessment.deviations ?? [])}
-            <br />
-            <span style={{ color: 'var(--muted)' }}>Indicador técnico del prototipo. No constituye un diagnóstico.</span>
-          </p>
+          <button className="btn primary" onClick={onRecalibrate} disabled={capturing || !snap.hasData}>
+            ↻ Registrar patrón
+          </button>
         </div>
-
-        <div className="stack">
-          <div className="card">
-            <div className="card-head">
-              <div>
-                <h3 className="card-title">Normal (línea basal) vs condición actual</h3>
-                <p className="card-sub">Envolvente desde el inicio de la apertura (tiempo absoluto, no % del ciclo: no depende de la FC) · promedio de los últimos 4 ciclos</p>
+      ) : (
+        <div className="grid g-ai" id="learn-ai">
+          <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div className="verdict" style={V ? { borderColor: V.color, background: V.bg } : undefined}>
+              <span className="kicker">¿Falla o cambio de ritmo?</span>
+              <div className="verdict-label" style={{ color: V?.color }}>
+                {V ? `${V.icon} ${V.label}` : 'Esperando el primer ciclo…'}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-                <div className="legend">
-                  <span>
-                    <i className="dash" />
-                    Patrón basal
-                  </span>
-                  <span>
-                    <i style={{ background: color }} />
-                    Patrón actual
-                  </span>
+              {V && <p>{V.text}</p>}
+            </div>
+            <div className="ai-gauge">
+              <SimilarityGauge value={ready ? sim : 0} />
+              <InfoTooltip id="similarity" />
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <div style={{ flex: 1 }}>
+                <AnomalyScale value={ready ? anom : 0} />
+              </div>
+              <InfoTooltip id="anomaly" />
+            </div>
+            <div className="mini-stats">
+              <div title="Qué tan estable es el ritmo de la válvula respecto de los latidos">
+                <span className="kicker">Regularidad</span>
+                <b className="num">{fmt(L?.record.regularity, 0)} %</b>
+              </div>
+              <div title="Parecido de la forma de la vibración y el sonido (1 = idéntica)">
+                <span className="kicker">Forma de la señal</span>
+                <b className="num">{fmt(L?.assessment.shapeCorrelation, 2)}</b>
+              </div>
+            </div>
+            <p className="note ai-note">
+              {ready ? interpretation(level, L!.assessment.deviations) : '—'}
+              <br />
+              <span style={{ color: 'var(--muted)' }}>Indicador experimental · no es un diagnóstico.</span>
+            </p>
+          </div>
+
+          <div className="stack">
+            <div className="card sig-card">
+              <div className="sig-head">
+                <span className="sig-icon">
+                  <IconTarget />
+                </span>
+                <div className="sig-titles">
+                  <h3>Normal vs. ahora</h3>
+                  <p>Promedio de los últimos 4 ciclos, desde que la válvula empieza a abrir</p>
                 </div>
-                <div className="tabs">
-                  <button className={tab === 'piezo' ? 'active' : ''} onClick={() => setTab('piezo')}>
+                <GraphExplanation id="comparison" />
+              </div>
+              <div className="sig-tools">
+                <InteractiveChartLegend
+                  items={[
+                    { key: 'base', label: 'Patrón normal', color: COLORS.baseline, type: 'dash' },
+                    { key: 'cur', label: 'Ahora', color },
+                  ]}
+                  hidden={hidden}
+                  onToggle={(k) => setHidden((h) => toggleIn(h, k))}
+                />
+                <div className="zoom" role="tablist" aria-label="Señal">
+                  <button className={tab === 'piezo' ? 'active' : ''} onClick={() => setTab('piezo')} role="tab" aria-selected={tab === 'piezo'}>
                     Vibración
                   </button>
-                  <button className={tab === 'audio' ? 'active' : ''} onClick={() => setTab('audio')}>
-                    Audio
+                  <button className={tab === 'audio' ? 'active' : ''} onClick={() => setTab('audio')} role="tab" aria-selected={tab === 'audio'}>
+                    Sonido
                   </button>
                 </div>
               </div>
+              <ResponsiveContainer width="100%" height={250}>
+                <ComposedChart data={snap.envelopes} margin={margin}>
+                  <CartesianGrid {...grid} />
+                  <XAxis dataKey="phase" type="number" domain={[0, 500]} ticks={[0, 100, 200, 300, 400, 500]} tickFormatter={(v: number) => `${v} ms`} {...axis} />
+                  <YAxis width={46} tickFormatter={(v: number) => fmt(v, tab === 'piezo' ? 2 : 3)} {...axis} />
+                  <Tooltip
+                    isAnimationActive={false}
+                    cursor={{ stroke: '#9fb0c0', strokeDasharray: '3 3' }}
+                    content={(p) => <ChartTooltip {...p} decimals={4} labelFormatter={(l) => `${fmt(Number(l), 0)} ms desde que empieza a abrir`} />}
+                  />
+                  {!hidden.has('base') && (
+                    <Area dataKey={baseKey} name="Patrón normal" type="monotone" stroke={COLORS.baseline} strokeDasharray="5 4" strokeWidth={1.6} fill={COLORS.baseline} fillOpacity={0.1} isAnimationActive={false} />
+                  )}
+                  {!hidden.has('cur') && <Line dataKey={curKey} name="Ahora" type="monotone" stroke={color} strokeWidth={2} dot={false} isAnimationActive={false} />}
+                </ComposedChart>
+              </ResponsiveContainer>
             </div>
-            <ResponsiveContainer width="100%" height={250}>
-              <ComposedChart data={snap.envelopes} margin={margin}>
-                <CartesianGrid {...grid} />
-                <XAxis dataKey="phase" type="number" domain={[0, 500]} ticks={[0, 100, 200, 300, 400, 500]} tickFormatter={(v: number) => `${v} ms`} {...axis} />
-                <YAxis width={52} tickFormatter={(v: number) => fmt(v, tab === 'piezo' ? 2 : 3)} {...axis} />
-                <Tooltip
-                  isAnimationActive={false}
-                  cursor={{ stroke: '#9fb0c0', strokeDasharray: '3 3' }}
-                  content={(p) => <ChartTooltip {...p} decimals={4} labelFormatter={(l) => `${fmt(Number(l), 0)} ms desde la apertura`} />}
-                />
-                <Area dataKey={baseKey} name="Patrón basal" type="monotone" stroke={COLORS.baseline} strokeDasharray="5 4" strokeWidth={1.6} fill={COLORS.baseline} fillOpacity={0.1} isAnimationActive={false} />
-                <Line dataKey={curKey} name="Patrón actual" type="monotone" stroke={color} strokeWidth={2} dot={false} isAnimationActive={false} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="card">
-            <div className="card-head">
-              <div>
-                <h3 className="card-title">Contribución por descriptor</h3>
-                <p className="card-sub">Qué variables explican la diferencia con la línea basal (último ciclo)</p>
+            <div className="card sig-card">
+              <div className="sig-head">
+                <span className="sig-icon">
+                  <IconSpectrum />
+                </span>
+                <div className="sig-titles">
+                  <h3>¿Qué cambió?</h3>
+                  <p>Barras largas = lo que más se aleja de lo normal (último ciclo)</p>
+                </div>
+                <GraphExplanation id="descriptors" />
               </div>
+              <DeviationBars deviations={ready ? L!.assessment.deviations : []} />
             </div>
-            <DeviationBars deviations={L?.assessment.deviations ?? []} />
           </div>
         </div>
-      </div>
+      )}
     </Section>
   );
 }

@@ -8,6 +8,7 @@ import type { CycleRecord, ExperimentalMode, RehabSession } from '../../types/va
 import { axis, COLORS, grid, margin, numTick } from '../charts/chartTheme';
 import { fmt } from '../../lib/format';
 import { ChartTooltip } from '../charts/ChartTooltip';
+import { IconHistory } from '../ui/icons';
 import { Section } from '../ui/Section';
 
 const VISIBLE = 240;
@@ -116,13 +117,15 @@ export function HistorySection({ snap, onExport }: { snap: EngineSnapshot; onExp
   return (
     <Section
       index="07"
-      kinds={['synthetic']}
+      icon={<IconHistory />}
+      kinds={snap.sourceKind === 'simulation' ? ['synthetic'] : ['experimental']}
       title="Historial"
-      subtitle={`Evolución por ciclo (últimos ${VISIBLE}) · zonas sombreadas = estado experimental distinto de NORMAL`}
+      subtitle="Cómo cambian las mediciones ciclo a ciclo. Zonas grises: condición alterada."
+      explain="history"
       aside={
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
           <button className="btn" onClick={() => downloadCsv(onExport(), 'valvesense_sesion.csv')}>
-            ⤓ Exportar CSV
+            ⤓ Descargar CSV
           </button>
           <button className="btn" onClick={() => downloadJson(onExport(), 'valvesense_sesion.json')}>
             ⤓ JSON
@@ -134,10 +137,10 @@ export function HistorySection({ snap, onExport }: { snap: EngineSnapshot; onExp
       }
     >
       <div className="grid g-2">
-        <MiniHistory title="Similitud con basal" sub="Baseline similarity" data={data} dataKey="baseline_similarity" color={COLORS.piezo} unit="%" domain={[0, 100]} decimals={1} segs={segs} />
+        <MiniHistory title="Parecido a la referencia" sub="100 % = igual al patrón normal" data={data} dataKey="baseline_similarity" color={COLORS.piezo} unit="%" domain={[0, 100]} decimals={1} segs={segs} />
         <MiniHistory
-          title="Anomaly score"
-          sub="Umbrales de desviación leve / importante"
+          title="Índice de diferencia"
+          sub="Líneas: diferencia leve / importante"
           data={data}
           dataKey="anomaly_score"
           color={COLORS.piezo}
@@ -150,10 +153,10 @@ export function HistorySection({ snap, onExport }: { snap: EngineSnapshot; onExp
             { y: THRESHOLDS.major, label: 'importante', color: COLORS.crit },
           ]}
         />
-        <MiniHistory title="FC detectada (ECG)" sub="Desde los intervalos RR · un cambio de FC no es una falla" data={data} dataKey="ecg_bpm" color="#d0473e" unit="lpm" domain={[40, 130]} decimals={0} segs={segs} />
+        <MiniHistory title="Latidos por minuto (ECG)" sub="Un cambio de ritmo no es una falla" data={data} dataKey="ecg_bpm" color="#d0473e" unit="lpm" domain={[40, 130]} decimals={0} segs={segs} />
         <MiniHistory
-          title="Ciclo valvular vs RR"
-          sub="|duración del ciclo − RR| · ¿la válvula sigue al ECG?"
+          title="¿La válvula sigue al corazón?"
+          sub="Diferencia entre ciclo y latido (ms)"
           data={data}
           dataKey="sync_error_ms"
           color={COLORS.piezo}
@@ -163,8 +166,8 @@ export function HistorySection({ snap, onExport }: { snap: EngineSnapshot; onExp
           segs={segs}
           refs={[{ y: 60, label: 'tolerancia', color: COLORS.warn }]}
         />
-        <MiniHistory title="Regularidad" sub="Estabilidad del período entre ciclos" data={data} dataKey="regularity" color={COLORS.piezo} unit="%" domain={[0, 100]} decimals={1} segs={segs} />
-        <MiniHistory title="Frecuencia dominante" sub="Pico espectral del audio por ciclo" data={data} dataKey="dominant_frequency" color={COLORS.audio} unit="Hz" domain={[0, 2500]} decimals={0} segs={segs} />
+        <MiniHistory title="Regularidad" sub="Qué tan parejo es el ritmo de la válvula" data={data} dataKey="regularity" color={COLORS.piezo} unit="%" domain={[0, 100]} decimals={1} segs={segs} />
+        <MiniHistory title="Tono principal del sonido" sub="Un valor por ciclo" data={data} dataKey="dominant_frequency" color={COLORS.audio} unit="Hz" domain={[0, 2500]} decimals={0} segs={segs} />
       </div>
 
       <div className="card" style={{ borderStyle: 'dashed' }}>

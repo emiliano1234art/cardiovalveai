@@ -4,8 +4,24 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { sim } from '../sim/store';
 import { BUILDERS, type CameraPreset, type SceneKind } from './scenes';
 
+/** Punto interactivo externo anclado a un componente del modelo. */
+export interface Hotspot {
+  id: string;
+  num?: number;
+  text: string;
+  /** componente (grupo) al que se ancla y que se resalta */
+  group: string;
+  anchor: [number, number, number];
+}
+
 interface Props {
   kind: SceneKind;
+  /** reemplaza las etiquetas propias de la escena */
+  hotspots?: Hotspot[];
+  activeHotspot?: string | null;
+  onHotspot?: (id: string | null) => void;
+  /** reloj externo (s); por defecto, el reloj único de la presentación */
+  clock?: () => number;
   camera?: CameraPreset;
   /** se incrementa para forzar el reencuadre aunque la vista no cambie */
   cameraNonce?: number;
@@ -21,14 +37,14 @@ interface Props {
 }
 
 /** Escena 3D sincronizada con el reloj único de simulación. */
-export function Scene3D({ kind, camera = 'iso', cameraNonce = 0, exploded = false, xray = false, showLabels = true, selected = null, onSelect, autoRotate = false, interactive = true, onReady }: Props) {
+export function Scene3D({ kind, hotspots, activeHotspot = null, onHotspot, clock, camera = 'iso', cameraNonce = 0, exploded = false, xray = false, showLabels = true, selected = null, onSelect, autoRotate = false, interactive = true, onReady }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const labelsRef = useRef<HTMLDivElement>(null);
-  const state = useRef({ exploded, xray, selected, autoRotate });
+  const state = useRef({ exploded, xray, selected, autoRotate, clock });
   const api = useRef<{ setCamera: (c: CameraPreset, instant?: boolean) => void } | null>(null);
   const [failed, setFailed] = useState(false);
   const [labelDefs, setLabelDefs] = useState<{ id: string; num?: number; text: string }[]>([]);
-  state.current = { exploded, xray, selected, autoRotate };
+  state.current = { exploded, xray, selected, autoRotate, clock };
 
   useEffect(() => {
     const el = host.current;
@@ -49,6 +65,9 @@ export function Scene3D({ kind, camera = 'iso', cameraNonce = 0, exploded = fals
     renderer.domElement.style.touchAction = 'none';
 
     const B = BUILDERS[kind]();
+    if (hotspots && B.groups) {
+      B.labels = hotspots.map((h) => ({ id: h.id, num: h.num, text: h.text, anchor: new THREE.Vector3(...h.anchor), group: B.groups![h.group] }));
+    }
     setLabelDefs(B.labels.map((l) => ({ id: l.id, num: l.num, text: l.text })));
     const cam = new THREE.PerspectiveCamera(30, 1, 1, 3000);
     const controls = new OrbitControls(cam, renderer.domElement);
@@ -101,10 +120,16 @@ export function Scene3D({ kind, camera = 'iso', cameraNonce = 0, exploded = fals
     renderer.domElement.addEventListener('pointerdown', onDown);
     renderer.domElement.addEventListener('pointerup', onUp);
 
+    // fuera de pantalla no se dibuja (ahorra CPU/GPU en páginas largas)
+    let visible = true;
+    const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting));
+    io.observe(el);
+
     let explodeK = state.current.exploded ? 1 : 0;
     const tmp = new THREE.Vector3();
     let frames = 0;
     renderer.setAnimationLoop((now) => {
+      if (!visible && frames > 3) return;
       if (tween) {
         const k = Math.min(1, (now - tween.t0) / 700);
         const e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
@@ -117,7 +142,7 @@ export function Scene3D({ kind, camera = 'iso', cameraNonce = 0, exploded = fals
       controls.autoRotateSpeed = 0.7;
       controls.update();
       explodeK += ((st.exploded ? 1 : 0) - explodeK) * 0.12;
-      B.update(sim.t, sim.state.params, { exploded: explodeK, xray: st.xray, selected: st.selected, now: sim.running ? now : 0 });
+      B.update(st.clock ? st.clock() : sim.t, sim.state.params, { exploded: explodeK, xray: st.xray, selected: st.selected, now: sim.running ? now : 0 });
       renderer.render(B.scene, cam);
       const w = el.clientWidth;
       const h = el.clientHeight;
@@ -136,6 +161,7 @@ export function Scene3D({ kind, camera = 'iso', cameraNonce = 0, exploded = fals
     return () => {
       renderer.setAnimationLoop(null);
       ro.disconnect();
+      io.disconnect();
       controls.dispose();
       renderer.domElement.removeEventListener('pointerdown', onDown);
       renderer.domElement.removeEventListener('pointerup', onUp);
@@ -164,7 +190,13 @@ export function Scene3D({ kind, camera = 'iso', cameraNonce = 0, exploded = fals
     <div className="scene" ref={host}>
       <div className="scene-labels" ref={labelsRef} style={{ display: showLabels ? undefined : 'none' }}>
         {labelDefs.map((l) => (
-          <button key={l.id} className={`scene-label${selected === l.id ? ' active' : ''}`} onClick={() => onSelect?.(selected === l.id ? null : l.id)} tabIndex={onSelect ? 0 : -1}>
+          <button
+            key={l.id}
+            className={`scene-label${(hotspots ? activeHotspot : selected) === l.id ? ' active' : ''}`}
+            onClick={() => (hotspots ? onHotspot?.(activeHotspot === l.id ? null : l.id) : onSelect?.(selected === l.id ? null : l.id))}
+            tabIndex={onSelect || onHotspot ? 0 : -1}
+            aria-pressed={(hotspots ? activeHotspot : selected) === l.id}
+          >
             {l.num !== undefined && <b>{l.num}</b>} {l.text}
           </button>
         ))}

@@ -15,13 +15,13 @@ export const BASELINE_FEATURES: {
   /** piso de dispersión absoluto */
   absFloor: number;
 }[] = [
-  { key: 'servo_angle', label: 'Ángulo de apertura', unit: '°', relFloor: 0.03, absFloor: 1 },
-  { key: 'opening_duration_ms', label: 'Tiempo de apertura', unit: 'ms', relFloor: 0.08, absFloor: 3 },
-  { key: 'closing_duration_ms', label: 'Tiempo de cierre', unit: 'ms', relFloor: 0.08, absFloor: 3 },
-  { key: 'piezo_energy', label: 'Energía vibración', unit: 'u.a.²·s', relFloor: 0.08, absFloor: 0.0002 },
-  { key: 'piezo_peak', label: 'Pico vibración', unit: 'u.a.', relFloor: 0.08, absFloor: 0.01 },
-  { key: 'dominant_frequency', label: 'Frecuencia dominante', unit: 'Hz', relFloor: 0.05, absFloor: 20 },
-  { key: 'spectral_centroid', label: 'Centroide espectral', unit: 'Hz', relFloor: 0.05, absFloor: 20 },
+  { key: 'servo_angle', label: 'Cuánto se abre', unit: '°', relFloor: 0.03, absFloor: 1 },
+  { key: 'opening_duration_ms', label: 'Tiempo en abrir', unit: 'ms', relFloor: 0.08, absFloor: 3 },
+  { key: 'closing_duration_ms', label: 'Tiempo en cerrar', unit: 'ms', relFloor: 0.08, absFloor: 3 },
+  { key: 'piezo_energy', label: 'Energía de la vibración', unit: 'u.a.²·s', relFloor: 0.08, absFloor: 0.0002 },
+  { key: 'piezo_peak', label: 'Pico de vibración', unit: 'u.a.', relFloor: 0.08, absFloor: 0.01 },
+  { key: 'dominant_frequency', label: 'Tono principal', unit: 'Hz', relFloor: 0.05, absFloor: 20 },
+  { key: 'spectral_centroid', label: 'Centro del sonido', unit: 'Hz', relFloor: 0.05, absFloor: 20 },
 ];
 
 export interface BaselineStats {

@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
+import type { ExplainId } from '../../content/explanations';
 import { fmt, signed } from '../../lib/format';
+import { InfoTooltip } from '../explain/GraphExplanation';
 
 interface Props {
   label: string;
@@ -15,9 +17,11 @@ interface Props {
   accent?: string;
   compact?: boolean;
   icon?: ReactNode;
+  /** ⓘ con explicación */
+  info?: ExplainId;
 }
 
-export function MetricCard({ label, value, unit, decimals = 0, baseline, baselineDecimals, z, foot, accent, compact, icon }: Props) {
+export function MetricCard({ label, value, unit, decimals = 0, baseline, baselineDecimals, z, foot, accent, compact, icon, info }: Props) {
   const flag = z === undefined ? null : Math.abs(z) >= 4 ? 'crit' : Math.abs(z) >= 2.5 ? 'warn' : null;
   return (
     <div className={`card metric${compact ? ' compact' : ''}`}>
@@ -25,6 +29,7 @@ export function MetricCard({ label, value, unit, decimals = 0, baseline, baselin
       <div className="metric-label">
         {icon}
         {label}
+        {info && <InfoTooltip id={info} />}
       </div>
       <div className="metric-value num">
         {fmt(value, decimals)}
@@ -34,12 +39,12 @@ export function MetricCard({ label, value, unit, decimals = 0, baseline, baselin
         {foot ??
           (baseline !== undefined && value !== null && value !== undefined ? (
             <>
-              <span>basal {fmt(baseline, baselineDecimals ?? decimals)}</span>
+              <span>ref. {fmt(baseline, baselineDecimals ?? decimals)}</span>
               <span className="delta">· {signed(value - baseline, decimals)}</span>
             </>
           ) : null)}
         {flag && (
-          <span className={`flag ${flag}`} title={`Desviación ${fmt(z, 1)}σ respecto de la línea basal`}>
+          <span className={`flag ${flag}`} title={`Se aparta ${fmt(z, 1)}σ del patrón de referencia`}>
             ▲ {fmt(Math.abs(z!), 1)}σ
           </span>
         )}

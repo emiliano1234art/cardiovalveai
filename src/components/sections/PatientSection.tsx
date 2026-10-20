@@ -6,10 +6,11 @@ import { SYNTHETIC_PATIENT } from '../../simulation/PatientSimulator';
 import type { PatientSnapshot, Verdict } from '../../types/valvesense';
 import { axis, COLORS, grid, margin } from '../charts/chartTheme';
 import { ChartTooltip } from '../charts/ChartTooltip';
+import { IconPerson } from '../ui/icons';
 import { Section } from '../ui/Section';
 import { LEVEL_LABEL } from '../ui/StatusBadge';
 
-const VERDICT_SHORT: Record<Verdict, string> = { basal: 'basal', fc: 'cambio de FC', leve: 'desviación leve', importante: 'desviación importante' };
+const VERDICT_SHORT: Record<Verdict, string> = { basal: 'normal', fc: 'cambio de ritmo', leve: 'diferencia leve', importante: 'diferencia importante' };
 
 const STAGES: PatientSnapshot['session_stage'][] = ['reposo', 'calentamiento', 'ejercicio', 'enfriamiento', 'recuperación'];
 
@@ -35,7 +36,14 @@ export function PatientSection({ snap, onFollow }: { snap: EngineSnapshot; onFol
   const trend = snap.hrTrend.map((d) => ({ ...d, x: d.t - t0 - (snap.hrTrend.at(-1)!.t - t0) }));
 
   return (
-    <Section index="06" kinds={['synthetic', 'future']} title="Respuesta funcional" subtitle="Integración conceptual de datos del dispositivo con la respuesta al ejercicio (Kinesiología)">
+    <Section
+      index="06"
+      icon={<IconPerson />}
+      kinds={['synthetic', 'future']}
+      title="Paciente simulado · ejercicio"
+      subtitle="Una idea a futuro: mirar la válvula junto a la respuesta al ejercicio (Kinesiología)."
+      explain="patient"
+    >
       <div className="synthetic">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
           <span className="synthetic-label">
@@ -43,7 +51,7 @@ export function PatientSection({ snap, onFollow }: { snap: EngineSnapshot; onFol
               <circle cx="8" cy="5" r="3" fill="none" stroke="currentColor" strokeWidth="1.6" />
               <path d="M2.5 14c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
-            PACIENTE SIMULADO — DATOS SINTÉTICOS, NO CLÍNICOS
+            PACIENTE SIMULADO — DATOS FICTICIOS, NO CLÍNICOS
           </span>
           <span className="note">
             <b className="mono">{SYNTHETIC_PATIENT.id}</b> · {SYNTHETIC_PATIENT.alias} · {SYNTHETIC_PATIENT.age} años (ficticio) · {SYNTHETIC_PATIENT.program}
@@ -54,8 +62,7 @@ export function PatientSection({ snap, onFollow }: { snap: EngineSnapshot; onFol
           <label className="follow-toggle">
             <input type="checkbox" checked={snap.followPatient} onChange={(e) => onFollow(e.target.checked)} />
             <span>
-              <b>Acoplar el ECG simulado a la FC del paciente simulado.</b> Durante el ejercicio sube la FC: la válvula sigue al ritmo y la
-              IA debe informar «cambio de FC», no una falla mecánica.
+              <b>Usar los latidos de este paciente.</b> Al hacer ejercicio sube el ritmo: la IA debe decir «cambio de ritmo», no «falla».
             </span>
           </label>
         )}
@@ -65,16 +72,16 @@ export function PatientSection({ snap, onFollow }: { snap: EngineSnapshot; onFol
           <div className="flow-node">
             <h4>Datos de válvula</h4>
             <div className="kv">
-              Similitud basal <b>{fmt(L?.assessment.similarity, 1)} %</b>
+              Parecido a la referencia <b>{snap.baseline ? `${fmt(L?.assessment.similarity, 0)} %` : '—'}</b>
             </div>
             <div className="kv">
-              Anomaly score <b>{fmt(L?.assessment.anomaly, 2)}</b>
+              Índice de diferencia <b>{snap.baseline ? fmt(L?.assessment.anomaly, 2) : '—'}</b>
             </div>
             <div className="kv">
-              FC del ECG <b>{fmt(snap.ecgBpm, 0)} lpm</b>
+              Latidos (ECG) <b>{snap.hasData ? `${fmt(snap.ecgBpm, 0)} lpm` : '—'}</b>
             </div>
             <div className="kv">
-              Veredicto IA <b>{L ? VERDICT_SHORT[L.record.verdict] : '—'}</b>
+              Análisis <b>{L && snap.baseline ? VERDICT_SHORT[L.record.verdict] : '—'}</b>
             </div>
           </div>
           <div className="flow-op">+</div>
@@ -92,9 +99,9 @@ export function PatientSection({ snap, onFollow }: { snap: EngineSnapshot; onFol
           </div>
           <div className="flow-op">→</div>
           <div className="flow-node result">
-            <h4>Seguimiento integrado</h4>
+            <h4>Seguimiento integrado (futuro)</h4>
             <div className="kv">
-              Estado del prototipo <b>{LEVEL_LABEL[level]}</b>
+              Estado del prototipo <b>{snap.baseline && L ? LEVEL_LABEL[level] : '—'}</b>
             </div>
             <div className="kv">
               Carga de la sesión <b>{p.activity}</b>
@@ -125,10 +132,10 @@ export function PatientSection({ snap, onFollow }: { snap: EngineSnapshot; onFol
         </div>
 
         <div className="grid g-4" style={{ marginBottom: 14 }}>
-          <Tile label="Frecuencia cardíaca" value={String(p.heart_rate)} unit="lpm" foot="Sintética · modelo de 1.er orden" />
+          <Tile label="Frecuencia cardíaca" value={String(p.heart_rate)} unit="lpm" foot="Ficticia" />
           <Tile label="SpO₂" value={fmt(p.spo2, 1)} unit="%" foot="Sintética" />
           <Tile label="Actividad" value={p.activity} foot={`Intensidad relativa ${Math.round(p.activity_level * 100)} %`} />
-          <Tile label="Esfuerzo percibido (Borg)" value={String(p.borg)} unit="/ 20" foot="Escala 6–20" />
+          <Tile label="Cansancio (escala Borg)" value={String(p.borg)} unit="/ 20" foot="Escala 6–20" />
           <Tile label="Síntomas" value={p.symptoms} foot="Registro ficticio" />
           <Tile label="Duración del ejercicio" value={mmss(p.exercise_duration_s)} unit="min" foot="Sesión en curso" />
           <Tile
@@ -143,8 +150,8 @@ export function PatientSection({ snap, onFollow }: { snap: EngineSnapshot; onFol
         <div className="card">
           <div className="card-head">
             <div>
-              <h3 className="card-title">Frecuencia cardíaca simulada · últimos 4 min</h3>
-              <p className="card-sub">Varía lentamente según la etapa de la sesión sintética</p>
+              <h3 className="card-title">Latidos del paciente simulado · últimos 4 min</h3>
+              <p className="card-sub">Suben con el ejercicio y bajan al descansar</p>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={170}>

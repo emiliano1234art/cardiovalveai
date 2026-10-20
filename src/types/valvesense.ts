@@ -78,8 +78,8 @@ export interface CycleRecord {
   cycle_duration_ms: number;
   opening_duration_ms: number;
   closing_duration_ms: number;
-  baseline_similarity: number;
-  anomaly_score: number;
+  baseline_similarity: number | null;
+  anomaly_score: number | null;
   regularity: number;
   /** FC detectada desde el ECG (lpm) */
   ecg_bpm: number | null;
