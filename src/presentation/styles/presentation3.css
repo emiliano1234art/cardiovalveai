@@ -19,7 +19,7 @@
 /* ───────────── portada ───────────── */
 .v-cover { grid-template-columns: minmax(0, 1fr) 720px; }
 .v-cover-text { display: flex; flex-direction: column; }
-.v-cover .v-cover-title { font-size: 120px; margin-top: 26px; }
+.v-cover .v-cover-title { font-size: 112px; margin-top: 20px; }
 .v-cover-careers { display: flex; align-items: center; gap: 14px; margin-top: 26px; font-size: 21px; font-weight: 700; color: var(--navy); }
 .v-cover-careers span { padding: 8px 16px; border-radius: 999px; background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow); }
 .v-cover-careers i { font-style: normal; color: var(--cyan); font-size: 26px; }
@@ -131,20 +131,18 @@
 .v-gantt-tip { position: absolute; left: 0; bottom: calc(100% + 6px); white-space: nowrap; padding: 4px 10px; border-radius: 8px; background: var(--navy); color: #fff; font-size: 13.5px; font-weight: 650; }
 .v-gantt-feria { position: absolute; top: 9px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--coral); color: #fff; font-size: 18px; cursor: pointer; animation: v-pop .5s ease both; box-shadow: 0 0 0 6px rgba(234, 88, 12, .15); z-index: 3; transform-origin: center; }
 
-/* ───────────── 6 · entrevista ───────────── */
-.v-iv-person { display: flex; flex-direction: column; align-items: stretch; gap: 14px; }
-.v-iv-photo { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.v-iv-photo img, .v-iv-photo svg { width: 160px; height: 160px; border-radius: 50%; object-fit: cover; background: var(--bg-2); border: 3px solid #fff; box-shadow: 0 0 0 2px var(--line); }
-.v-iv-field { display: flex; flex-direction: column; gap: 4px; font-size: 19px; }
-.v-iv-field > span:first-child { font-size: 13px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-.v-iv-flow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 34px; }
-.v-iv-card { position: relative; display: flex; flex-direction: column; gap: 12px; min-height: 330px; font-size: 18px; }
-.v-iv-card-head { display: flex; align-items: center; gap: 10px; }
-.v-iv-card-head i { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-style: normal; font-size: 22px; background: var(--cyan-soft); color: var(--cyan); }
-.v-iv-card-head b { font-size: 20px; color: var(--navy); }
-.v-iv-arrow { position: absolute; right: -30px; top: 50%; transform: translateY(-50%); font-style: normal; font-size: 26px; font-weight: 700; color: var(--cyan); }
-.v-iv-guide { flex: 1; }
-.v-iv-guide ol { margin: 0; padding-left: 24px; display: flex; flex-direction: column; gap: 6px; font-size: 17px; color: var(--text-2); }
+/* ───────────── 6 · entrevista docente ───────────── */
+.v-wg-person { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 22px 20px; text-align: center; }
+.v-wg-person img { width: 236px; height: 262px; object-fit: cover; border-radius: 20px; box-shadow: 0 10px 28px rgba(11, 37, 69, .18); margin-bottom: 10px; }
+.v-wg-person b { font-size: 25px; color: var(--navy); }
+.v-wg-person > span:not(.v-tiny) { font-size: 18px; font-weight: 650; color: var(--cyan); }
+.v-wg-person p { margin: 14px 0 0; font-size: 16px; line-height: 1.4; color: var(--text-2); }
+.v-wiggers { display: flex; flex-direction: column; gap: 2px; }
+.v-wg-state { padding: 10px 14px; border-radius: 14px; text-align: center; font-size: 17px; font-weight: 750; transition: all .2s; background: var(--bg-2); color: var(--text-2); border: 1.5px solid var(--line); }
+.v-wg-state[data-open='true'] { background: #f0fdfa; color: var(--teal); border-color: var(--teal); }
+.v-wg-phrase { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 28px; border-radius: 20px; text-align: center; background: linear-gradient(135deg, #0b2545, #0a4f75 55%, #0a6f95); color: #fff; box-shadow: 0 14px 34px rgba(11, 37, 69, .22); animation: v-rise .5s ease both; }
+.v-wg-phrase b { font-size: 27px; line-height: 1.25; font-weight: 700; }
+.v-wg-phrase em { font-style: normal; font-size: 14px; color: #bae6fd; }
 
 /* ───────────── 7 · prototipo ───────────── */
 .v-before { display: flex; flex-direction: column; gap: 12px; padding: 18px; }
@@ -215,3 +213,9 @@
 @media (max-width: 1000px) { .v-dash-body { grid-template-columns: 1fr; } .v-dash-side { display: none; } }
 .v-root .v-btn.primary[aria-pressed='true'] { background: var(--cyan); color: #fff; border-color: var(--cyan); }
 .v-only-active .scene-label:not(.active) { display: none; }
+
+/* logos institucionales (portada) */
+.v-cover-logos { display: flex; align-items: center; gap: 20px; align-self: flex-start; margin-bottom: 26px; padding: 12px 22px; border-radius: 18px; background: #fff; border: 1px solid var(--line-soft); box-shadow: var(--shadow); }
+.v-cover-logos img { display: block; height: 54px; width: auto; }
+.v-wg-sync { margin: 0; font-size: 15px; color: var(--muted); text-align: center; }
+.v-cover-logos i { width: 1px; height: 44px; background: var(--line); }

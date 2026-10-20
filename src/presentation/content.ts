@@ -257,26 +257,20 @@ export const MILESTONES = [
   { date: '2026-11-04', label: 'Feria' },
 ];
 
-// ─────────────────────── Pantalla 6 · Entrevista (pendiente) ───────────────────────
+// ─────────────────────── Pantalla 6 · Entrevista docente ───────────────────────
 /**
- * La entrevista AÚN NO SE REALIZA. No completar con respuestas supuestas.
- * Al realizarla: cambiar `status`, completar los campos y, si hay foto,
- * copiarla a /public y escribir su ruta en `photo` (p. ej. 'entrevista.jpg').
+ * Entrevista realizada. Solo se muestra información verificada: nombre, cargo y
+ * el tema que el profesor presentó (Diagrama de Wiggers). La aplicación al
+ * prototipo es una INTERPRETACIÓN DEL EQUIPO, no una cita ni una recomendación
+ * del profesor. La foto está en src/presentation/assets/pablo-reyes.jpg.
  */
 export const INTERVIEW = {
-  status: 'pendiente' as 'pendiente' | 'realizada',
-  photo: null as string | null,
-  name: PENDING('POR CONFIRMAR'),
-  area: PENDING('POR COMPLETAR'),
-  extract: PENDING('PENDIENTE'),
-  observations: PENDING('PENDIENTE'),
-  impact: PENDING('PENDIENTE'),
-  /** Guion preparado (preguntas, NO respuestas). */
-  questions: [
-    '¿Qué variables funcionales considera más útiles durante la rehabilitación de una persona con prótesis valvular?',
-    '¿Qué limitaciones ve en un prototipo accionado por servo, sin presión ni flujo?',
-    '¿Cómo validaría que el registro de vibración y sonido es repetible?',
-  ],
+  name: 'Dr. Pablo Reyes',
+  role: 'Profesor de Fisiología',
+  institution: 'Universidad del Desarrollo',
+  topic: 'Diagrama de Wiggers',
+  context: 'Durante la conversación nos mostró el Diagrama de Wiggers.',
+  phrase: 'El Diagrama de Wiggers conecta el latido cardíaco con el movimiento de nuestra válvula.',
 };
 
 // ─────────────────────────── Pantalla 7 · Dibujo inicial ───────────────────────────
@@ -451,7 +445,8 @@ export const NOTES: Record<string, string> = {
   interdisciplina: 'Tocar cada aporte conjunto para mostrar qué conocimiento aporta cada carrera.',
   materiales: 'Tocar 2–3 tarjetas (ESP32, piezo, MEMS). No hay costos ni proveedores en esta versión.',
   gantt: 'Cronograma propuesto (Encargo 2 por incorporar). Destacar la Feria el 4 de noviembre.',
-  entrevista: 'La entrevista aún no se realiza. Mostrar el guion y que los campos quedarán completos tras la entrevista.',
+  entrevista:
+    'Entrevista al Dr. Pablo Reyes (Fisiología UDD): nos mostró el Diagrama de Wiggers. Señalar ECG → presión del VI supera a la aórtica → la válvula abre; la presión del VI cae bajo la aórtica → cierra. La aplicación al prototipo es interpretación del equipo.',
   prototipo:
     'Funcionamiento normal vs. apertura restringida; ver sensores y mecanismo. Diseño conceptual por validar. Una válvula real se mueve por presión, no por motor.',
   modelos: 'Movimiento: θ(t) y su derivada. Vibración: energía de la señal, no joules. Latido: FC = 60/RR y retardo τ configurable.',

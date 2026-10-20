@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import { BrandMark } from '../../components/shared/Brand';
+import logoMed from '../assets/logo-udd-medicina.jpg';
+import logoUdd from '../assets/logo-udd.png';
 import { META } from '../content';
 import { useDeck } from '../components/deck';
 import { Visual3D } from '../components/Visual3D';
@@ -12,10 +14,15 @@ export function Cover() {
   return (
     <div className="v-slide v-cover">
       <div className="v-cover-text">
+        <div className="v-cover-logos">
+          <img src={logoUdd} alt="Universidad del Desarrollo" />
+          <i />
+          <img src={logoMed} alt="Facultad de Medicina Clínica Alemana – Universidad del Desarrollo" />
+        </div>
         <div className="v-row" style={{ gap: 14 }}>
           <BrandMark size={52} />
           <div className="v-kicker" style={{ margin: 0 }}>
-            {META.institution} · {META.date}
+            Proyecto interdisciplinario · {META.date}
           </div>
         </div>
         <h1 className="v-cover-title">

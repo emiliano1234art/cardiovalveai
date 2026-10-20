@@ -44,9 +44,17 @@ export const PX = {
     tech: ['Fechas PROPUESTAS: el Encargo 2 no estaba disponible al construir esta versión. Se editan en src/presentation/content.ts (GANTT).'],
   },
   interview: {
-    title: '¿Para qué sirve la entrevista?',
-    simple: 'Para que un académico revise nuestras decisiones desde su experiencia. Sus observaciones pueden validar, complementar o cuestionar el proyecto.',
-    tech: ['La entrevista aún no se realiza. Los campos se completan en src/presentation/content.ts (INTERVIEW) solo con información real.'],
+    title: '¿Cómo se relaciona con CardioVal AI?',
+    simple:
+      'El Diagrama de Wiggers muestra, en un mismo latido, la señal eléctrica del corazón (ECG), las presiones del ventrículo izquierdo y de la aorta, el volumen y los ruidos cardíacos. Nos ayuda a entender cuándo y por qué se abre y se cierra la válvula aórtica.',
+    look: [
+      'La válvula se abre cuando la presión del ventrículo supera a la de la aorta, y se cierra cuando vuelve a quedar por debajo.',
+      'La apertura ocurre después del pico R del ECG: hay un retraso.',
+    ],
+    tech: [
+      'Interpretación de nuestro equipo (no es una recomendación del profesor): usamos el diagrama como fundamento fisiológico para (1) sincronizar la válvula experimental con una señal de ECG considerando el retraso τ entre la activación eléctrica y la apertura; (2) relacionar la apertura y el cierre con la vibración del piezoeléctrico y el sonido del micrófono MEMS; y (3) interpretar el funcionamiento del prototipo dentro del ciclo cardíaco.',
+      'Las curvas de esta pantalla son un diagrama simplificado e ilustrativo construido con nuestro modelo de simulación; no son mediciones. Nuestro prototipo se mueve con un actuador, no por presión.',
+    ],
   },
   proto: {
     title: '¿Cómo funciona el prototipo?',

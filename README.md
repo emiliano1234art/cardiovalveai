@@ -34,7 +34,7 @@ El modelo es una **válvula aórtica de tres valvas semilunares** (≈ 120° ent
 | 3 | Integración interdisciplinaria (`#/interdisciplina`) | diagrama conectado Biomedicina ↔ aportes conjuntos ↔ Kinesiología (seleccionable) |
 | 4 | Materiales (`#/materiales`) | 10 tarjetas ilustradas; al tocarlas: qué es, para qué sirve, dónde se ubica y cómo participa |
 | 5 | Carta Gantt (`#/gantt`) | línea de tiempo animada de 10 etapas con hito Feria 4 nov · **cronograma propuesto** |
-| 6 | Entrevista (`#/entrevista`) | validación interdisciplinaria con campos pendientes (no realizada aún) |
+| 6 | Entrevista docente (`#/entrevista`) | Dr. Pablo Reyes (Fisiología UDD) · Diagrama de Wiggers simplificado y animado (ECG, presiones del VI y aórtica, apertura/cierre) sincronizado con la válvula 3D |
 | 7 | Prototipo antes/después (`#/prototipo`) | dibujo inicial (pendiente) vs. 3D: Abrir/Cerrar, normal, apertura restringida, sensores, mecanismo, vista explotada y comparación con la válvula real |
 | 8 | Modelos matemáticos (`#/modelos`) | pestañas Movimiento (θ, dθ/dt, límites) · Vibración (E = ∫x² dt) · Latido (FC = 60/RR, retardo τ) |
 | 9 | Resultados esperados (`#/resultados`) | 4 metas (no logradas aún) + proyección interdisciplinaria y vuelta a la pregunta |
@@ -69,7 +69,6 @@ El modelo es una **válvula aórtica de tres valvas semilunares** (≈ 120° ent
 ### Información pendiente
 
 - Fechas oficiales del Encargo 2 (la Carta Gantt es una propuesta).
-- Entrevista: nombre, área, extracto, observaciones, impacto y foto.
 - Foto del dibujo inicial del prototipo.
 - Hallazgos del Toolkit (Encargo 1).
 
