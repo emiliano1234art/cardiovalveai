@@ -10,7 +10,7 @@ import { IconPerson } from '../ui/icons';
 import { Section } from '../ui/Section';
 import { LEVEL_LABEL } from '../ui/StatusBadge';
 
-const VERDICT_SHORT: Record<Verdict, string> = { basal: 'normal', fc: 'cambio de ritmo', leve: 'diferencia leve', importante: 'diferencia importante' };
+const VERDICT_SHORT: Record<Verdict, string> = { basal: 'patrón similar', fc: 'cambio de ritmo', leve: 'cambio detectado', importante: 'desviación experimental' };
 
 const STAGES: PatientSnapshot['session_stage'][] = ['reposo', 'calentamiento', 'ejercicio', 'enfriamiento', 'recuperación'];
 
@@ -72,10 +72,10 @@ export function PatientSection({ snap, onFollow }: { snap: EngineSnapshot; onFol
           <div className="flow-node">
             <h4>Datos de válvula</h4>
             <div className="kv">
-              Parecido a la referencia <b>{snap.baseline ? `${fmt(L?.assessment.similarity, 0)} %` : '—'}</b>
+              Similitud con la referencia <b>{snap.baseline ? `${fmt(L?.assessment.similarity, 0)} %` : '—'}</b>
             </div>
             <div className="kv">
-              Índice de diferencia <b>{snap.baseline ? fmt(L?.assessment.anomaly, 2) : '—'}</b>
+              Cambios detectados <b>{snap.baseline ? fmt(L?.assessment.anomaly, 2) : '—'}</b>
             </div>
             <div className="kv">
               Latidos (ECG) <b>{snap.hasData ? `${fmt(snap.ecgBpm, 0)} lpm` : '—'}</b>

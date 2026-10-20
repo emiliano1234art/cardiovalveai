@@ -1,47 +1,47 @@
-import { KEY_IDEA, META } from '../content';
-import { Field, SimTag } from '../components/deck';
+import { useCallback } from 'react';
+import { META } from '../content';
+import { Field, useDeck } from '../components/deck';
 import { Visual3D } from '../components/Visual3D';
+import { sim } from '../sim/store';
 
 export function Cover() {
+  const { goTo } = useDeck();
+  // ciclo lento (≈ 1/3 de la velocidad real) para la portada
+  const slow = useCallback(() => sim.t * 0.35, []);
   return (
-    <div className="v-slide" style={{ padding: '60px 76px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 720px', gap: 36, height: '100%', alignItems: 'center' }}>
-        <div className="v-col" style={{ gap: 22 }}>
-          <div className="v-kicker">{META.course} · Presentación de avance</div>
-          <h1 style={{ fontSize: 128, lineHeight: 0.95, margin: 0, fontWeight: 800, letterSpacing: '-0.04em', color: 'var(--text)' }}>
-            Valve<span style={{ color: 'var(--cyan)' }}>Sense</span>
-          </h1>
-          <p style={{ fontSize: 27, lineHeight: 1.3, margin: 0, color: 'var(--text-2)', maxWidth: 760 }}>{META.subtitle}</p>
-          <div className="v-key" style={{ fontSize: 18.5, maxWidth: 780, padding: '14px 20px' }}>
-            {KEY_IDEA}
+    <div className="v-slide v-cover">
+      <div className="v-cover-text">
+        <div className="v-kicker">{META.team} · Proyecto Interdisciplinario</div>
+        <h1 className="v-cover-title">
+          VALVE<span>SENSE</span>
+        </h1>
+        <p className="v-cover-sub">Escuchamos el funcionamiento de una válvula para comprender sus cambios.</p>
+        <div className="v-row" style={{ gap: 12, marginTop: 30 }}>
+          <button className="v-btn primary v-btn-lg" onClick={() => goTo('s1')}>
+            Explorar proyecto →
+          </button>
+          <a className="v-btn v-btn-lg" href="#/dashboard" style={{ textDecoration: 'none' }}>
+            Laboratorio interactivo
+          </a>
+        </div>
+        <div className="v-cover-meta">
+          <div>
+            <b>{META.careers.join(' + ')}</b> · {META.institution} · {META.date}
           </div>
-          <div className="v-row" style={{ gap: 10 }}>
-            <span className="v-tag now" style={{ height: 34, fontSize: 15 }}>
-              Equipo {META.team}
-            </span>
-            {META.careers.map((c) => (
-              <span key={c} className="v-tag off" style={{ height: 34, fontSize: 14.5, textTransform: 'none', letterSpacing: 0 }}>
-                {c}
+          <div className="v-row" style={{ gap: 18, marginTop: 8 }}>
+            {META.members.map((m, i) => (
+              <span key={i} style={{ fontSize: 17 }}>
+                <Field value={m.name} />
               </span>
             ))}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 28px', fontSize: 18, maxWidth: 780 }}>
-            {META.members.map((m, i) => (
-              <div key={i} style={{ lineHeight: 1.2 }}>
-                <Field value={m.name} />
-                <div className="v-tiny">{m.career}</div>
-              </div>
-            ))}
-          </div>
-          <div className="v-small">
-            {META.institution} · {META.date}
-          </div>
         </div>
-        <div className="v-viewer" style={{ height: 760, borderRadius: 32 }}>
-          <Visual3D kind="university" render="university-hero" alt="Modelo universitario ValveSense con sensores integrados" camera="hero" autoRotate showLabels={false} xray={false} />
+      </div>
+      <div className="v-cover-visual">
+        <div className="v-viewer" style={{ height: '100%' }}>
+          <Visual3D kind="aortic" render="aortic-iso" alt="Válvula aórtica trivalva" camera="iso" showLabels={false} autoRotate clock={slow} />
           <div className="v-viewer-foot">
-            <span className="v-hint">Modelo universitario bileaflet · piezo y MEMS integrados</span>
-            <SimTag label="Simulación" />
+            <span className="v-hint">Válvula aórtica · tres valvas · animación 3D</span>
           </div>
         </div>
       </div>

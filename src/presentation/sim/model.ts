@@ -1,5 +1,5 @@
 /**
- * MODELO DE SIMULACIÓN — ValveSense (prótesis bileaflet, 2 valvas)
+ * MODELO DE SIMULACIÓN — ValveSense (válvula aórtica TRIVALVA experimental, 3 valvas)
  * ──────────────────────────────────────────────────────────────────
  * Fuente única de verdad: ECG sintético, detección del pico R, movimiento de
  * las valvas, vibración (piezo), sonido (MEMS) y descriptores para la IA se
@@ -20,19 +20,25 @@
  *     amortiguada con amplitud ∝ ω máx del tramo (supuesto a validar).
  *  6. Como las rampas no dependen de la FC, un cambio de FC no altera la firma
  *     mecánica de cada evento: solo cambia el intervalo entre ciclos.
- *  7. Prototipo actual: sin circuito de presión ni flujo; el movimiento lo impone el actuador.
+ *  7. Prototipo actual: sin circuito de presión ni flujo; el movimiento lo impone UN servo
+ *     (servo → leva → anillo actuador → 3 bielas → 3 valvas). Es una simulación mecánica:
+ *     no reproduce las fuerzas hemodinámicas de una válvula aórtica real.
+ *  8. Las condiciones alteradas se aplican a UNA valva (p.target) mediante topes o holguras
+ *     del montaje; el comando del servo no cambia.
  */
 
-export type Condition = 'normal' | 'restricted' | 'incomplete' | 'irregular';
+export type Condition = 'normal' | 'restricted' | 'incomplete' | 'irregular' | 'asymmetric';
 
 export const CONDITIONS: { id: Condition; label: string; short: string; detail: string }[] = [
-  { id: 'normal', label: 'Funcionamiento normal', short: 'Normal', detail: 'Ambas valvas abren hasta el ángulo programado y cierran sobre su asiento.' },
-  { id: 'restricted', label: 'Apertura restringida', short: 'Apertura restringida', detail: 'Un tope limita la apertura de ambas valvas a 45°.' },
-  { id: 'incomplete', label: 'Cierre incompleto', short: 'Cierre incompleto', detail: 'Las valvas no alcanzan el asiento: queda una separación residual de 12°.' },
-  { id: 'irregular', label: 'Movimiento irregular', short: 'Movimiento irregular', detail: 'La valva 2 varía su apertura y su retardo ciclo a ciclo.' },
+  { id: 'normal', label: 'Funcionamiento normal', short: 'Normal', detail: 'Las tres valvas abren hasta el ángulo programado y cierran en el centro.' },
+  { id: 'restricted', label: 'Apertura restringida', short: 'Apertura restringida', detail: 'Un tope limita la apertura de una valva a 40°.' },
+  { id: 'incomplete', label: 'Cierre incompleto', short: 'Cierre incompleto', detail: 'Una valva no llega al centro: queda una separación residual de 12°.' },
+  { id: 'irregular', label: 'Movimiento irregular', short: 'Movimiento irregular', detail: 'Una valva varía su apertura y su retardo ciclo a ciclo.' },
+  { id: 'asymmetric', label: 'Apertura asimétrica', short: 'Apertura asimétrica', detail: 'Las tres valvas abren distinto y con un pequeño desfase.' },
 ];
 
-export const LEAFLETS = ['Valva 1', 'Valva 2'] as const;
+export const LEAFLETS = ['Valva 1', 'Valva 2', 'Valva 3'] as const;
+export const LEAF_IDX = [0, 1, 2] as const;
 
 export interface SimParams {
   /** frecuencia cardíaca del ECG (lpm) */
@@ -44,14 +50,16 @@ export interface SimParams {
   delayMs: number;
   /** duración de apertura D_ap: inicio de apertura → inicio de cierre (ms) */
   openMs: number;
+  /** valva afectada por la condición alterada (0, 1 o 2) */
+  target: 0 | 1 | 2;
 }
 
-export const DEFAULT_PARAMS: SimParams = { bpm: 72, thetaMax: 80, condition: 'normal', delayMs: 100, openMs: 300 };
+export const DEFAULT_PARAMS: SimParams = { bpm: 72, thetaMax: 80, condition: 'normal', delayMs: 100, openMs: 300, target: 0 };
 export const LIMITS = { bpm: [40, 125], delayMs: [40, 180], openMs: [150, 400], thetaMax: [20, 85] } as const;
 
 export const RAMP_OPEN = 0.12;
 export const RAMP_CLOSE = 0.1;
-export const RESTRICT_DEG = 45;
+export const RESTRICT_DEG = 40;
 export const RESIDUAL_DEG = 12;
 
 export type PhaseName = 'apertura' | 'abierta' | 'cierre' | 'cerrada';
@@ -90,16 +98,23 @@ export interface LeafletBeat {
   dOpen: number;
 }
 
-/** Perfil de una valva para el latido b (depende de la condición). */
+/** Perfil de una valva para el latido b (depende de la condición y de la valva afectada). */
 export function leafletBeat(p: SimParams, i: number, b: number): LeafletBeat {
   let max = p.thetaMax;
   let min = 0;
   let extra = 0;
-  if (p.condition === 'restricted') max = Math.min(max, RESTRICT_DEG);
-  if (p.condition === 'incomplete') min = RESIDUAL_DEG;
-  if (p.condition === 'irregular' && i === 1) {
+  const hit = i === (p.target ?? 0);
+  if (p.condition === 'restricted' && hit) max = Math.min(max, RESTRICT_DEG);
+  if (p.condition === 'incomplete' && hit) min = RESIDUAL_DEG;
+  if (p.condition === 'irregular' && hit) {
     max = p.thetaMax * (0.5 + 0.35 * hash01(b, 31));
     extra = 0.015 + 0.05 * hash01(b, 57);
+  }
+  if (p.condition === 'asymmetric') {
+    // la valva afectada abre menos y más tarde; la siguiente, un poco menos
+    const k = (i - (p.target ?? 0) + 3) % 3;
+    max = p.thetaMax * [0.62, 0.84, 1][k];
+    extra = [0.035, 0.015, 0][k];
   }
   const { dOpen } = effectiveOpen(p);
   return { max, min: Math.min(min, max), start: p.delayMs / 1000 + extra, dOpen };
@@ -134,8 +149,14 @@ export function leafletState(t: number, p: SimParams, i: number) {
   return { theta: lb.min, omega: 0 };
 }
 
+/** Ángulo comandado por el servo (perfil normal, sin topes ni holguras). */
+export function commandState(t: number, p: SimParams) {
+  return leafletState(t, p.condition === 'normal' ? p : { ...p, condition: 'normal' }, 0);
+}
+
+/** Fase del ciclo según el comando del servo. */
 export function phaseName(t: number, p: SimParams): PhaseName {
-  const { lb, t0 } = activeBeat(t, p, 0);
+  const { lb, t0 } = activeBeat(t, p.condition === 'normal' ? p : { ...p, condition: 'normal' }, 0);
   const tau = t - t0;
   if (tau < RAMP_OPEN) return 'apertura';
   if (tau < lb.dOpen) return 'abierta';
@@ -144,7 +165,7 @@ export function phaseName(t: number, p: SimParams): PhaseName {
 }
 
 /** ¿Está abierta la válvula (alguna valva por sobre su mínimo)? */
-export const isOpen = (t: number, p: SimParams) => [0, 1].some((i) => leafletState(t, p, i).theta > leafletBeat(p, i, 0).min + 1);
+export const isOpen = (t: number, p: SimParams) => LEAF_IDX.some((i) => leafletState(t, p, i).theta > leafletBeat(p, i, 0).min + 1);
 
 // ═══════════════════════════════ ECG sintético ═══════════════════════════════
 
@@ -240,7 +261,7 @@ export function eventsBetween(t0: number, t1: number, p: SimParams): MechEvent[]
   const RR = rrOf(p);
   const out: MechEvent[] = [];
   for (let b = Math.floor(t0 / RR) - 2; b <= Math.ceil(t1 / RR) + 1; b++) {
-    for (const i of [0, 1]) {
+    for (const i of LEAF_IDX) {
       const lb = leafletBeat(p, i, b);
       const span = lb.max - lb.min;
       const base = rPeak(b, p) + lb.start;
@@ -249,7 +270,7 @@ export function eventsBetween(t0: number, t1: number, p: SimParams): MechEvent[]
       const wOpen = ((span * Math.PI) / (2 * RAMP_OPEN)) / OMEGA_REF;
       const wClose = ((span * Math.PI) / (2 * RAMP_CLOSE)) / OMEGA_REF;
       const seat = lb.min > 0 ? 0.3 : 1;
-      if (to >= t0 && to <= t1) out.push({ t: to, beat: b, leaflet: i, kind: 'open', amp: 0.45 * wOpen, limiter: p.condition === 'restricted' });
+      if (to >= t0 && to <= t1) out.push({ t: to, beat: b, leaflet: i, kind: 'open', amp: 0.45 * wOpen, limiter: p.condition === 'restricted' && i === (p.target ?? 0) });
       if (tc >= t0 && tc <= t1) out.push({ t: tc, beat: b, leaflet: i, kind: 'close', amp: seat * wClose });
     }
   }
@@ -292,7 +313,7 @@ export function sampleSignals(t0: number, t1: number, p: SimParams, fs: number):
         s += S.gain * e.amp * (e.kind === 'close' ? 1 : 0.6) * Math.exp(-dt / S.tau) * Math.sin(2 * Math.PI * f * dt);
       }
     }
-    const w = (Math.abs(leafletState(ti, p, 0).omega) + Math.abs(leafletState(ti, p, 1).omega)) / (2 * wNorm);
+    const w = Math.abs(commandState(ti, p).omega) / wNorm;
     v += V.servoGain * w * Math.sin(2 * Math.PI * V.servoF * ti);
     s += S.servoGain * w * Math.sin(2 * Math.PI * S.servoF * ti);
     const idx = Math.round(ti * fs);

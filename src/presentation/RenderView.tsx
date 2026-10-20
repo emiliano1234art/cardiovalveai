@@ -6,7 +6,7 @@ import type { Condition } from './sim/model';
 import './styles/presentation.css';
 
 /**
- * Vista de render (#/render/<tipo>?camera=iso&xray=1&exploded=0&labels=1&t=0.35&cond=normal):
+ * Vista de render (#/render/<tipo>?camera=iso&xray=1&exploded=0&labels=1&t=0.35&cond=normal&mech=1&open=0.5):
  * dibuja una escena 3D a pantalla completa en un instante fijo. La usa
  * `npm run renders` para generar las imágenes de alta calidad.
  */
@@ -31,6 +31,8 @@ export function RenderView() {
           xray={q.get('xray') === '1'}
           exploded={q.get('exploded') === '1'}
           showLabels={q.get('labels') !== '0'}
+          showMech={q.get('mech') === '1'}
+          manualOpen={q.get('open') !== null ? Number(q.get('open')) : null}
           interactive={false}
           onReady={() => setTimeout(() => setReady(true), 900)}
         />

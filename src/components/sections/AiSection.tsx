@@ -19,7 +19,7 @@ function SimilarityGauge({ value }: { value: number }) {
   const c = Math.PI * r; // semicircunferencia
   const v = Math.max(0, Math.min(100, value));
   return (
-    <svg viewBox="0 0 160 112" width="100%" style={{ maxWidth: 230 }} role="img" aria-label={`Parecido al patrón de referencia ${v.toFixed(0)} %`}>
+    <svg viewBox="0 0 160 112" width="100%" style={{ maxWidth: 230 }} role="img" aria-label={`Similitud con el patrón de referencia ${v.toFixed(0)} %`}>
       <defs>
         <linearGradient id="gsim" x1="0" x2="1">
           <stop offset="0" stopColor="#0a6f95" />
@@ -44,7 +44,7 @@ function SimilarityGauge({ value }: { value: number }) {
         </tspan>
       </text>
       <text x="80" y="106" textAnchor="middle" fontSize="9.5" fill="#7d8da0" letterSpacing=".06em">
-        PARECIDO A LA REFERENCIA
+        SIMILITUD CON LA REFERENCIA
       </text>
     </svg>
   );
@@ -60,7 +60,7 @@ function AnomalyScale({ value }: { value: number }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <span className="kicker">Índice de diferencia</span>
+        <span className="kicker">Cambios detectados</span>
         <span className="num" style={{ fontSize: 22, fontWeight: 650 }}>
           {fmt(v, 2)}
         </span>
@@ -119,7 +119,7 @@ function DeviationBars({ deviations }: { deviations: FeatureDeviation[] }) {
         );
       })}
       <div className="note" style={{ marginTop: 6, fontSize: 11 }}>
-        Marcas: diferencia leve (2,5σ) e importante (4σ).
+        Marcas: cambio (2,5σ) y desviación (4σ).
       </div>
     </div>
   );
@@ -132,8 +132,8 @@ function interpretation(level: DeviationLevel, deviations: FeatureDeviation[]): 
     .slice(0, 3)
     .map((d) => `${/^[A-Z]{2}/.test(d.label) ? d.label : d.label.toLowerCase()} (${signed(d.z, 1)}σ)`);
   if (level === 'normal' && top.length === 0)
-    return 'Vibración y sonido parecidos al patrón de referencia.';
-  const base = level === 'normal' ? 'Parecido a la referencia; ' : level === 'mild' ? 'Diferencia leve; ' : 'Diferencia importante; ';
+    return 'Vibración y sonido similares al patrón de referencia.';
+  const base = level === 'normal' ? 'Similar a la referencia; ' : level === 'mild' ? 'Cambio detectado; ' : 'Desviación experimental; ';
   return top.length ? `${base}lo que más cambió: ${top.join(', ')}.` : `${base}los ciclos varían entre sí.`;
 }
 

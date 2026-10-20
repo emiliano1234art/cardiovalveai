@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { EXPLAIN, type ExplainId } from '../../content/explanations';
+import { EXPLAIN, type Explanation, type ExplainId } from '../../content/explanations';
+import { Tex } from '../../presentation/components/Tex';
 import { IconClose, IconInfo } from '../ui/icons';
 
 interface Props {
-  id: ExplainId;
+  id?: ExplainId;
+  /** contenido propio (en vez de un id del catálogo) */
+  content?: Explanation;
   /** solo el ícono ⓘ (para indicadores pequeños) */
   compact?: boolean;
   label?: string;
@@ -20,8 +23,8 @@ const POP_W = 380;
  * explicación sencilla y, a pedido, explicación técnica.
  * En teléfonos la tarjeta aparece como hoja inferior.
  */
-export function GraphExplanation({ id, compact = false, label = '¿Qué significa?', onOpenChange }: Props) {
-  const e = EXPLAIN[id];
+export function GraphExplanation({ id, content, compact = false, label = '¿Qué significa?', onOpenChange }: Props) {
+  const e: Explanation = content ?? EXPLAIN[id ?? 'kinds'];
   const uid = useId();
   const btn = useRef<HTMLButtonElement>(null);
   const pop = useRef<HTMLDivElement>(null);
@@ -127,7 +130,7 @@ export function GraphExplanation({ id, compact = false, label = '¿Qué signific
                 </button>
               </div>
               <p className="explain-simple">{e.simple}</p>
-              {'look' in e && e.look && (
+              {e.look && (
                 <ul className="explain-look">
                   {e.look.map((l) => (
                     <li key={l}>{l}</li>
@@ -141,6 +144,11 @@ export function GraphExplanation({ id, compact = false, label = '¿Qué signific
                 <div className="explain-tech">
                   {e.tech.map((t) => (
                     <p key={t}>{t}</p>
+                  ))}
+                  {e.math?.map((m) => (
+                    <div key={m} className="explain-math">
+                      <Tex display>{m}</Tex>
+                    </div>
                   ))}
                 </div>
               )}

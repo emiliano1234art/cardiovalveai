@@ -22,6 +22,10 @@ interface Props {
   onHotspot?: (id: string | null) => void;
   /** reloj externo (s); por defecto, el reloj único de la presentación */
   clock?: () => number;
+  /** apertura manual 0–1 (null = sigue la simulación) */
+  manualOpen?: number | null;
+  /** muestra el mecanismo de accionamiento */
+  showMech?: boolean;
   camera?: CameraPreset;
   /** se incrementa para forzar el reencuadre aunque la vista no cambie */
   cameraNonce?: number;
@@ -37,14 +41,14 @@ interface Props {
 }
 
 /** Escena 3D sincronizada con el reloj único de simulación. */
-export function Scene3D({ kind, hotspots, activeHotspot = null, onHotspot, clock, camera = 'iso', cameraNonce = 0, exploded = false, xray = false, showLabels = true, selected = null, onSelect, autoRotate = false, interactive = true, onReady }: Props) {
+export function Scene3D({ kind, hotspots, activeHotspot = null, onHotspot, clock, manualOpen = null, showMech = false, camera = 'iso', cameraNonce = 0, exploded = false, xray = false, showLabels = true, selected = null, onSelect, autoRotate = false, interactive = true, onReady }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const labelsRef = useRef<HTMLDivElement>(null);
-  const state = useRef({ exploded, xray, selected, autoRotate, clock });
+  const state = useRef({ exploded, xray, selected, autoRotate, clock, manualOpen, showMech });
   const api = useRef<{ setCamera: (c: CameraPreset, instant?: boolean) => void } | null>(null);
   const [failed, setFailed] = useState(false);
   const [labelDefs, setLabelDefs] = useState<{ id: string; num?: number; text: string }[]>([]);
-  state.current = { exploded, xray, selected, autoRotate, clock };
+  state.current = { exploded, xray, selected, autoRotate, clock, manualOpen, showMech };
 
   useEffect(() => {
     const el = host.current;
@@ -142,7 +146,7 @@ export function Scene3D({ kind, hotspots, activeHotspot = null, onHotspot, clock
       controls.autoRotateSpeed = 0.7;
       controls.update();
       explodeK += ((st.exploded ? 1 : 0) - explodeK) * 0.12;
-      B.update(st.clock ? st.clock() : sim.t, sim.state.params, { exploded: explodeK, xray: st.xray, selected: st.selected, now: sim.running ? now : 0 });
+      B.update(st.clock ? st.clock() : sim.t, sim.state.params, { exploded: explodeK, xray: st.xray, selected: st.selected, now: sim.running ? now : 0, manual: st.manualOpen, mech: st.showMech });
       renderer.render(B.scene, cam);
       const w = el.clientWidth;
       const h = el.clientHeight;

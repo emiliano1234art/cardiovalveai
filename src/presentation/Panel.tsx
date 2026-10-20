@@ -8,7 +8,7 @@ import { SLIDES } from './Presentation';
 import { assess } from './sim/analysis';
 import { CONDITIONS, rrOf } from './sim/model';
 import { sim, useSim, type MotionPref } from './sim/store';
-import { VERDICT } from './slides/S06SignalsAI';
+import { VERDICT } from '../lib/verdict';
 import './styles/presentation.css';
 import './styles/panel.css';
 
@@ -72,7 +72,7 @@ function LiveRail() {
     <aside className="p-rail" aria-label="Simulación en vivo">
       <div className="p-card">
         <div className="p-card-head">
-          <h3>Válvula bileaflet</h3>
+          <h3>Válvula trivalva</h3>
           <span className="v-tag sim">SIMULACIÓN</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 4 }}>
@@ -192,7 +192,7 @@ export function Panel() {
           </svg>
           <div>
             <b>ValveSense</b>
-            <span>Panel de la presentación</span>
+            <span>Presentación con panel en vivo</span>
           </div>
         </div>
         <div className="p-nav">

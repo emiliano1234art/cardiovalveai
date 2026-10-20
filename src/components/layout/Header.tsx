@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { ModeSwitch } from '../shared/ModeSwitch';
 import { IconBrain, IconHeart, IconHistory, IconPause, IconPerson, IconPlay, IconRotate, IconSound, IconSpark, IconValve, IconVibration } from '../ui/icons';
 import type { EngineSnapshot } from '../../engine/ValveSenseEngine';
 import type { ConnectionStatus } from '../../types/valvesense';
@@ -67,9 +68,11 @@ export function Header({ snap, onSimulation, onEsp32, paused, onPause, onLearn }
             <div className="brand-name">
               Valve<span>Sense</span>
             </div>
-            <div className="brand-tag">Escuchar y sentir el movimiento de una válvula</div>
+            <div className="brand-tag">Laboratorio interactivo · válvula aórtica trivalva</div>
           </div>
         </div>
+
+        <ModeSwitch active="lab" />
 
         <div className="header-meta">
           <div className="segmented" role="tablist" aria-label="Origen de los datos">

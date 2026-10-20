@@ -6,6 +6,8 @@ import { createRoot } from 'react-dom/client';
 import { Panel } from './presentation/Panel';
 import { Presentation } from './presentation/Presentation';
 import { RenderView } from './presentation/RenderView';
+import './styles/global.css';
+import './styles/explain.css';
 
 /** Dashboard de señales en #/dashboard; presentación en formato dashboard en #/panel. */
 const DashboardApp = lazy(() => import('./App'));

@@ -281,16 +281,15 @@ export const refIndex = (id: string) => REFERENCES.findIndex((r) => r.id === id)
 
 // ─────────────────────────── Notas del expositor ───────────────────────────
 export const NOTES: Record<string, string> = {
-  cover: 'Presentar al equipo CardioValveAI y la idea principal. La válvula animada es nuestro modelo universitario bileaflet.',
-  s1: 'Problema clínico: la recuperación depende de la prótesis y de la respuesta funcional. Seleccionar 2–3 factores del mapa.',
-  s2: 'La válvula aórtica natural tiene 3 valvas; nos inspiramos en una prótesis mecánica bileaflet. Las válvulas reales son pasivas: se abren cuando la presión ventricular supera la aórtica. Nuestro modelo NO tiene presión: lo mueve un actuador.',
-  s3: 'ValveSense como sistema: sensores en la válvula, ECG, IA y dashboard, conectados con la respuesta funcional que aporta Kinesiología. Distinguir actual / propuesto / futuro.',
-  s4: 'Mostrar el modelo con vista interna: piezo en el anillo, MEMS en su alojamiento, cableado interno, actuador. Comparar Alternativa A (servo, versión 1) con B (presión).',
-  s5: 'Demostración: ECG simulado → detección de R → retardo τ → apertura. Cambiar la FC y el retardo. Recalcar: el ECG es eléctrico; es una representación educativa sincronizada. ECG real solo con adquisición aislada.',
-  s6: 'Comparar normal vs apertura restringida. Luego subir la FC: la IA no lo marca como falla porque la firma de cada evento no cambia y el ciclo coincide con el RR.',
-  s7: 'Recorrer las ecuaciones: RR → FC, temporización desde el pico R, RMS/energía, Fourier y similitud con la basal. La pestaña de cálculo conserva límites, derivadas e integrales.',
-  s8: 'Dashboard actualizado: cada panel indica si el dato es sintético, experimental (pendiente) o una aplicación clínica futura.',
-  s9: 'Integración clínica futura y resultados esperados. Dejar claro lo que NO afirmamos.',
-  s10: 'Cronograma, entrevista pendiente y souvenir. Cerrar con la idea principal.',
+  cover: 'Presentar al equipo CardioValveAI. La animación es una válvula aórtica de tres valvas. Invitar a explorar: «Explorar proyecto».',
+  s1: 'Plantear la pregunta: ¿podemos estudiar cómo funciona una válvula a partir de sus vibraciones y sonidos? Aclarar que no reemplaza exámenes clínicos.',
+  s2: 'Explicar el ciclo con el control Abierta ↔ Cerrada. Tres valvas semilunares; es la válvula aórtica, no la tricúspide. Botón «¿Por qué se mueve sin motores?»: las válvulas reales son pasivas.',
+  s3: 'Recorrer el prototipo tocando las piezas: piezo integrado en el anillo, MEMS orientado a la línea de cierre, ESP32 y el mecanismo (un servo → leva → anillo actuador → 3 bielas). Es un diseño propuesto.',
+  s4: 'Mostrar el ECG simulado, el pico R y el retraso τ antes de la apertura. Cambiar la FC. ECG real solo con módulo aislado.',
+  s5: 'Tocar un pico de vibración y uno de sonido para ver qué evento lo produce. Mostrar el mapa de sonidos.',
+  s6: 'Comparar referencia vs. cada condición sobre una valva. Las señales cambian cuando cambia el movimiento.',
+  s7: 'Recorrer el flujo Sensores → Resultado. Probar «Ejercicio 110 lpm»: cambio de ritmo, no falla. Insistir: reconoce cambios mecánicos, no diagnostica.',
+  s8: 'Abrir el laboratorio interactivo si hay tiempo. Datos del paciente: sintéticos. Kinesiología: visión futura.',
+  s9: 'Separar lo implementado/simulado de lo propuesto y de la visión futura. Abrir «Plan y próximos pasos» para el Gantt y la entrevista (pendiente).',
   biblio: 'Referencias verificadas y pendientes marcadas explícitamente.',
 };

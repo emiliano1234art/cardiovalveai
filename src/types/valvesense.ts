@@ -6,7 +6,7 @@
  */
 
 /** Condición mecánica experimental (misma definición que la presentación). */
-export type ExperimentalMode = 'normal' | 'restricted' | 'incomplete' | 'irregular';
+export type ExperimentalMode = 'normal' | 'restricted' | 'incomplete' | 'irregular' | 'asymmetric';
 
 export type ValveState = 'closed' | 'opening' | 'open' | 'closing';
 

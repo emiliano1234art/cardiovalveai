@@ -1,9 +1,9 @@
 import type { DeviationLevel } from '../../types/valvesense';
 
 export const LEVEL_LABEL: Record<DeviationLevel, string> = {
-  normal: 'NORMAL',
-  mild: 'DIFERENCIA LEVE',
-  major: 'DIFERENCIA IMPORTANTE',
+  normal: 'PATRÓN SIMILAR',
+  mild: 'CAMBIO DETECTADO',
+  major: 'DESVIACIÓN EXPERIMENTAL',
 };
 
 export const LEVEL_COLOR: Record<DeviationLevel, string> = {

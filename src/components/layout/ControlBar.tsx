@@ -9,16 +9,19 @@ import { IconGear, IconHeart, IconPulse } from '../ui/icons';
 interface Props {
   snap: EngineSnapshot;
   onMode: (m: ExperimentalMode) => void;
+  onTarget: (t: 0 | 1 | 2) => void;
   onBpm: (bpm: number) => void;
   onTiming: (patch: Partial<Pick<SimParams, 'delayMs' | 'openMs' | 'thetaMax'>>) => void;
   onRecalibrate: () => void;
 }
 
-/** Origen de los datos: siempre visible y fácil de distinguir. */
-export type DataKind = 'synthetic' | 'experimental' | 'future';
+/** Estado de lo que se muestra: siempre visible y fácil de distinguir. */
+export type DataKind = 'implemented' | 'synthetic' | 'experimental' | 'proposed' | 'future';
 export const DATA_KIND: Record<DataKind, { label: string; title: string }> = {
-  synthetic: { label: 'SIMULACIÓN', title: 'Datos generados para mostrar cómo funcionaría el sistema' },
+  implemented: { label: 'IMPLEMENTADO', title: 'Existe y funciona en el código o el prototipo' },
+  synthetic: { label: 'SIMULADO', title: 'Datos generados para mostrar cómo funcionaría el sistema' },
   experimental: { label: 'EXPERIMENTO', title: 'Datos obtenidos de los sensores conectados al prototipo' },
+  proposed: { label: 'PROPUESTO', title: 'Diseño que queremos fabricar o integrar; todavía no está construido' },
   future: { label: 'VISIÓN FUTURA', title: 'Posible aplicación clínica todavía no desarrollada ni validada' },
 };
 
@@ -45,9 +48,9 @@ function Slider({ label, value, unit, min, max, step, onChange }: { label: strin
   );
 }
 
-const MODE_DOT: Record<ExperimentalMode, string> = { normal: 'var(--ok)', restricted: 'var(--warn)', incomplete: 'var(--crit)', irregular: '#7a4fc0' };
+const MODE_DOT: Record<ExperimentalMode, string> = { normal: 'var(--ok)', restricted: 'var(--warn)', incomplete: 'var(--crit)', irregular: '#7a4fc0', asymmetric: '#0a6f95' };
 
-export function ControlBar({ snap, onMode, onBpm, onTiming, onRecalibrate }: Props) {
+export function ControlBar({ snap, onTarget, onMode, onBpm, onTiming, onRecalibrate }: Props) {
   const [adv, setAdv] = useState(false);
   const isSim = snap.sourceKind === 'simulation';
   const capturing = snap.captureProgress !== null;
@@ -78,6 +81,18 @@ export function ControlBar({ snap, onMode, onBpm, onTiming, onRecalibrate }: Pro
                   ))}
                 </div>
               </div>
+              {snap.mode !== 'normal' && (
+                <div className="ctl-group">
+                  <span className="controlbar-label">Valva afectada</span>
+                  <div className="zoom" role="radiogroup" aria-label="Valva afectada">
+                    {([0, 1, 2] as const).map((i) => (
+                      <button key={i} type="button" role="radio" aria-checked={p.target === i} className={p.target === i ? 'active' : ''} onClick={() => onTarget(i)}>
+                        Valva {i + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="ctl-group">
                 <span className="controlbar-label">Ritmo del corazón</span>
                 <div className="ctl-rhythm">

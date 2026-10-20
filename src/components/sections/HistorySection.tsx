@@ -137,10 +137,10 @@ export function HistorySection({ snap, onExport }: { snap: EngineSnapshot; onExp
       }
     >
       <div className="grid g-2">
-        <MiniHistory title="Parecido a la referencia" sub="100 % = igual al patrón normal" data={data} dataKey="baseline_similarity" color={COLORS.piezo} unit="%" domain={[0, 100]} decimals={1} segs={segs} />
+        <MiniHistory title="Similitud con el patrón de referencia" sub="100 % = igual al patrón normal" data={data} dataKey="baseline_similarity" color={COLORS.piezo} unit="%" domain={[0, 100]} decimals={1} segs={segs} />
         <MiniHistory
-          title="Índice de diferencia"
-          sub="Líneas: diferencia leve / importante"
+          title="Cambios detectados"
+          sub="Líneas: cambio / desviación"
           data={data}
           dataKey="anomaly_score"
           color={COLORS.piezo}
@@ -149,8 +149,8 @@ export function HistorySection({ snap, onExport }: { snap: EngineSnapshot; onExp
           decimals={2}
           segs={segs}
           refs={[
-            { y: THRESHOLDS.mild, label: 'leve', color: COLORS.warn },
-            { y: THRESHOLDS.major, label: 'importante', color: COLORS.crit },
+            { y: THRESHOLDS.mild, label: 'cambio', color: COLORS.warn },
+            { y: THRESHOLDS.major, label: 'desviación', color: COLORS.crit },
           ]}
         />
         <MiniHistory title="Latidos por minuto (ECG)" sub="Un cambio de ritmo no es una falla" data={data} dataKey="ecg_bpm" color="#d0473e" unit="lpm" domain={[40, 130]} decimals={0} segs={segs} />

@@ -1,13 +1,13 @@
 import { ACQ } from '../config/modes';
-import { ecgAt, hash01, leafletState, sampleSignals } from '../presentation/sim/model';
+import { commandState, ecgAt, hash01, sampleSignals } from '../presentation/sim/model';
 import { sim } from '../presentation/sim/store';
 import type { ConnectionStatus, SignalChunk } from '../types/valvesense';
 import type { ValveDataSource } from './DataSource';
 
 /**
  * Sintetizador de bloques crudos a partir del modelo sincronizado con ECG
- * (prótesis bileaflet, misma física que la presentación):
- *   ECG → pico R → retardo τ → apertura/cierre → piezo + MEMS + ángulo.
+ * (válvula trivalva, misma física que la presentación):
+ *   ECG → pico R → retardo τ → servo (ángulo comandado) → 3 valvas → piezo + MEMS.
  * Los parámetros (FC, τ, D, condición) se leen del estado compartido `sim`.
  */
 /** Velocidad máxima de cambio de la FC simulada (lpm/s). */
@@ -41,7 +41,7 @@ export class SyncedSynth {
     for (let i = 0; i < n; i++) {
       const ti = t0 + i / fsP;
       piezo[i] = s.vib[i * ratio] ?? 0;
-      servo[i] = leafletState(ti, p, 0).theta + 0.25 * (hash01(Math.round(ti * fsP), 5) * 2 - 1);
+      servo[i] = commandState(ti, p).theta + 0.25 * (hash01(Math.round(ti * fsP), 5) * 2 - 1);
       ecg[i] = ecgAt(ti, p);
     }
     audio.set(Float32Array.from(s.snd.subarray(0, n * ratio)));

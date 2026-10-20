@@ -87,7 +87,9 @@ export class BaselineModel {
     const D = Math.sqrt(mean(deviations.map((d) => Math.min(Math.abs(d.z), 8) ** 2)));
     const r = 0.5 * shapeR(f.piezo_envelope, this.piezoEnvelope) + 0.5 * shapeR(f.audio_envelope, this.audioEnvelope);
 
-    const featureScore = 1 - Math.exp(-Math.max(0, D - 1.2) / 2.2);
+    // un solo descriptor muy alejado (p. ej. una valva alterada de tres) también cuenta
+    const zMax = Math.max(0, ...deviations.map((d) => Math.abs(d.z)));
+    const featureScore = Math.max(1 - Math.exp(-Math.max(0, D - 1.2) / 2.2), clamp((zMax - 2) / 4, 0, 1));
     const shapeScore = clamp((0.95 - r) / 0.55, 0, 1);
     const anomaly = clamp(0.72 * featureScore + 0.28 * shapeScore, 0, 1);
     const similarity = clamp(100 * (0.62 * Math.exp(-(D * D) / 24) + 0.38 * clamp(r, 0, 1)), 0, 100);

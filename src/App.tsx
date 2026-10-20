@@ -12,13 +12,10 @@ import { PatientSection } from './components/sections/PatientSection';
 import { ValveSection } from './components/sections/ValveSection';
 import { VibrationSection } from './components/sections/VibrationSection';
 import { useValveSense } from './hooks/useValveSense';
-import './styles/global.css';
-import './styles/explain.css';
 
 export default function App() {
-  const { snap, paused, setPaused, setFollowPatient, engine, setMode, setBpm, setTiming, connectSimulation, connectEsp32, recaptureBaseline } = useValveSense();
+  const { snap, setTarget, paused, setPaused, setFollowPatient, engine, setMode, setBpm, setTiming, connectSimulation, connectEsp32, recaptureBaseline } = useValveSense();
   const [learn, setLearn] = useState(false);
-  const getAngle = useCallback(() => engine.angleNow(), [engine]);
   const exportRecords = useCallback(() => engine.exportRecords(), [engine]);
   const playback = useMemo(() => ({ paused, setPaused }), [paused, setPaused]);
   const recalibrate = useCallback(() => void recaptureBaseline(), [recaptureBaseline]);
@@ -31,11 +28,11 @@ export default function App() {
     <PlaybackCtx.Provider value={playback}>
       <div className="app">
         <Header snap={snap} onSimulation={connectSimulation} onEsp32={connectEsp32} paused={paused} onPause={setPaused} onLearn={startLearn} />
-        <ControlBar snap={snap} onMode={setMode} onBpm={setBpm} onTiming={setTiming} onRecalibrate={recalibrate} />
+        <ControlBar snap={snap} onTarget={setTarget} onMode={setMode} onBpm={setBpm} onTiming={setTiming} onRecalibrate={recalibrate} />
         <main className="container">
           <HeroSection snap={snap} engine={engine} onLearn={startLearn} />
           <EcgSection snap={snap} />
-          <ValveSection snap={snap} getAngle={getAngle} />
+          <ValveSection snap={snap} engine={engine} />
           <VibrationSection snap={snap} />
           <AudioSection snap={snap} engine={engine} />
           <AiSection snap={snap} onRecalibrate={recalibrate} />

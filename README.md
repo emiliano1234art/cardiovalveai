@@ -2,75 +2,78 @@
 
 **Del movimiento valvular al seguimiento funcional: una base para la rehabilitación cardiorrespiratoria personalizada.**
 
-Proyecto Interdisciplinario (Ingeniería Civil en Biomedicina + Kinesiología). Este repositorio contiene:
+Proyecto Interdisciplinario (Ingeniería Civil en Biomedicina + Kinesiología). Una misma aplicación con **dos modos conectados** (menú superior **Presentación | Laboratorio interactivo**):
 
-1. **Presentación interactiva de avance** (por defecto): portada + 10 diapositivas de contenido + bibliografía, con un modelo trivalvo animado y manipulable.
-2. **Dashboard v1** (conservado) en `#/dashboard`: análisis de señales sintéticas y conexión al ESP32.
+1. **Presentación interactiva** (por defecto, `#/`): portada + 9 pantallas + bibliografía, con estilo de aplicación, modelos 3D, gráficos interactivos y explicaciones «ⓘ» a pedido.
+2. **Laboratorio interactivo** (`#/dashboard`): válvula 3D trivalva, ECG, vibración, sonido, mapa de sonidos, IA, paciente simulado e historial; conexión opcional al ESP32.
 
-> ⚠️ Prototipo académico. No es un dispositivo médico ni entrega diagnósticos. Todo dato generado se marca como **SIMULACIÓN**; el panel funcional usa **datos sintéticos, no clínicos**.
+Ambos comparten el mismo modelo de simulación, los componentes 3D y las explicaciones (`src/content/explanations.ts`).
+
+> ⚠️ Prototipo académico. No es un dispositivo médico, no es una prótesis implantable y no entrega diagnósticos. Cada elemento indica su estado: **IMPLEMENTADO**, **SIMULADO**, **EXPERIMENTO**, **PROPUESTO** o **VISIÓN FUTURA**.
 
 ---
 
-## Presentación interactiva (entrega 20–21 de octubre)
+## La válvula: aórtica TRIVALVA
 
-**Idea principal:** ValveSense busca transformar las señales mecánicas y acústicas de una prótesis valvular en información útil para explorar nuevas formas de monitoreo cardiovascular y apoyar, en el futuro, una rehabilitación más personalizada.
+El modelo es una **válvula aórtica de tres valvas semilunares** (≈ 120° entre sí): cerradas forman una «Y» de coaptación en el centro y abiertas se desplazan hacia la pared. No es la válvula tricúspide (lado derecho del corazón). Geometría compartida en `src/presentation/geometry/trileaflet.ts`; se usa en el 3D (`three/scenes.ts`), en las vistas 2D (`components/ValveSVG.tsx`) y en los renders.
 
-Portada + 10 diapositivas de contenido + bibliografía, con la narrativa:
-problema clínico → válvula real → solución ValveSense → prototipo con sensores integrados → sincronización ECG → vibración, sonido e IA → matemática → dashboard → integración clínica e impacto → plan y cierre.
+- **Prototipo propuesto (no construido):** anillo Ø ≈ 70 mm impreso en 3D, tres valvas, piezoeléctrico de 12–15 mm integrado en la pared del anillo, micrófono MEMS INMP441 con el puerto orientado a la línea de cierre, ESP32 y base.
+- **Mecanismo:** **un solo servo MG90S → leva → anillo actuador → tres bielas → tres valvas** (visible con «Ver mecanismo»). Movimiento reproducible para comparar señales; es una simulación mecánica que no reproduce las fuerzas hemodinámicas. Alternativa futura (no reemplaza la actual): accionamiento pasivo por presión o flujo.
+- **Condiciones** (sobre UNA valva elegible): normal · apertura restringida (tope a 40°) · cierre incompleto (12° residuales) · movimiento irregular · apertura asimétrica · variación de FC. El comando del servo no cambia; las alteraciones vienen de topes/holguras.
 
-| # | Diapositiva | Cubre de la pauta |
+## Presentación (`#/`)
+
+| # | Pantalla | Elemento protagonista |
 |---|---|---|
-| — | Portada | nombre, equipo, carreras |
-| 1 | Problema clínico (mapa interactivo) | nombre + wicked problem |
-| 2 | Cómo funciona una válvula real (natural vs. bileaflet vs. modelo) | fundamentación |
-| 3 | Solución ValveSense · Biomedicina + Kinesiología | integración interdisciplinaria |
-| 4 | Prototipo con sensores integrados (3D, despiece, vista interna, antes/después, accionamiento A/B) | materiales + prototipo |
-| 5 | Sincronización con ECG (simulado; arquitectura segura propuesta para ECG real) | prototipo: cómo funciona y qué mide |
-| 6 | Vibración, sonido e IA: ¿falla mecánica o cambio de FC? | resultados esperados |
-| 7 | Matemática aplicada (LaTeX + límites, derivadas, integrales) | modelo matemático |
-| 8 | Dashboard actualizado (sintético / experimental / clínico futuro) | registro de variables |
-| 9 | Integración clínica, resultados esperados e impacto futuro | resultados y conclusiones |
-| 10 | Carta Gantt, entrevista docente, souvenir y cierre | línea de tiempo, entrevista, souvenir |
+| — | Portada «VALVESENSE» | válvula aórtica 3D abriendo y cerrando lentamente · «Explorar proyecto →» |
+| 1 | ¿Cuál es el problema? | corazón → válvula → señal · «¿Y si pudiéramos analizar una válvula por sus sonidos y vibraciones?» |
+| 2 | ¿Cómo funciona una válvula aórtica? | 3D con control **Abierta ↔ Cerrada**, 4 pasos y presiones ilustrativas · «¿Por qué se mueve sin motores?» |
+| 3 | Nuestro prototipo ValveSense | 3D interactivo: piezas seleccionables, vista explotada, sistema de movimiento, vista interna |
+| 4 | ¿Podemos sincronizarla con nuestro corazón? | ECG con picos R, cadena ECG → ESP32 → actuador → válvula, temporización R → τ → D, FC ajustable |
+| 5 | ¿Qué escuchan nuestros sensores? | vibración (piezo) y sonido (MEMS) en vivo; tocar un pico explica qué evento lo produjo; mapa de sonidos |
+| 6 | ¿Cómo reconocemos cambios? | referencia vs. condición alterada lado a lado (valva afectada en naranja) y diferencias |
+| 7 | ¿Qué hace nuestra IA? | flujo Sensores → Señales → Análisis → Comparación → Resultado; patrón similar / cambio detectado / desviación experimental |
+| 8 | Dashboard y Kinesiología | vista del laboratorio con datos simulados y paciente sintético |
+| 9 | Impacto y futuro | Hoy vs. Visión futura + «Plan y próximos pasos» (Gantt, entrevista, Toolkit, souvenir y QR) |
 | — | Bibliografía | |
+
+Las ecuaciones (gradiente de presión, RR y FC, retardo τ, RMS y energía, FFT, puntajes z y similitud) están en LaTeX dentro de las explicaciones técnicas. El PDF incluye un anexo con el plan de trabajo.
 
 ### Abrir
 
 | Opción | Cómo |
 |---|---|
 | **Sin internet** | `entrega/ValveSense_presentacion.html` (doble clic; autocontenido). |
-| **Presentación en formato dashboard** | `#/panel` o `entrega/ValveSense_panel.html`: menú de temas a la izquierda, cada diapositiva en vivo (con sus animaciones y modelos 3D) al centro y, siempre visible a la derecha, la simulación: válvula animada, ECG/vibración/sonido, veredicto de la IA y controles. Teclas ← → y botón *Panel* en la barra de la presentación. |
-| **Dashboard sin internet** | `entrega/ValveSense_dashboard.html` (abre directo en `#/dashboard`). |
-| **PDF para Canvas** | `entrega/ValveSense_presentacion.pdf` (12 páginas). Regenerar tras completar los campos pendientes (botón *Imprimir / PDF*). |
-| **Imágenes** | `entrega/imagenes/*.jpg`: renders 3D (modelo universitario, despiece, prótesis bileaflet, concepto futuro) y vistas de ECG, comparación normal vs. restringida, válvula real y dashboard. |
+| **Laboratorio sin internet** | `entrega/ValveSense_dashboard.html` (abre directo en `#/dashboard`). |
+| **Presentación con panel en vivo** | `#/panel` o `entrega/ValveSense_panel.html`. |
+| **PDF para Canvas** | `entrega/ValveSense_presentacion.pdf`. Regenerar tras completar los campos pendientes (botón ⎙). |
+| **Imágenes** | `entrega/imagenes/*.jpg`: renders 3D (válvula aórtica, prototipo, mecanismo, despiece, concepto futuro) y capturas de pantallas clave. |
 | **En línea** | https://emiliano1234art.github.io/cardiovalveai/ (se actualiza al hacer merge en `main`). |
 | **Desarrollo** | `npm install && npm run dev` → http://localhost:5173/cardiovalveai/ |
 
-`npm run build:offline` regenera el HTML autocontenido. Con el servidor de desarrollo activo, `node scripts/make-renders.cjs` regenera los renders 3D (requiere Playwright con Chromium).
+`npm run build:offline` regenera los HTML autocontenidos. Con el servidor de desarrollo activo, `node scripts/make-renders.cjs` regenera los renders 3D.
 
 ### Controles
 
-← → / PageUp / PageDown / deslizar · **I** índice · **E** modo Presentación/Exploración · **N** notas del expositor (no se imprimen) · **A** animación completa → reducida → pausa · **F** pantalla completa · botón *Imprimir / PDF* · enlaces directos `#/s5`, `#/biblio`…
+← → / PageUp / PageDown / deslizar · pestañas superiores · **N** notas del expositor · **A** animación completa → reducida → pausa · **F** pantalla completa · ⎙ imprimir / PDF · enlaces directos `#/s4`, `#/biblio`…
 
 ### Dónde editar el contenido
 
-Todo el contenido editable está en **`src/presentation/content.ts`** (integrantes, entrevista, dibujo inicial, hallazgos del Toolkit, Carta Gantt, URL del QR, referencias, notas). Un texto entre `[corchetes]` es un **campo pendiente** y se resalta en rosa. Pendientes: integrantes, entrevista (aún no realizada), dibujo inicial, hallazgos del Toolkit, fechas/responsables del Encargo 2, y referencias marcadas *pendiente de verificación*.
+- **`src/presentation/content.ts`**: integrantes, entrevista, hallazgos del Toolkit, Carta Gantt, URL del QR, referencias y notas. Un texto entre `[corchetes]` es un **campo pendiente** y se resalta en rosa.
+- **`src/content/explanations.ts`**: todas las explicaciones «ⓘ» (sencilla + técnica + ecuaciones), compartidas por los dos modos.
 
 ### Modelo de simulación (fuente única de verdad)
 
-`src/presentation/sim/model.ts` (ECG, latidos, válvula bileaflet y señales), `sim/analysis.ts` (IA experimental) y `sim/physiology.ts` (presiones ilustrativas). Un solo reloj (`sim/store.ts`) mueve el 3D, las señales y los gráficos: pausar detiene todo.
+`src/presentation/sim/model.ts` (ECG, latidos, tres valvas y señales), `sim/analysis.ts` (IA experimental) y `sim/physiology.ts` (presiones ilustrativas). El laboratorio usa el mismo modelo (`sources/SyncedSimSource.ts`).
 
-- **ECG → R → τ → actuador:** la apertura comienza τ (configurable) después del pico R; dura D (configurable) y se acota al intervalo RR. El ECG mide actividad eléctrica: es una **representación educativa sincronizada**, no fisiología exacta.
-- **Detección de R** sobre la señal (derivada → cuadrado → integración 150 ms → umbral adaptativo, inspirado en Pan–Tompkins). La FC mostrada se calcula de los RR detectados.
-- **Rampas del servo fijas** (120 ms apertura, 100 ms cierre) ⇒ la firma de cada evento no depende de la FC.
-- **IA experimental:** descriptores sincronizados con cada evento (energía, RMS, frecuencia dominante, apertura, desfase, variabilidad) + comparación del ciclo valvular con el RR del ECG. Un aumento de FC no se clasifica como falla. Umbrales = heurística demostrativa.
-- **Condiciones:** normal · apertura restringida (45°) · cierre incompleto (12° residuales) · movimiento irregular (valva 2 variable ciclo a ciclo) · variación de FC.
-- **ECG real:** no implementado. Solo con un módulo de adquisición aislado, a batería y preferentemente inalámbrico; nunca electrodos conectados a circuitos alimentados por USB/red sin aislamiento.
-
-El prototipo de referencia es **bileaflet (2 valvas)**, inspirado en una prótesis aórtica mecánica; la válvula aórtica natural (3 valvas) se usa solo como explicación fisiológica.
+- **ECG → R → τ → actuador:** la apertura comienza τ después del pico R (retardo electromecánico configurable); dura D y se acota al RR. El ECG mide actividad eléctrica: la apertura no es simultánea al pico R.
+- **Detección de R** inspirada en Pan–Tompkins; la FC mostrada se calcula de los RR detectados.
+- **IA experimental:** descriptores por evento + sincronía con el RR. Un aumento de FC no se clasifica como falla. Umbrales = heurística demostrativa.
+- **ECG real:** no implementado. Solo con un módulo aislado, a batería y preferentemente inalámbrico; nunca electrodos conectados a circuitos alimentados por USB/red sin aislamiento.
 
 ---
 
-# Dashboard v1 (`#/dashboard`)
+# Laboratorio interactivo (`#/dashboard`)
 
 ## 1. Instalación
 
@@ -100,9 +103,9 @@ npm run dataset    # regenera el dataset sintético de ejemplo (public/data/)
 - **Aprender cómo funciona**: recorrido guiado de 5 pasos (~1–2 min) con animaciones; se puede omitir en cualquier momento.
 - **Origen de los datos** siempre visible: **SIMULACIÓN**, **EXPERIMENTO** o **VISIÓN FUTURA**. Con el ESP32 desconectado no se muestran valores simulados como si fueran del prototipo, y el patrón de referencia debe registrarse con los datos reales.
 
-Barra de control (simulación): condición mecánica (Normal · Apertura restringida · Cierre incompleto · Movimiento irregular), ritmo del corazón (Reposo · 72, Ejercicio · 110 o control deslizante) y **Ajustes avanzados** (τ, D, θ y registro del patrón de referencia). Al cambiar τ, D o θ la referencia se recalibra con esa temporización; la FC simulada cambia gradualmente (≤ 12 lpm/s).
+Barra de control (simulación): condición mecánica (Normal · Apertura restringida · Cierre incompleto · Movimiento irregular · Apertura asimétrica) y valva afectada (1, 2 o 3), ritmo del corazón (Reposo · 72, Ejercicio · 110 o control deslizante) y **Ajustes avanzados** (τ, D, θ y registro del patrón de referencia). Al cambiar τ, D o θ la referencia se recalibra con esa temporización; la FC simulada cambia gradualmente (≤ 12 lpm/s).
 
-Secciones: portada 3D · 01 Latidos del corazón (ECG, picos R, qué pasa en cada latido) · 02 La válvula en movimiento · 03 Vibración · 04 Sonido y mapa de sonidos · 05 Análisis inteligente (normal / cambio de ritmo / diferencia leve / importante; normal vs. ahora; ¿qué cambió?) · 06 Paciente simulado y ejercicio (visión futura con Kinesiología) · 07 Historial y exportación.
+Secciones: portada 3D (abrir/cerrar a mano, ver mecanismo, ubicar sensores) · 01 Latidos del corazón (ECG, picos R, qué pasa en cada latido) · 02 Las tres valvas en movimiento (vista superior y lateral, valva afectada en naranja) · 03 Vibración · 04 Sonido y mapa de sonidos · 05 Análisis inteligente (patrón similar / cambio de ritmo / cambio detectado / desviación experimental; normal vs. ahora; ¿qué cambió?) · 06 Paciente simulado y ejercicio (visión futura con Kinesiología) · 07 Historial y exportación.
 
 ---
 
@@ -110,7 +113,7 @@ Secciones: portada 3D · 01 Latidos del corazón (ECG, picos R, qué pasa en cad
 
 ```
           ┌────────────────────────── Fuente de datos (ValveDataSource) ──────────────────────────┐
-          │  SyncedSimSource ──► SyncedSynth (modelo de presentation/sim: ECG + bileaflet)       │
+          │  SyncedSimSource ──► SyncedSynth (modelo de presentation/sim: ECG + 3 valvas)        │
           │  Esp32WebSocketSource  ──►  ESP32 real (JSON por WebSocket)                          │
           └──────────────────────────────┬────────────────────────────────────────────────────────┘
                                          │ SignalChunk { piezo, servo, audio, ecg?, fs, t0 }
@@ -183,7 +186,7 @@ public/data/                     valvesense_sample_dataset.{csv,json}
 | Estado | `< 0,3` NORMAL · `0,3–0,6` DESVIACIÓN LEVE · `≥ 0,6` DESVIACIÓN IMPORTANTE |
 | Veredicto | Desviación leve/importante según el estado; si no, «cambio de FC» cuando \|FC ECG − FC basal\| ≥ 10 lpm; si no, «dentro de la basal» |
 
-Resultados del modelo sintético (no son mediciones): Normal 72 lpm ≈ 100 % / 0,00 → basal · Normal 60–110 lpm ≈ 94–100 % / ≤ 0,1 → cambio de FC · Apertura restringida ≈ 56 % / 0,63 → importante · Cierre incompleto ≈ 49 % / 0,69 → importante · Movimiento irregular ≈ 67 % / 0,54 → leve.
+Resultados del modelo sintético (no son mediciones; dataset de ejemplo): Normal 72 lpm → patrón similar · Normal 110 lpm → cambio de ritmo · una valva restringida → cambio detectado · cierre incompleto → cambio detectado · movimiento irregular y apertura asimétrica → desviación experimental. Además de la distancia multivariante, un único descriptor muy alejado (|z| > 2) también eleva el índice, para detectar cambios en una sola de las tres valvas.
 
 ---
 

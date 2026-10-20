@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { PatientSimulator } from '../../simulation/PatientSimulator';
 import type { PatientSnapshot } from '../../types/valvesense';
-import { SlideHead, useDeck } from '../components/deck';
+import { GraphExplanation } from '../../components/explain/GraphExplanation';
+import { EXPLAIN } from '../../content/explanations';
+import { VERDICT } from '../../lib/verdict';
+import { useDeck } from '../components/deck';
+import { Explain, Screen } from '../components/screen';
 import { LiveSignals } from '../components/LiveSignals';
 import { ConditionChips } from '../components/SimControls';
 import { StaticSignals } from '../components/StaticSignals';
@@ -9,21 +13,22 @@ import { ValveSVG } from '../components/ValveSVG';
 import { assess, summarize } from '../sim/analysis';
 import { bpmFromPeaks, CONDITIONS, detectR, effectiveOpen, isOpen, sampleEcg } from '../sim/model';
 import { sim, useSim } from '../sim/store';
-import { Spectrogram, VERDICT } from './S06SignalsAI';
+import { Spectrogram } from '../components/SoundMap';
 
 type Kind = 'sint' | 'exp' | 'clin';
 const BADGE: Record<Kind, { cls: string; label: string }> = {
-  sint: { cls: 'sim', label: 'Datos sintéticos' },
-  exp: { cls: 'exp', label: 'Experimental · pendiente' },
-  clin: { cls: 'clin', label: 'Clínico futuro' },
+  sint: { cls: 'sim', label: 'Simulado' },
+  exp: { cls: 'exp', label: 'Experimento · pendiente' },
+  clin: { cls: 'clin', label: 'Visión futura' },
 };
 
-function Card({ title, kinds, children, style }: { title: string; kinds: Kind[]; children: ReactNode; style?: CSSProperties }) {
+function Card({ title, kinds, children, style, info }: { title: string; kinds: Kind[]; children: ReactNode; style?: CSSProperties; info?: 'vibration' | 'sound' | 'spectrogram' | 'ecg' | 'ai' | 'patient' }) {
   return (
     <div className="v-panel" style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 4, minHeight: 0, ...style }}>
       <div className="v-row" style={{ justifyContent: 'space-between', gap: 6, flexWrap: 'nowrap' }}>
         <b style={{ fontSize: 14.5, whiteSpace: 'nowrap' }}>{title}</b>
         <span className="v-row" style={{ gap: 4, flexWrap: 'nowrap' }}>
+          {info && <GraphExplanation id={info} compact />}
           {kinds.map((k) => (
             <span key={k} className={`v-tag ${BADGE[k].cls}`} style={{ height: 20, fontSize: 9.5, padding: '0 7px', letterSpacing: '.06em' }}>
               {BADGE[k].label}
@@ -87,23 +92,23 @@ export function S08Dashboard() {
   const path = hr.map((v, i) => `${i ? 'L' : 'M'}${((i / (hr.length - 1)) * W).toFixed(1)} ${(46 - ((v - 60) / 60) * 46).toFixed(1)}`).join('');
 
   return (
-    <div className="v-slide" style={{ paddingTop: 40 }}>
-      <SlideHead
-        num={8}
-        kicker="Dashboard ValveSense actualizado"
-        title="ECG, válvula, señales e IA"
-        right={
-          <div className="v-row" style={{ gap: 6 }}>
-            {(Object.keys(BADGE) as Kind[]).map((k) => (
-              <span key={k} className={`v-tag ${BADGE[k].cls}`}>
-                {BADGE[k].label}
-              </span>
-            ))}
-          </div>
-        }
-      />
-      <div className="v-body" style={{ display: 'grid', gridTemplateColumns: '560px 470px 1fr', gridTemplateRows: '1fr 1fr 1fr', gap: 10, minHeight: 0 }}>
-        <Card title="ECG y FC detectada" kinds={['sint', 'exp']}>
+    <Screen
+      num={8}
+      kicker="Dashboard · Kinesiología"
+      title="Dashboard y aplicaciones en Kinesiología"
+      lead="Señales, ECG, IA y respuesta al ejercicio en una sola vista. Los datos del paciente son sintéticos."
+      states={['implemented', 'synthetic', 'future']}
+      actions={
+        <>
+          <Explain label="¿Y Kinesiología?" content={EXPLAIN.p_kine} />
+          <a className="v-btn sm" href="#/dashboard" style={{ textDecoration: 'none' }}>
+            Abrir laboratorio interactivo ↗
+          </a>
+        </>
+      }
+    >
+      <div style={{ display: 'grid', gridTemplateColumns: '560px 470px 1fr', gridTemplateRows: '1fr 1fr 1fr', gap: 10, height: '100%', minHeight: 0 }}>
+        <Card title="Latidos del corazón (ECG)" kinds={['sint']} info="ecg">
           <div className="v-row" style={{ gap: 12, flexWrap: 'nowrap', alignItems: 'center' }}>
             <div style={{ minWidth: 92 }}>
               <div className="v-tiny">FC (RR)</div>
@@ -115,9 +120,9 @@ export function S08Dashboard() {
             {print ? <StaticSignals params={params} width={430} height={140} lanes={['ecg']} /> : <LiveSignals width={430} height={140} windowS={3} lanes={['ecg']} />}
           </div>
         </Card>
-        <Card title="Válvula · estado y temporización" kinds={['sint']}>
+        <Card title="Movimiento de las tres valvas" kinds={['sint']}>
           <div className="v-row" style={{ gap: 10, flexWrap: 'nowrap' }}>
-            <ValveSVG view="side" size={170} angles={print ? [80, 80] : undefined} />
+            <ValveSVG view="top" size={150} numbers angles={print ? [80, 80, 80] : undefined} />
             <div className="v-col" style={{ gap: 4, fontSize: 14 }}>
               <span ref={ref} className="v-tag off">
                 CERRADA
@@ -128,7 +133,7 @@ export function S08Dashboard() {
             </div>
           </div>
         </Card>
-        <Card title="IA · detección de desviaciones" kinds={['sint']} style={{ background: V.bg, borderColor: V.color }}>
+        <Card title="Análisis inteligente" kinds={['sint']} info="ai" style={{ background: V.bg, borderColor: V.color }}>
           <div style={{ fontSize: 19, fontWeight: 800, color: V.color }}>
             {V.icon} {V.label}
           </div>
@@ -137,23 +142,23 @@ export function S08Dashboard() {
               Similitud <b style={{ fontSize: 22 }}>{a.similarity.toFixed(0)} %</b>
             </span>
             <span>
-              Score <b style={{ fontSize: 22 }}>{a.score.toFixed(2).replace('.', ',')}</b>
+              Cambios <b style={{ fontSize: 22 }}>{a.score.toFixed(2).replace('.', ',')}</b>
             </span>
           </div>
-          <ConditionChips compact />
+          <ConditionChips compact only={['normal', 'restricted', 'asymmetric']} />
         </Card>
 
-        <Card title="Señal piezoeléctrica (vibración)" kinds={['sint', 'exp']}>
+        <Card title="Vibración de la válvula" kinds={['sint']} info="vibration">
           {print ? <StaticSignals params={params} width={530} height={150} lanes={['vib']} /> : <LiveSignals width={530} height={150} windowS={3} lanes={['vib']} />}
         </Card>
-        <Card title="Señal acústica MEMS" kinds={['sint', 'exp']}>
+        <Card title="Sonido de la válvula" kinds={['sint']} info="sound">
           {print ? <StaticSignals params={params} width={440} height={150} lanes={['snd']} /> : <LiveSignals width={440} height={150} windowS={3} lanes={['snd']} />}
         </Card>
-        <Card title="Espectrograma (MEMS)" kinds={['sint']}>
+        <Card title="Mapa de sonidos" kinds={['sint']} info="spectrogram">
           <Spectrogram p={params} w={380} h={128} />
         </Card>
 
-        <Card title="Normal vs alterado · energía del cierre" kinds={['sint']}>
+        <Card title="Normal vs. alterado · energía del cierre" kinds={['sint']}>
           {bars.map((b) => (
             <div key={b.c.id} style={{ display: 'grid', gridTemplateColumns: '170px 1fr 54px', alignItems: 'center', gap: 8, fontSize: 13.5 }}>
               <span style={{ fontWeight: b.c.id === params.condition ? 750 : 500, color: b.c.id === params.condition ? 'var(--text)' : 'var(--muted)' }}>{b.c.label}</span>
@@ -169,7 +174,7 @@ export function S08Dashboard() {
             Eₓ del cierre (×10⁻³ V²·s), misma posición de sensores
           </div>
         </Card>
-        <Card title="Respuesta funcional (simulada)" kinds={['sint', 'clin']}>
+        <Card title="Paciente simulado · ejercicio" kinds={['sint', 'clin']} info="patient">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
             {[
               ['FC', `${pt.heart_rate}`, 'lpm'],
@@ -200,16 +205,16 @@ export function S08Dashboard() {
         </Card>
         <Card title="Dashboard completo" kinds={['sint']}>
           <div style={{ fontSize: 14.5, color: 'var(--text-2)', lineHeight: 1.35 }}>
-            Conserva las gráficas, el análisis IA, el espectrograma y el paciente simulado, y suma ECG simulado, picos R, temporización τ/D y el veredicto «cambio de FC».
+            Válvula 3D trivalva, ECG, vibración, sonido, mapa de sonidos, IA y paciente simulado, con explicaciones ⓘ en cada gráfico.
           </div>
           <a className="v-btn sm v-no-print" href="#/dashboard" style={{ textDecoration: 'none', alignSelf: 'flex-start', marginTop: 4 }}>
-            Abrir dashboard ↗
+            Abrir laboratorio ↗
           </a>
           <div className="v-tiny v-mono" style={{ fontSize: 12 }}>
             #/dashboard
           </div>
         </Card>
       </div>
-    </div>
+    </Screen>
   );
 }

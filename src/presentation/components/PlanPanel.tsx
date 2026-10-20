@@ -1,8 +1,8 @@
 import QRCode from 'qrcode';
 import { useEffect, useState, type CSSProperties } from 'react';
-import { DASHBOARD_URL, GANTT, GANTT_IS_PROPOSAL, INTERVIEW, KEY_IDEA, MILESTONES, type TaskStatus } from '../content';
-import { Field, SlideHead, useDeck } from '../components/deck';
-import { ValveSVG } from '../components/ValveSVG';
+import { DASHBOARD_URL, GANTT, GANTT_IS_PROPOSAL, INTERVIEW, JOINT_DECISIONS, KEY_IDEA, MILESTONES, TOOLKIT_FINDINGS, type TaskStatus } from '../content';
+import { Field, useDeck } from './deck';
+import { ValveSVG } from './ValveSVG';
 
 const START = new Date('2026-09-14T00:00:00');
 const END = new Date('2026-11-09T00:00:00');
@@ -102,7 +102,7 @@ function Keychain({ spin }: { spin: boolean }) {
         </svg>
         <div style={{ position: 'absolute', top: 40, left: 5, width: 140, height: 140, borderRadius: '50%', background: 'linear-gradient(135deg,#38bdf8,#0e7490)', display: 'grid', placeItems: 'center', boxShadow: '0 8px 20px rgba(8,145,178,.3)' }}>
           <div style={{ ['--valve-ring' as string]: '#e0f2fe', ['--valve-orifice' as string]: '#0b3a52', ['--valve-leaf' as string]: '#7dd3fc', ['--valve-leaf-edge' as string]: '#0b3a52', ['--valve-edge' as string]: '#0b3a52' } as CSSProperties}>
-            <ValveSVG view="top" angles={[0, 0]} size={100} />
+            <ValveSVG view="top" angles={[0, 0, 0]} size={100} />
           </div>
         </div>
       </div>
@@ -110,7 +110,8 @@ function Keychain({ spin }: { spin: boolean }) {
   );
 }
 
-export function S10Close() {
+/** Plan de trabajo, entrevista, souvenir y QR (panel desplegable de la pantalla final y anexo impreso). */
+export function PlanPanel() {
   const { print } = useDeck();
   const I = INTERVIEW;
   const [qr, setQr] = useState<string | null>(null);
@@ -119,9 +120,8 @@ export function S10Close() {
     QRCode.toString(DASHBOARD_URL, { type: 'svg', margin: 1, errorCorrectionLevel: 'M', color: { dark: '#0b1f33', light: '#ffffff' } }).then(setQr);
   }, []);
   return (
-    <div className="v-slide" style={{ paddingTop: 44 }}>
-      <SlideHead num={10} kicker="Plan de trabajo · validación docente · souvenir y cierre" title="Próximos pasos hacia la Feria Científica" />
-      <div className="v-body" style={{ display: 'grid', gridTemplateColumns: '880px 1fr', gap: 18, minHeight: 0 }}>
+    <div className="v-col" style={{ gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '880px 1fr', gap: 18, minHeight: 0 }}>
         <Gantt />
         <div className="v-col" style={{ gap: 12 }}>
           <div className="v-panel" style={{ padding: '12px 16px' }}>
@@ -155,16 +155,39 @@ export function S10Close() {
             <div style={{ fontSize: 14, lineHeight: 1.35 }}>
               <b style={{ fontSize: 16 }}>Souvenir: llavero ValveSense</b>
               <div className="v-small" style={{ fontSize: 13.5 }}>
-                Silueta de la válvula bileaflet impresa en 3D (PLA, propuesta) con tarjeta y QR a la presentación interactiva.
+                Silueta de la válvula trivalva impresa en 3D (PLA, propuesta) con tarjeta y QR a la presentación interactiva.
               </div>
             </div>
             {qr ? <div style={{ width: 116, height: 116 }} dangerouslySetInnerHTML={{ __html: qr }} aria-label="Código QR" /> : <div className="v-pending-text">[URL pendiente]</div>}
           </div>
         </div>
       </div>
-      <div className="v-key" style={{ marginTop: 12, fontSize: 19, padding: '12px 22px', textAlign: 'center' }}>
-        “Comprender cómo funciona una válvula es un paso; <span style={{ color: 'var(--cyan)' }}>comprender cómo se recupera una persona es nuestro propósito</span>”.
-        <div style={{ fontSize: 14.5, fontWeight: 500, marginTop: 4, color: 'var(--text-2)' }}>{KEY_IDEA}</div>
+      <div className="v-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="v-panel" style={{ padding: '10px 14px' }}>
+          <div className="v-panel-title" style={{ margin: 0, fontSize: 13 }}>
+            Hallazgos del Toolkit (Encargo 1)
+          </div>
+          <ul className="v-list" style={{ fontSize: 14, gap: 4, marginTop: 6 }}>
+            {TOOLKIT_FINDINGS.map((f) => (
+              <li key={f}>
+                <Field value={f} />
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="v-panel" style={{ padding: '10px 14px' }}>
+          <div className="v-panel-title" style={{ margin: 0, fontSize: 13 }}>
+            Decisiones conjuntas Biomedicina + Kinesiología
+          </div>
+          <ul className="v-list" style={{ fontSize: 14, gap: 4, marginTop: 6 }}>
+            {JOINT_DECISIONS.map((d) => (
+              <li key={d.decision}>{d.decision}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div className="v-tiny" style={{ fontSize: 13 }}>
+        {KEY_IDEA}
       </div>
     </div>
   );

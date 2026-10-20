@@ -1,5 +1,5 @@
 import { powerSpectrum } from '../../analysis/dsp';
-import { DEFAULT_PARAMS, eventsBetween, integralSquare, leafletBeat, rPeak, sampleSignals, type SimParams } from './model';
+import { DEFAULT_PARAMS, eventsBetween, integralSquare, LEAF_IDX, leafletBeat, rPeak, sampleSignals, type SimParams } from './model';
 
 /**
  * DETECCIÓN EXPERIMENTAL DE DESVIACIONES (no es diagnóstico)
@@ -69,7 +69,7 @@ export function beatFeatures(p: SimParams, b: number): BeatFeatures {
     rmsClose: Math.sqrt(eClose / (c1 - c0)),
     fDom,
     centroid,
-    angle: (leafletBeat(p, 0, b).max + leafletBeat(p, 1, b).max) / 2,
+    angle: LEAF_IDX.reduce<number>((acc, i) => acc + leafletBeat(p, i, b).max, 0) / LEAF_IDX.length,
     spreadMs: (Math.max(...closes) - Math.min(...closes)) * 1000,
     cycleMs: (r1 + lb0n.start - (r0 + lb0.start)) * 1000,
     rrMs: (r1 - r0) * 1000,
@@ -153,7 +153,7 @@ const f1 = (v: number, d = 1) => v.toFixed(d).replace('.', ',');
 
 /** Compara la condición actual con la línea basal experimental. */
 export function assess(p: SimParams): Assessment {
-  const base = summarize({ ...BASELINE_PARAMS, thetaMax: p.thetaMax, delayMs: p.delayMs, openMs: p.openMs });
+  const base = summarize({ ...BASELINE_PARAMS, thetaMax: p.thetaMax, delayMs: p.delayMs, openMs: p.openMs, target: p.target });
   const cur = summarize(p);
   const rel = (a: number, b: number, tol: number) => Math.abs(a - b) / (Math.abs(b) * tol);
   const devs: FeatureDev[] = [
@@ -162,7 +162,7 @@ export function assess(p: SimParams): Assessment {
     { key: 'rms', label: 'RMS del cierre', value: f1(cur.rmsClose, 3), base: f1(base.rmsClose, 3), z: rel(cur.rmsClose, base.rmsClose, 0.1) },
     { key: 'fdom', label: 'Frecuencia dominante (MEMS)', value: `${f1(cur.fDom, 0)} Hz`, base: `${f1(base.fDom, 0)} Hz`, z: rel(cur.fDom, base.fDom, 0.05) },
     { key: 'angle', label: 'Apertura media', value: `${f1(cur.angle, 0)}°`, base: `${f1(base.angle, 0)}°`, z: Math.abs(cur.angle - base.angle) / 5 },
-    { key: 'spread', label: 'Desfase entre valvas', value: `${f1(cur.spreadMs, 0)} ms`, base: `${f1(base.spreadMs, 0)} ms`, z: Math.abs(cur.spreadMs - base.spreadMs) / 12 },
+    { key: 'spread', label: 'Desfase entre las 3 valvas', value: `${f1(cur.spreadMs, 0)} ms`, base: `${f1(base.spreadMs, 0)} ms`, z: Math.abs(cur.spreadMs - base.spreadMs) / 12 },
     { key: 'var', label: 'Variabilidad ciclo a ciclo', value: `${f1(cur.cvClose * 100, 0)} %`, base: `${f1(base.cvClose * 100, 0)} %`, z: Math.abs(cur.cvClose - base.cvClose) / 0.06 },
     { key: 'sync', label: 'Ciclo valvular vs RR del ECG', value: `${f1(cur.syncErrMs, 0)} ms`, base: `${f1(base.syncErrMs, 0)} ms`, z: Math.abs(cur.syncErrMs - base.syncErrMs) / 30 },
   ];

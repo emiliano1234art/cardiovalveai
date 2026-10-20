@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import type { ExperimentalMode } from '../../types/valvesense';
+import { leafletContour } from '../../presentation/geometry/trileaflet';
 import { IconClose, IconSpark } from '../ui/icons';
 
 interface Step {
@@ -12,16 +13,20 @@ interface Step {
 }
 
 /* ── ilustraciones animadas (SVG + CSS, sin texto) ── */
+/** Puntos (vista desde la aorta) de cada valva, cerrada y abierta, escalados a la ilustración. */
+const pts = (i: number, open: number) =>
+  leafletContour(i, open, 16)
+    .map(([x, , z]) => `${(80 + x * 1.15).toFixed(1)},${(48 + z * 1.15).toFixed(1)}`)
+    .join(' ');
 const ArtValve = (
   <svg viewBox="0 0 160 100" className="art art-valve" aria-hidden>
-    <circle cx="80" cy="50" r="38" fill="#eef7fa" stroke="#0a6f95" strokeWidth="5" />
-    <g className="leaf l1">
-      <rect x="44" y="45" width="35" height="10" rx="5" fill="#38bdf8" stroke="#0369a1" strokeWidth="1.5" />
-    </g>
-    <g className="leaf l2">
-      <rect x="81" y="45" width="35" height="10" rx="5" fill="#38bdf8" stroke="#0369a1" strokeWidth="1.5" />
-    </g>
-    <path className="beat" d="M6 88h20l5-10 6 18 5-8h12" fill="none" stroke="#e11d48" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    <circle cx="80" cy="48" r="40" fill="#eef7fa" stroke="#0a6f95" strokeWidth="5" />
+    {[0, 1, 2].map((i) => (
+      <polygon key={i} points={pts(i, 0)} fill="#38bdf8" stroke="#0369a1" strokeWidth="1.2" strokeLinejoin="round">
+        <animate attributeName="points" dur="2s" repeatCount="indefinite" values={`${pts(i, 0)};${pts(i, 0)};${pts(i, 1)};${pts(i, 1)};${pts(i, 0)}`} keyTimes="0;0.2;0.4;0.7;1" />
+      </polygon>
+    ))}
+    <path className="beat" d="M4 92h18l5-10 6 18 5-8h12" fill="none" stroke="#e11d48" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 const ArtVibration = (
@@ -68,13 +73,13 @@ const ArtCompare = (
 const STEPS: Step[] = [
   {
     title: 'Así funciona nuestra válvula',
-    text: 'Una válvula cardíaca es una puerta que deja pasar la sangre en una sola dirección. La nuestra tiene dos hojas (valvas) que un pequeño motor abre y cierra justo después de cada latido.',
+    text: 'La válvula aórtica es una puerta de tres hojas (valvas) que deja salir la sangre del corazón en una sola dirección. En nuestro prototipo, un pequeño motor las abre y las cierra justo después de cada latido.',
     targets: ['learn-valve'],
     art: ArtValve,
   },
   {
     title: 'Así captamos sus vibraciones',
-    text: 'Cuando las valvas llegan a su tope y cuando se cierran, el anillo vibra. Un sensor piezoeléctrico convierte esa vibración en electricidad: cada pico del gráfico es uno de esos golpes.',
+    text: 'Cuando las tres valvas llegan a su tope y cuando se cierran, el anillo vibra. Un sensor piezoeléctrico convierte esa vibración en electricidad: cada pico del gráfico es uno de esos golpes.',
     targets: ['learn-vibration'],
     art: ArtVibration,
   },
@@ -92,10 +97,10 @@ const STEPS: Step[] = [
   },
   {
     title: 'Así detectamos diferencias experimentales',
-    text: 'La IA compara cada ciclo con el patrón de la válvula funcionando normalmente. Si solo cambia el ritmo, lo informa como «cambio de ritmo». Si cambia la vibración, señala una diferencia para investigarla. No diagnostica.',
+    text: 'La IA compara cada ciclo con el patrón de la válvula funcionando normalmente. Si solo cambia el ritmo, dice «cambio de ritmo»; si cambia la vibración, «cambio detectado». Reconoce cambios mecánicos: no diagnostica.',
     targets: ['learn-ai', 'sec-05'],
     art: ArtCompare,
-    action: { label: 'Pruébalo: simular apertura restringida', mode: 'restricted' },
+    action: { label: 'Pruébalo: restringir una valva', mode: 'restricted' },
   },
 ];
 

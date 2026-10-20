@@ -155,6 +155,11 @@ export class ValveSenseEngine {
     simState.setParams({ bpm });
   }
 
+  /** Valva afectada por la condición alterada (0–2). */
+  setTarget(target: 0 | 1 | 2) {
+    simState.setParams({ target });
+  }
+
   /** Retardo electromecánico τ y duración de apertura D (ms), ángulo máximo (°). */
   setTiming(patch: Partial<Pick<SimParams, 'delayMs' | 'openMs' | 'thetaMax'>>) {
     simState.setParams(patch);

@@ -1,5 +1,5 @@
 import { MODES } from '../../config/modes';
-import type { EngineSnapshot } from '../../engine/ValveSenseEngine';
+import type { EngineSnapshot, ValveSenseEngine } from '../../engine/ValveSenseEngine';
 import { dev } from '../../lib/assessment';
 import { fmt } from '../../lib/format';
 import { GraphExplanation } from '../explain/GraphExplanation';
@@ -10,10 +10,10 @@ import { ValveAnimation } from './ValveAnimation';
 
 interface Props {
   snap: EngineSnapshot;
-  getAngle: () => number;
+  engine: ValveSenseEngine;
 }
 
-export function ValveSection({ snap, getAngle }: Props) {
+export function ValveSection({ snap, engine }: Props) {
   const r = snap.latest?.record;
   const L = snap.latest;
   const isSim = snap.sourceKind === 'simulation';
@@ -27,19 +27,19 @@ export function ValveSection({ snap, getAngle }: Props) {
               <IconValve />
             </span>
             <div className="sig-titles">
-              <h3>Vista de frente</h3>
+              <h3>Las tres valvas en vivo</h3>
               <p>{isSim ? `Condición: ${MODES[snap.mode].label}` : snap.hasData ? 'Ángulo medido del actuador' : 'Esperando datos del prototipo'}</p>
             </div>
             <GraphExplanation id="valveMotion" />
           </div>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ValveAnimation getAngle={getAngle} />
+            <ValveAnimation engine={engine} snap={snap} />
           </div>
         </div>
 
         <div className="grid g-3" style={{ alignContent: 'start' }}>
           <MetricCard label="Ciclos por minuto" value={r?.bpm} unit="ciclos/min" decimals={0} foot={<span>Latidos del ECG: {fmt(r?.ecg_bpm, 0)} lpm</span>} accent="var(--brand)" />
-          <MetricCard label="Apertura máxima" value={r?.servo_angle} unit="°" decimals={0} {...dev(L, 'servo_angle')} accent="var(--brand)" />
+          <MetricCard label="Ángulo máximo del servo" value={r?.servo_angle} unit="°" decimals={0} {...dev(L, 'servo_angle')} accent="var(--brand)" />
           <MetricCard label="Tiempo en abrir" value={r?.opening_duration_ms} unit="ms" decimals={0} {...dev(L, 'opening_duration_ms')} accent="var(--brand)" />
           <MetricCard label="Tiempo en cerrar" value={r?.closing_duration_ms} unit="ms" decimals={0} {...dev(L, 'closing_duration_ms')} accent="var(--brand)" />
           <MetricCard label="Ciclos registrados" value={r?.cycle_number ?? 0} foot={<span>Último: {fmt(r?.cycle_duration_ms, 0)} ms</span>} accent="var(--brand)" />

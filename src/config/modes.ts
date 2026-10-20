@@ -10,13 +10,14 @@ export interface ModeProfile {
 }
 
 export const MODES: Record<ExperimentalMode, ModeProfile> = {
-  normal: { id: 'normal', label: 'Normal', short: 'NORMAL', sub: 'Apertura completa · cierre en asiento', description: 'Ambas valvas abren hasta el ángulo programado y cierran sobre su asiento.' },
-  restricted: { id: 'restricted', label: 'Apertura restringida', short: 'RESTRINGIDA', sub: 'Tope a 45°', description: 'Un tope limita la apertura de ambas valvas a 45°.' },
-  incomplete: { id: 'incomplete', label: 'Cierre incompleto', short: 'CIERRE INCOMPLETO', sub: '12° residuales', description: 'Las valvas no alcanzan el asiento: queda una separación residual de 12°.' },
-  irregular: { id: 'irregular', label: 'Movimiento irregular', short: 'IRREGULAR', sub: 'Valva 2 variable', description: 'La valva 2 varía su apertura y su retardo ciclo a ciclo.' },
+  normal: { id: 'normal', label: 'Normal', short: 'NORMAL', sub: 'Tres valvas · ciclo completo', description: 'Las tres valvas abren hasta el ángulo programado y cierran en el centro.' },
+  restricted: { id: 'restricted', label: 'Apertura restringida', short: 'RESTRINGIDA', sub: 'Una valva llega a 40°', description: 'Un tope limita la apertura de una valva a 40°.' },
+  incomplete: { id: 'incomplete', label: 'Cierre incompleto', short: 'CIERRE INCOMPLETO', sub: 'Una valva no cierra', description: 'Una valva no llega al centro: queda una separación residual de 12°.' },
+  irregular: { id: 'irregular', label: 'Movimiento irregular', short: 'IRREGULAR', sub: 'Una valva varía', description: 'Una valva varía su apertura y su retardo ciclo a ciclo.' },
+  asymmetric: { id: 'asymmetric', label: 'Apertura asimétrica', short: 'ASIMÉTRICA', sub: 'Valvas desparejas', description: 'Las tres valvas abren distinto y con un pequeño desfase.' },
 };
 
-export const MODE_ORDER: ExperimentalMode[] = ['normal', 'restricted', 'incomplete', 'irregular'];
+export const MODE_ORDER: ExperimentalMode[] = ['normal', 'restricted', 'incomplete', 'irregular', 'asymmetric'];
 
 export const DEFAULT_BPM = 72;
 

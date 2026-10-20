@@ -1,44 +1,48 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ComponentType } from 'react';
 import { flushSync } from 'react-dom';
+import { ModeSwitch, rememberSlide } from '../components/shared/ModeSwitch';
 import { NOTES } from './content';
-import { Deck, type DeckMode } from './components/deck';
+import { Deck } from './components/deck';
+import { PlanPanel } from './components/PlanPanel';
 import { sim, useSim, type MotionPref } from './sim/store';
 import { Bibliography } from './slides/Bibliography';
 import { Cover } from './slides/Cover';
 import { S01Problem } from './slides/S01Problem';
-import { S02RealValve } from './slides/S02RealValve';
-import { S03Solution } from './slides/S03Solution';
-import { S04Prototype } from './slides/S04Prototype';
-import { S05Ecg } from './slides/S05Ecg';
-import { S06SignalsAI } from './slides/S06SignalsAI';
-import { S07Math } from './slides/S07Math';
+import { S02Aortic } from './slides/S02Aortic';
+import { S03Prototype } from './slides/S03Prototype';
+import { S04Ecg } from './slides/S04Ecg';
+import { S05Sensors } from './slides/S05Sensors';
+import { S06Changes } from './slides/S06Changes';
+import { S07AI } from './slides/S07AI';
 import { S08Dashboard } from './slides/S08Dashboard';
-import { S09Impact } from './slides/S09Impact';
-import { S10Close } from './slides/S10Close';
+import { S09Future } from './slides/S09Future';
 import './styles/presentation.css';
+import './styles/presentation2.css';
 
 interface SlideDef {
   id: string;
   num: number | null;
+  /** nombre corto para la pestaña */
+  tab: string;
   title: string;
   C: ComponentType;
 }
 
-/** Portada + 10 diapositivas de contenido (numeradas) + bibliografía. */
+/** Portada + 9 pantallas de contenido + bibliografía. */
 export const SLIDES: SlideDef[] = [
-  { id: 'cover', num: null, title: 'Portada', C: Cover },
-  { id: 's1', num: 1, title: 'Problema clínico', C: S01Problem },
-  { id: 's2', num: 2, title: 'Cómo funciona una válvula real', C: S02RealValve },
-  { id: 's3', num: 3, title: 'Solución ValveSense', C: S03Solution },
-  { id: 's4', num: 4, title: 'Prototipo con sensores integrados', C: S04Prototype },
-  { id: 's5', num: 5, title: 'Sincronización con ECG', C: S05Ecg },
-  { id: 's6', num: 6, title: 'Vibración, sonido e IA', C: S06SignalsAI },
-  { id: 's7', num: 7, title: 'Matemática aplicada', C: S07Math },
-  { id: 's8', num: 8, title: 'Dashboard actualizado', C: S08Dashboard },
-  { id: 's9', num: 9, title: 'Integración clínica e impacto', C: S09Impact },
-  { id: 's10', num: 10, title: 'Plan, validación y cierre', C: S10Close },
-  { id: 'biblio', num: null, title: 'Bibliografía', C: Bibliography },
+  { id: 'cover', num: null, tab: 'Inicio', title: 'Portada', C: Cover },
+  { id: 's1', num: 1, tab: 'Problema', title: '¿Cuál es el problema?', C: S01Problem },
+  { id: 's2', num: 2, tab: 'Válvula aórtica', title: '¿Cómo funciona una válvula aórtica?', C: S02Aortic },
+  { id: 's3', num: 3, tab: 'Prototipo', title: 'Nuestro prototipo ValveSense', C: S03Prototype },
+  { id: 's4', num: 4, tab: 'ECG', title: '¿Podemos sincronizarla con nuestro corazón?', C: S04Ecg },
+  { id: 's5', num: 5, tab: 'Sensores', title: '¿Qué escuchan nuestros sensores?', C: S05Sensors },
+  { id: 's6', num: 6, tab: 'Cambios', title: '¿Cómo reconocemos cambios?', C: S06Changes },
+  { id: 's7', num: 7, tab: 'IA', title: '¿Qué hace nuestra inteligencia artificial?', C: S07AI },
+  { id: 's8', num: 8, tab: 'Dashboard', title: 'Dashboard y Kinesiología', C: S08Dashboard },
+  { id: 's9', num: 9, tab: 'Futuro', title: 'Impacto y futuro', C: S09Future },
+  { id: 'biblio', num: null, tab: 'Fuentes', title: 'Bibliografía', C: Bibliography },
 ];
+const N_CONTENT = SLIDES.filter((s) => s.num).length;
 
 const MOTION_LABEL: Record<MotionPref, string> = { full: 'Animación completa', reduced: 'Animación reducida', paused: 'Animación en pausa' };
 const MOTION_NEXT: Record<MotionPref, MotionPref> = { full: 'reduced', reduced: 'paused', paused: 'full' };
@@ -63,15 +67,29 @@ function useStageScale(ref: React.RefObject<HTMLDivElement | null>) {
   return scale;
 }
 
+function Logo() {
+  return (
+    <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden>
+      <defs>
+        <linearGradient id="vsg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#0a6f95" />
+          <stop offset="1" stopColor="#10a2a0" />
+        </linearGradient>
+      </defs>
+      <rect width="40" height="40" rx="11" fill="url(#vsg)" />
+      <circle cx="20" cy="20" r="11" fill="none" stroke="#fff" strokeWidth="2.2" />
+      <path d="M20 20L20 9M20 20l9.5 5.5M20 20l-9.5 5.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" opacity=".85" />
+    </svg>
+  );
+}
+
 export function Presentation() {
   const [index, setIndex] = useState(readHash);
-  const [mode, setMode] = useState<DeckMode>('explore');
-  const [showIndex, setShowIndex] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [printing, setPrinting] = useState(false);
-  const [toolbarVisible, setToolbarVisible] = useState(true);
   const { motion } = useSim();
   const wrap = useRef<HTMLDivElement>(null);
+  const tabs = useRef<HTMLDivElement>(null);
   const scale = useStageScale(wrap);
   const slide = SLIDES[index];
 
@@ -81,6 +99,11 @@ export function Presentation() {
     history.replaceState(null, '', `#/${SLIDES[n].id}`);
   }, []);
   const goTo = useCallback((id: string) => go(SLIDES.findIndex((s) => s.id === id)), [go]);
+
+  useEffect(() => {
+    rememberSlide(slide.id);
+    tabs.current?.querySelector('.active')?.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }, [slide.id]);
 
   const toggleFullscreen = useCallback(() => {
     if (document.fullscreenElement) void document.exitFullscreen();
@@ -93,7 +116,7 @@ export function Presentation() {
     setTimeout(() => window.print(), 400);
   }, []);
 
-  // navegación por URL (#/s7, enlaces directos, botón atrás)
+  // navegación por URL (#/s4, enlaces directos, botón atrás)
   useEffect(() => {
     const on = () => setIndex(readHash());
     window.addEventListener('hashchange', on);
@@ -116,6 +139,7 @@ export function Presentation() {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (document.querySelector('.explain-pop')) return;
       const k = e.key;
       if (k === 'ArrowRight' || k === 'PageDown' || (k === ' ' && tag !== 'BUTTON')) {
         e.preventDefault();
@@ -126,22 +150,19 @@ export function Presentation() {
       } else if (k === 'Home') go(0);
       else if (k === 'End') go(SLIDES.length - 1);
       else if (k === 'f' || k === 'F') toggleFullscreen();
-      else if (k === 'e' || k === 'E') setMode((m) => (m === 'present' ? 'explore' : 'present'));
       else if (k === 'n' || k === 'N') setShowNotes((v) => !v);
-      else if (k === 'i' || k === 'I') setShowIndex((v) => !v);
       else if (k === 'a' || k === 'A') sim.setMotion(MOTION_NEXT[sim.state.motion]);
-      else if (k === 'Escape') setShowIndex(false);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [index, go, toggleFullscreen]);
 
-  // gesto táctil: deslizar para cambiar de diapositiva (fuera de controles interactivos)
+  // gesto táctil: deslizar para cambiar de pantalla (fuera de controles interactivos)
   useEffect(() => {
     let x0: number | null = null;
     const start = (e: TouchEvent) => {
       const t = e.target as HTMLElement;
-      x0 = t.closest('canvas, input, button, .scene') ? null : e.touches[0].clientX;
+      x0 = t.closest('canvas, input, button, .scene, .v-tabs-bar') ? null : e.touches[0].clientX;
     };
     const end = (e: TouchEvent) => {
       if (x0 === null) return;
@@ -157,42 +178,19 @@ export function Presentation() {
     };
   }, [index, go]);
 
-  // modo presentación: la barra se oculta tras unos segundos sin mover el mouse
-  useEffect(() => {
-    if (mode !== 'present') {
-      setToolbarVisible(true);
-      return;
-    }
-    let t: ReturnType<typeof setTimeout>;
-    const show = () => {
-      setToolbarVisible(true);
-      clearTimeout(t);
-      t = setTimeout(() => setToolbarVisible(false), 2500);
-    };
-    show();
-    window.addEventListener('mousemove', show);
-    window.addEventListener('touchstart', show);
-    return () => {
-      clearTimeout(t);
-      window.removeEventListener('mousemove', show);
-      window.removeEventListener('touchstart', show);
-    };
-  }, [mode]);
-
-  const contentNum = slide.num;
+  const ctx = useMemo(() => ({ mode: 'explore' as const, print: false, goTo, active: true }), [goTo]);
   const progress = (index / (SLIDES.length - 1)) * 100;
-  const rootClass = `v-root v-${mode} v-motion-${motion}`;
-  const ctx = useMemo(() => ({ mode, print: false, goTo, active: true }), [mode, goTo]);
 
   if (printing) {
+    const pages = [...SLIDES.slice(0, -1), { id: 'plan', num: null, tab: 'Anexo', title: 'Anexo: plan y próximos pasos', C: PlanAppendix }, SLIDES[SLIDES.length - 1]];
     return (
       <div className="v-root v-print-root v-theme-print v-explore">
-        {SLIDES.map((s) => (
+        {pages.map((s) => (
           <Deck.Provider key={s.id} value={{ mode: 'explore', print: true, goTo, active: false }}>
             <section className="v-print-page" aria-label={s.title}>
               <s.C />
               <div style={{ position: 'absolute', right: 28, bottom: 18, fontSize: 13, color: 'var(--muted)' }}>
-                ValveSense · CardioValveAI {s.num ? `· ${s.num} / 10` : ''}
+                ValveSense · CardioValveAI {s.num ? `· ${s.num} / ${N_CONTENT}` : ''}
               </div>
             </section>
           </Deck.Provider>
@@ -205,8 +203,43 @@ export function Presentation() {
   }
 
   return (
-    <div className={rootClass}>
-      <div className="v-progress v-no-print" style={{ width: `${progress}%` }} />
+    <div className={`v-root v-explore v-app v-motion-${motion}`}>
+      <header className="v-appbar v-no-print">
+        <div className="v-appbar-brand">
+          <Logo />
+          <div>
+            <b>
+              Valve<span>Sense</span>
+            </b>
+            <small>CardioValveAI</small>
+          </div>
+        </div>
+        <nav className="v-tabs-bar" ref={tabs} aria-label="Pantallas">
+          {SLIDES.map((s, i) => (
+            <button key={s.id} className={i === index ? 'active' : ''} onClick={() => go(i)} aria-current={i === index ? 'page' : undefined} title={s.title}>
+              {s.num ? <span className="n">{s.num}</span> : null}
+              {s.tab}
+            </button>
+          ))}
+        </nav>
+        <ModeSwitch active="presentation" />
+        <div className="v-appbar-tools">
+          <button className="v-iconbtn" onClick={() => sim.setMotion(MOTION_NEXT[motion])} title={`${MOTION_LABEL[motion]} (A)`} aria-label={MOTION_LABEL[motion]}>
+            {motion === 'paused' ? '▶' : motion === 'reduced' ? '◐' : '●'}
+          </button>
+          <button className="v-iconbtn" aria-pressed={showNotes} onClick={() => setShowNotes((v) => !v)} title="Notas del expositor (N)" aria-label="Notas del expositor">
+            ✎
+          </button>
+          <button className="v-iconbtn" onClick={doPrint} title="Imprimir / Guardar como PDF" aria-label="Imprimir / Guardar como PDF">
+            ⎙
+          </button>
+          <button className="v-iconbtn" onClick={toggleFullscreen} title="Pantalla completa (F)" aria-label="Pantalla completa">
+            ⛶
+          </button>
+        </div>
+        <div className="v-progress" style={{ width: `${progress}%` }} />
+      </header>
+
       <div className="v-stage-wrap" ref={wrap}>
         <div className="v-stage" style={{ transform: `scale(${scale}) translate(-50%, -50%)` }}>
           <Deck.Provider value={ctx}>
@@ -214,35 +247,8 @@ export function Presentation() {
               <slide.C />
             </div>
           </Deck.Provider>
-          {contentNum && (
-            <div style={{ position: 'absolute', right: 30, top: 22, fontSize: 15, color: 'var(--muted)' }} className="v-num">
-              {contentNum} / 10
-            </div>
-          )}
         </div>
       </div>
-
-      {showIndex && <div className="v-scrim" onClick={() => setShowIndex(false)} />}
-      <nav className={`v-index${showIndex ? ' open' : ''}`} aria-label="Índice" aria-hidden={!showIndex}>
-        <h3>Índice · ValveSense</h3>
-        {SLIDES.map((s, i) => (
-          <button
-            key={s.id}
-            className={i === index ? 'active' : ''}
-            tabIndex={showIndex ? 0 : -1}
-            onClick={() => {
-              go(i);
-              setShowIndex(false);
-            }}
-          >
-            <span className="n">{s.num ? String(s.num).padStart(2, '0') : '—'}</span>
-            {s.title}
-          </button>
-        ))}
-        <div className="v-tiny" style={{ marginTop: 'auto', padding: 10, lineHeight: 1.6 }}>
-          Teclas: ← → navegar · I índice · E modo · N notas · A animación · F pantalla completa
-        </div>
-      </nav>
 
       {showNotes && (
         <div className="v-notes v-no-print" role="note">
@@ -251,45 +257,35 @@ export function Presentation() {
         </div>
       )}
 
-      <div className={`v-toolbar v-no-print${toolbarVisible ? '' : ' hidden'}`} role="toolbar" aria-label="Controles de la presentación">
-        <button className="v-btn sm icon" onClick={() => setShowIndex((v) => !v)} aria-label="Índice" title="Índice (I)">
-          ☰
+      <footer className="v-navbar v-no-print">
+        <button className="v-btn sm" onClick={() => go(index - 1)} disabled={index === 0}>
+          ← Anterior
         </button>
-        <button className="v-btn sm icon" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Anterior" title="Anterior (←)">
-          ‹
-        </button>
-        <div className="counter">
-          <b>{contentNum ? `${contentNum} / 10` : slide.title}</b>
-          {contentNum ? ` · ${slide.title}` : ''}
+        <div className="v-navbar-mid">
+          <span className="v-navbar-count">{slide.num ? `${slide.num} / ${N_CONTENT}` : slide.title}</span>
+          <div className="v-dots" aria-hidden>
+            {SLIDES.map((s, i) => (
+              <i key={s.id} className={i === index ? 'on' : i < index ? 'done' : ''} />
+            ))}
+          </div>
         </div>
-        <button className="v-btn sm icon" onClick={() => go(index + 1)} disabled={index === SLIDES.length - 1} aria-label="Siguiente" title="Siguiente (→)">
-          ›
+        <button className="v-btn sm primary" onClick={() => go(index + 1)} disabled={index === SLIDES.length - 1}>
+          Siguiente →
         </button>
-        <span className="sep" />
-        <div className="v-seg" style={{ padding: 3 }}>
-          <button className={mode === 'present' ? 'active' : ''} onClick={() => setMode('present')} style={{ height: 32, fontSize: 14 }} title="Oculta controles secundarios (E)">
-            Presentación
-          </button>
-          <button className={mode === 'explore' ? 'active' : ''} onClick={() => setMode('explore')} style={{ height: 32, fontSize: 14 }} title="Muestra herramientas interactivas (E)">
-            Exploración
-          </button>
-        </div>
-        <button className="v-btn sm" onClick={() => sim.setMotion(MOTION_NEXT[motion])} aria-pressed={motion !== 'full'} aria-label={MOTION_LABEL[motion]} title="Cambiar animación (A)">
-          {motion === 'paused' ? '▶' : motion === 'reduced' ? '◐' : '●'}<span className="lbl">{MOTION_LABEL[motion]}</span>
-        </button>
-        <button className="v-btn sm" aria-pressed={showNotes} aria-label="Notas del expositor" onClick={() => setShowNotes((v) => !v)} title="Notas del expositor (N)">
-          ✎<span className="lbl">Notas</span>
-        </button>
-        <a className="v-btn sm" href={`#/panel/${slide.id}`} title="Ver en formato dashboard con la simulación en vivo" style={{ textDecoration: 'none' }}>
-          ▦<span className="lbl">Panel</span>
-        </a>
-        <button className="v-btn sm icon" onClick={toggleFullscreen} aria-label="Pantalla completa" title="Pantalla completa (F)">
-          ⛶
-        </button>
-        <button className="v-btn sm" onClick={doPrint} title="Imprimir / Guardar como PDF" aria-label="Imprimir / Guardar como PDF">
-          ⎙<span className="lbl">Imprimir / PDF</span>
-        </button>
-      </div>
+      </footer>
+    </div>
+  );
+}
+
+/** Anexo impreso: plan de trabajo, entrevista, Toolkit y souvenir (en pantalla, dentro de «Plan y próximos pasos»). */
+function PlanAppendix() {
+  return (
+    <div className="v-slide" style={{ paddingTop: 40 }}>
+      <div className="v-kicker">Anexo</div>
+      <h2 className="v-h2" style={{ marginBottom: 14 }}>
+        Plan, entrevista y próximos pasos
+      </h2>
+      <PlanPanel />
     </div>
   );
 }

@@ -9,7 +9,7 @@ import { Scene3D } from '../../presentation/three/Scene3D';
 import { GraphExplanation, InfoTooltip } from '../explain/GraphExplanation';
 import { SensorHotspot } from '../explain/SensorHotspot';
 import { DataBadge } from '../layout/ControlBar';
-import { IconBrain, IconHeart, IconLayers, IconSpark, IconTarget, IconValve } from '../ui/icons';
+import { IconBrain, IconGear, IconHeart, IconLayers, IconSpark, IconTarget, IconValve, IconVibration } from '../ui/icons';
 
 const PHASE: Record<PhaseName, { label: string; open: boolean }> = {
   cerrada: { label: 'Cerrada', open: false },
@@ -41,6 +41,10 @@ export function HeroSection({ snap, engine, onLearn }: Props) {
   const [nonce, setNonce] = useState(0);
   const [xray, setXray] = useState(false);
   const [exploded, setExploded] = useState(false);
+  const [mechOn, setMechOn] = useState(false);
+  const [sensors, setSensors] = useState(false);
+  /** null = ciclo automático (sincronizado con el ECG); 0–1 = control manual */
+  const [manual, setManual] = useState<number | null>(null);
   const isSim = snap.sourceKind === 'simulation';
   const live = snap.hasData;
   const h = HOTSPOTS.find((x) => x.id === hot) ?? null;
@@ -69,9 +73,9 @@ export function HeroSection({ snap, engine, onLearn }: Props) {
       <div className="hero-intro">
         <div>
           <h1>
-            Escuchamos y sentimos cómo late una <span>válvula cardíaca</span> experimental
+            Escuchamos cómo funciona una <span>válvula aórtica de tres valvas</span>
           </h1>
-          <p>Sensores de vibración y sonido + inteligencia artificial para detectar cambios en su movimiento.</p>
+          <p>Vibración, sonido, ECG e inteligencia artificial para estudiar cambios en su movimiento.</p>
         </div>
         <button type="button" className="btn primary lg" onClick={onLearn}>
           <IconSpark size={16} /> Aprender cómo funciona <span className="btn-note">1–2 min</span>
@@ -113,8 +117,39 @@ export function HeroSection({ snap, engine, onLearn }: Props) {
             <button type="button" className={`chip${exploded ? ' on' : ''}`} aria-pressed={exploded} onClick={() => setExploded((v) => !v)}>
               <IconLayers size={14} /> Separar piezas
             </button>
+            <button type="button" className={`chip${mechOn ? ' on' : ''}`} aria-pressed={mechOn} onClick={() => setMechOn((v) => !v)} title="Servo → leva → anillo actuador → 3 bielas → 3 valvas">
+              <IconGear size={14} /> Ver mecanismo
+            </button>
+            <button
+              type="button"
+              className={`chip${sensors ? ' on' : ''}`}
+              aria-pressed={sensors}
+              onClick={() => {
+                setSensors((v) => !v);
+                setHot(sensors ? null : 'piezo');
+              }}
+            >
+              <IconVibration size={14} /> Ubicar sensores
+            </button>
             <span style={{ flex: 1 }} />
-            <DataBadge kind="future" label="DISEÑO PROPUESTO" title="Modelo del diseño: la integración física todavía no está construida" />
+            <DataBadge kind="proposed" label="DISEÑO PROPUESTO" title="Modelo del diseño: la integración física todavía no está construida" />
+          </div>
+          <div className="manual-row">
+            <div className="zoom" role="group" aria-label="Movimiento">
+              <button type="button" className={manual === null ? 'active' : ''} aria-pressed={manual === null} onClick={() => setManual(null)}>
+                Ciclo automático
+              </button>
+              <button type="button" className={manual !== null ? 'active' : ''} aria-pressed={manual !== null} onClick={() => setManual((m) => m ?? 0)}>
+                Abrir / cerrar a mano
+              </button>
+            </div>
+            {manual !== null && (
+              <label className="manual-slider">
+                <span>Cerrada</span>
+                <input type="range" min={0} max={1} step={0.01} value={manual} onChange={(e) => setManual(Number(e.target.value))} aria-label="Apertura de la válvula" />
+                <span>Abierta</span>
+              </label>
+            )}
           </div>
           <div className="hero-scene vs-scene">
             <Scene3D
@@ -123,12 +158,14 @@ export function HeroSection({ snap, engine, onLearn }: Props) {
               cameraNonce={nonce}
               xray={xray}
               exploded={exploded}
-              hotspots={SPOTS}
+              hotspots={sensors ? SPOTS.filter((x) => x.id === 'piezo' || x.id === 'mic') : SPOTS}
               activeHotspot={hot}
               onHotspot={select}
               selected={h?.group ?? null}
               onSelect={(cid) => select(cid ? (HOTSPOTS.find((x) => x.group === cid)?.id ?? null) : null)}
               clock={clock}
+              manualOpen={manual}
+              showMech={mechOn}
             />
             {!isSim && <div className="scene-note">Modelo de referencia · sin movimiento simulado con datos reales</div>}
             {h && <SensorHotspot h={h} onClose={() => setHot(null)} onNext={next} />}
@@ -185,7 +222,7 @@ export function HeroSection({ snap, engine, onLearn }: Props) {
               <span className="kpi-icon">
                 <IconTarget size={20} />
               </span>
-              <span className="kpi-label">Parecido al patrón de referencia</span>
+              <span className="kpi-label">Similitud con el patrón de referencia</span>
               <InfoTooltip id="similarity" />
             </div>
             <div className="kpi-sim">
