@@ -48,6 +48,7 @@ export function D07Prototype() {
   const [view, setView] = useState<View>('full');
   const [real, setReal] = useState(false);
   const [person, setPerson] = useState(false);
+  const [zoom, setZoom] = useState(false);
   const [nonce, setNonce] = useState(0);
   const manual = useManual();
   const mode: Mode = params.condition === 'restricted' ? 'restricted' : 'normal';
@@ -93,11 +94,17 @@ export function D07Prototype() {
         <div className="v-panel v-before">
           <div className="v-row" style={{ justifyContent: 'space-between' }}>
             <b className="v-before-label">Antes</b>
-            <span className="v-tag pending">Dibujo inicial</span>
+            <span className={`v-tag ${DRAWING_BEFORE ? 'done' : 'pending'}`}>Dibujo inicial</span>
           </div>
           <div className="v-before-img">
             {DRAWING_BEFORE ? (
-              <img src={`${import.meta.env.BASE_URL}${DRAWING_BEFORE}`} alt="Dibujo inicial del prototipo, hecho a mano por el equipo" />
+              <button className="v-before-zoom" onClick={() => setZoom(true)} aria-label="Ampliar el dibujo inicial">
+                <img
+                  src={DRAWING_BEFORE}
+                  alt="Dibujo inicial del prototipo, hecho a mano por el equipo: anillo con tres valvas, piezoeléctrico, micrófono, servo y ESP32"
+                />
+                <span className="v-hint">Toca para ampliar</span>
+              </button>
             ) : (
               <div className="v-before-empty">
                 <svg viewBox="0 0 100 100" width="90" height="90" aria-hidden>
@@ -214,6 +221,16 @@ export function D07Prototype() {
           )}
         </div>
       </div>
+      {zoom && DRAWING_BEFORE && (
+        <div className="v-overlay" role="dialog" aria-label="Dibujo inicial del prototipo" onClick={() => setZoom(false)}>
+          <div className="v-before-big">
+            <img src={DRAWING_BEFORE} alt="Dibujo inicial del prototipo, hecho a mano por el equipo" />
+            <button className="v-btn sm" onClick={() => setZoom(false)}>
+              ✕ Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </Screen>
   );
 }

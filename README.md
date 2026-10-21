@@ -69,7 +69,6 @@ El modelo es una **válvula aórtica de tres valvas semilunares** (≈ 120° ent
 ### Información pendiente
 
 - Fechas oficiales del Encargo 2 (la Carta Gantt es una propuesta).
-- Foto del dibujo inicial del prototipo.
 - Hallazgos del Toolkit (Encargo 1).
 
 ### Modelo de simulación (fuente única de verdad)

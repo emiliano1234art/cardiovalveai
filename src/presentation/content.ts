@@ -11,6 +11,8 @@
  *  resaltado en la presentación. No reemplazar con información no verificada.
  */
 
+import drawingBefore from './assets/dibujo-inicial.jpg';
+
 export const PENDING = (label: string) => `[${label}]`;
 export const isPending = (s: string | null | undefined) => !s || /^\[.*\]$/.test(s.trim());
 
@@ -276,8 +278,8 @@ export const INTERVIEW = {
 };
 
 // ─────────────────────────── Pantalla 7 · Dibujo inicial ───────────────────────────
-/** Foto o escaneo del dibujo a mano (copiar a /public y escribir la ruta, p. ej. 'dibujo-inicial.jpg') o null. */
-export const DRAWING_BEFORE: string | null = null;
+/** Foto del dibujo a mano del prototipo inicial (src/presentation/assets/dibujo-inicial.jpg) o null. */
+export const DRAWING_BEFORE: string | null = drawingBefore;
 
 // ─────────────────────────── Pantalla 9 · Resultados esperados ───────────────────────────
 export const EXPECTED = [
