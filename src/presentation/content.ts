@@ -151,7 +151,7 @@ export const MATERIALS: Material[] = [
     model: 'mic',
     what: 'Micrófono digital miniatura.',
     why: 'Registra el sonido de apertura y cierre.',
-    where: 'En un brazo, orientado hacia el anillo valvular.',
+    where: 'Integrado en el borde superior del anillo valvular.',
     how: 'Entrega audio digital al ESP32 por I²S.',
   },
   {
@@ -212,7 +212,7 @@ export const MATERIALS: Material[] = [
     id: 'base',
     name: 'Base y soportes',
     model: 'base',
-    what: 'Plataforma con columna y brazos.',
+    what: 'Plataforma con columna de soporte.',
     why: 'Mantener todo fijo y alineado.',
     where: 'Bajo el conjunto.',
     how: 'Reduce vibraciones externas y fija la posición de los sensores.',
@@ -269,7 +269,9 @@ export const INTERVIEW = {
   role: 'Profesor de Fisiología',
   institution: 'Universidad del Desarrollo',
   topic: 'Diagrama de Wiggers',
-  context: 'Durante la conversación nos mostró el Diagrama de Wiggers.',
+  /** Resumen del equipo (no es una cita textual del profesor). */
+  context:
+    'Durante la entrevista, el profesor nos mostró el Diagrama de Wiggers, que permite comprender cómo se relacionan, en un mismo latido, la actividad eléctrica del corazón, los cambios de presión, el volumen ventricular y los sonidos cardíacos.',
   phrase: 'El Diagrama de Wiggers conecta el latido cardíaco con el movimiento de nuestra válvula.',
 };
 

@@ -4,6 +4,7 @@ import { DRAWING_BEFORE } from '../content';
 import { PX } from '../explain';
 import { useDeck } from '../components/deck';
 import { LiveSignals } from '../components/LiveSignals';
+import { PersonEcgLink } from '../components/PersonEcgLink';
 import { Explain, Screen } from '../components/screen';
 import { Visual3D } from '../components/Visual3D';
 import { sim, useSim } from '../sim/store';
@@ -46,6 +47,7 @@ export function D07Prototype() {
   const { params } = useSim();
   const [view, setView] = useState<View>('full');
   const [real, setReal] = useState(false);
+  const [person, setPerson] = useState(false);
   const [nonce, setNonce] = useState(0);
   const manual = useManual();
   const mode: Mode = params.condition === 'restricted' ? 'restricted' : 'normal';
@@ -60,6 +62,7 @@ export function D07Prototype() {
   };
   const pick = (v: View) => {
     setReal(false);
+    setPerson(false);
     setView(view === v ? 'full' : v);
     setNonce((n) => n + 1);
   };
@@ -86,7 +89,7 @@ export function D07Prototype() {
         </>
       }
     >
-      <div className="v-grid" style={{ gridTemplateColumns: '340px minmax(0, 1fr)', gap: 22, height: '100%' }}>
+      <div className="v-grid" style={{ gridTemplateColumns: '290px minmax(0, 1fr)', gap: 22, height: '100%' }}>
         <div className="v-panel v-before">
           <div className="v-row" style={{ justifyContent: 'space-between' }}>
             <b className="v-before-label">Antes</b>
@@ -111,29 +114,41 @@ export function D07Prototype() {
         </div>
 
         <div className="v-col" style={{ gap: 12, minHeight: 0 }}>
-          <div className={`v-viewer${!real && (view === 'sensors' || view === 'mech') ? ' v-only-active' : ''}`} style={{ flex: 1, minHeight: 0 }}>
-            <Visual3D
-              kind={real ? 'aortic' : 'university'}
-              render={render}
-              alt={real ? 'Válvula aórtica natural' : 'Prototipo CardioVal AI: anillo, tres valvas, servo, leva, anillo actuador, bielas, piezo, MEMS y ESP32'}
-              camera="iso"
-              cameraNonce={nonce}
-              manualOpen={manual.value}
-              exploded={!real && view === 'exploded'}
-              xray={!real && view === 'sensors'}
-              showMech={!real && (view === 'mech' || view === 'full')}
-              selected={real ? null : selected}
-              showLabels={!real ? view !== 'full' : true}
-            />
-            <div className="v-viewer-top">
-              {real ? <span className="v-tag sim">Válvula real · se abre por presión, sin motor</span> : <DataBadge kind="proposed" />}
-              {!real && <span className="v-hint">Diseño conceptual · por construir y validar</span>}
+          {person ? (
+            <div className="v-panel v-person-panel">
+              <div className="v-row" style={{ justifyContent: 'space-between', marginBottom: 6 }}>
+                <b className="v-person-title">Simulación en tiempo real con una persona</b>
+                <DataBadge kind="proposed" />
+              </div>
+              <PersonEcgLink width={1110} live={!print} />
             </div>
-            <div className="v-viewer-foot">
-              <span className="v-hint">Arrastra para girar</span>
-              <span className="v-hint">{mode === 'restricted' ? 'Valva 1 limitada por un tope (40°)' : 'Tres valvas · un servo MG90S'}</span>
+          ) : (
+            <div className={`v-viewer${!real && (view === 'sensors' || view === 'mech') ? ' v-only-active' : ''}`} style={{ flex: 1, minHeight: 0 }}>
+              <Visual3D
+                kind={real ? 'aortic' : 'university'}
+                render={render}
+                alt={
+                  real ? 'Válvula aórtica natural' : 'Prototipo CardioVal AI: anillo, tres valvas, servo, leva, anillo actuador, bielas, piezo, MEMS y ESP32'
+                }
+                camera="iso"
+                cameraNonce={nonce}
+                manualOpen={manual.value}
+                exploded={!real && view === 'exploded'}
+                xray={!real && view === 'sensors'}
+                showMech={!real && (view === 'mech' || view === 'full')}
+                selected={real ? null : selected}
+                showLabels={!real ? view !== 'full' : true}
+              />
+              <div className="v-viewer-top">
+                {real ? <span className="v-tag sim">Válvula real · se abre por presión, sin motor</span> : <DataBadge kind="proposed" />}
+                {!real && <span className="v-hint">Diseño conceptual · por construir y validar</span>}
+              </div>
+              <div className="v-viewer-foot">
+                <span className="v-hint">Arrastra para girar</span>
+                <span className="v-hint">{mode === 'restricted' ? 'Valva 1 limitada por un tope (40°)' : 'Tres valvas · un servo MG90S'}</span>
+              </div>
             </div>
-          </div>
+          )}
           <div className="v-ctrl-row" role="toolbar" aria-label="Controles del prototipo">
             <button className="v-btn sm" onClick={() => manual.animate(isOpen ? 0 : 1)}>
               {isOpen ? 'Cerrar' : 'Abrir'}
@@ -162,21 +177,41 @@ export function D07Prototype() {
             >
               Vista explotada
             </button>
-            <button className={`v-btn sm${real ? ' primary' : ''}`} onClick={() => setReal((r) => !r)} aria-pressed={real}>
+            <button
+              className={`v-btn sm${real ? ' primary' : ''}`}
+              onClick={() => {
+                setPerson(false);
+                setReal((r) => !r);
+              }}
+              aria-pressed={real}
+            >
               {real ? 'Ver prototipo' : 'Válvula real'}
             </button>
+            <button
+              className={`v-btn sm${person ? ' primary' : ''}`}
+              onClick={() => {
+                setReal(false);
+                setView('full');
+                setPerson((v) => !v);
+              }}
+              aria-pressed={person}
+            >
+              {person ? 'Ver prototipo 3D' : 'Persona + ECG'}
+            </button>
           </div>
-          <div className="v-sensor-strip">
-            <div className="v-sensor-chips">
-              {SENSORS.map((s) => (
-                <div key={s.id} className="v-sensor-chip">
-                  <i style={{ background: s.c }} />
-                  <b>{s.t}</b> = {s.d}
-                </div>
-              ))}
+          {!person && (
+            <div className="v-sensor-strip">
+              <div className="v-sensor-chips">
+                {SENSORS.map((s) => (
+                  <div key={s.id} className="v-sensor-chip">
+                    <i style={{ background: s.c }} />
+                    <b>{s.t}</b> = {s.d}
+                  </div>
+                ))}
+              </div>
+              <div className="v-sensor-live">{!print && <LiveSignals width={770} height={108} windowS={2.2} />}</div>
             </div>
-            <div className="v-sensor-live">{!print && <LiveSignals width={770} height={108} windowS={2.2} />}</div>
-          </div>
+          )}
         </div>
       </div>
     </Screen>

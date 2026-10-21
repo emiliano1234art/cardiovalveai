@@ -133,10 +133,10 @@
 
 /* ───────────── 6 · entrevista docente ───────────── */
 .v-wg-person { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 22px 20px; text-align: center; }
-.v-wg-person img { width: 236px; height: 262px; object-fit: cover; border-radius: 20px; box-shadow: 0 10px 28px rgba(11, 37, 69, .18); margin-bottom: 10px; }
+.v-wg-person img { width: 180px; height: 200px; object-fit: cover; border-radius: 20px; box-shadow: 0 10px 28px rgba(11, 37, 69, .18); margin-bottom: 10px; }
 .v-wg-person b { font-size: 25px; color: var(--navy); }
 .v-wg-person > span:not(.v-tiny) { font-size: 18px; font-weight: 650; color: var(--cyan); }
-.v-wg-person p { margin: 14px 0 0; font-size: 16px; line-height: 1.4; color: var(--text-2); }
+.v-wg-person p { margin: 10px 0 0; font-size: 15.5px; line-height: 1.4; color: var(--text-2); text-align: left; }
 .v-wiggers { display: flex; flex-direction: column; gap: 2px; }
 .v-wg-state { padding: 10px 14px; border-radius: 14px; text-align: center; font-size: 17px; font-weight: 750; transition: all .2s; background: var(--bg-2); color: var(--text-2); border: 1.5px solid var(--line); }
 .v-wg-state[data-open='true'] { background: #f0fdfa; color: var(--teal); border-color: var(--teal); }
@@ -152,7 +152,8 @@
 .v-before-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 18px; text-align: center; }
 .v-before-arrow { align-self: flex-end; font-size: 20px; font-weight: 800; color: var(--cyan); }
 .v-viewer-top { position: absolute; left: 16px; top: 14px; right: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; pointer-events: none; z-index: 2; }
-.v-ctrl-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.v-ctrl-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.v-ctrl-row .v-btn.sm { padding: 0 10px; font-size: 14.5px; }
 .v-ctrl-sep { width: 1px; height: 28px; background: var(--line); margin: 0 4px; }
 .v-btn.alt-on { background: var(--coral-soft); border-color: var(--coral); color: var(--coral); }
 .v-sensor-strip { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; }
@@ -219,3 +220,28 @@
 .v-cover-logos img { display: block; height: 54px; width: auto; }
 .v-wg-sync { margin: 0; font-size: 15px; color: var(--muted); text-align: center; }
 .v-cover-logos i { width: 1px; height: 44px; background: var(--line); }
+
+/* persona + ECG → ESP32 → servo → válvula (propuesta) */
+.v-person-panel { flex: 1; min-height: 0; padding: 14px 18px; display: flex; flex-direction: column; }
+.v-person-title { font-size: 20px; color: var(--navy); }
+.v-person { display: flex; flex-direction: column; gap: 6px; }
+.v-person svg { display: block; overflow: visible; }
+.v-person-body circle, .v-person-body path:not(.arm) { fill: #e2e8f0; stroke: #94a3b8; stroke-width: 2; }
+.v-person-body .arm { fill: none; stroke: #cbd5e1; stroke-width: 22; stroke-linecap: round; }
+.v-person-electrode { fill: #fff; stroke: #0891b2; stroke-width: 4; }
+.v-person-lead { fill: none; stroke: #64748b; stroke-width: 2.4; }
+.v-person-wire { fill: none; stroke: #f59e0b; stroke-width: 4; stroke-linecap: round; }
+.v-person-node { stroke-width: 2.5; transition: filter .12s, stroke .12s; }
+.v-person-node.ecg { fill: #fff1f2; stroke: #fda4af; }
+.v-person-node.esp { fill: #0f172a; stroke: #334155; }
+.v-person-node.servo { fill: #1d4ed8; stroke: #1e3a8a; }
+.v-person-node.on { stroke: #22d3ee; filter: drop-shadow(0 0 10px rgba(34, 211, 238, .8)); }
+.v-person-node.esp + text, .v-person-node.esp ~ text.esp-t { fill: #fff; }
+.v-person-label { font-size: 19px; font-weight: 800; fill: var(--navy); }
+.v-person-small { font-size: 14px; fill: var(--muted); font-weight: 600; }
+.v-person-chain { font-size: 17px; font-weight: 750; fill: var(--cyan); }
+.v-person-waves path { fill: none; stroke: #0891b2; stroke-width: 3; stroke-linecap: round; animation: v-wave 1.2s ease-in-out infinite; }
+@keyframes v-wave { 0%, 100% { opacity: .15; } 50% { opacity: 1; } }
+.v-motion-paused .v-person-waves path { animation: none; opacity: .6; }
+.v-person-ecg { border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line-soft); padding: 4px 10px; }
+.v-person-safety { margin: 2px 0 0; font-size: 14px; line-height: 1.4; color: var(--amber); }

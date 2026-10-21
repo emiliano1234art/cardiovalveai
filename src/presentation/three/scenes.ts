@@ -203,41 +203,29 @@ export function buildUniversity(): Built {
   piezo.lookAt(piezo.position.clone().multiplyScalar(2));
   tag('piezo', piezo);
 
-  // ── soporte posterior + brazo del MEMS ──
+  // ── soporte posterior del anillo ──
   const col = new THREE.Vector3(-20, 0, -48);
   const column = cyl(4.5, 136, pla, 24);
   column.position.set(col.x, -26, col.z);
   tag('hardware', column);
   tag('hardware', beam(new THREE.Vector3(col.x, -2, col.z), new THREE.Vector3(-15, -2, -30.5), 9, 9, pla));
-  const armEnd = new THREE.Vector3(-12, 34, -10);
-  tag('hardware', beam(new THREE.Vector3(col.x, 34, col.z), armEnd, 8, 7, pla));
 
-  // ── alojamiento del MEMS: puerto acústico orientado hacia la línea de coaptación ──
-  const mic = new THREE.Group();
-  mic.add(box(16, 9, 16, pla));
-  const port = cyl(1.8, 0.6, mat(0x0f172a), 24);
-  port.position.set(0, -4.7, 0);
-  mic.add(port);
-  const pcb = box(12, 1.2, 10, mat(0x0f766e));
-  pcb.position.set(0, -2.4, 0);
-  mic.add(pcb);
-  mic.position.copy(armEnd).add(new THREE.Vector3(0, -2, 4));
-  mic.lookAt(new THREE.Vector3(0, 0, 0));
-  mic.rotateX(-Math.PI / 2);
-  tag('mic', mic);
-
-  // ── cableado interno ──
+  // ── MEMS integrado en el borde superior del anillo: puerto acústico hacia la línea de coaptación ──
+  const aMic = -0.17;
   const rMid = (R_IN + R_OUT) / 2;
-  const arc: THREE.Vector3[] = [];
-  for (let k = 0; k <= 24; k++) {
-    const a = aPz + (k / 24) * (Math.PI * 0.75);
-    arc.push(new THREE.Vector3(rMid * Math.cos(a), -3, rMid * Math.sin(a)));
-  }
-  const wireP = mat(0xf97316, { emissive: 0x7c2d12, emissiveIntensity: 0.4 });
-  const wireM = mat(0x6366f1, { emissive: 0x312e81, emissiveIntensity: 0.4 });
-  tag('wiring', tube([piezo.position.clone().multiplyScalar(0.97), ...arc, new THREE.Vector3(col.x, -3, col.z), new THREE.Vector3(col.x, -60, col.z), new THREE.Vector3(col.x, -88, col.z + 2), new THREE.Vector3(-30, -91, 30), new THREE.Vector3(-34, -90, 34)], 0.9, wireP));
-  tag('wiring', tube([mic.position.clone(), new THREE.Vector3(-16, 34, -28), new THREE.Vector3(col.x + 1.5, 34, col.z), new THREE.Vector3(col.x + 1.5, -60, col.z), new THREE.Vector3(col.x + 1.5, -88, col.z + 3), new THREE.Vector3(-40, -91, 32), new THREE.Vector3(-46, -90, 30)], 0.9, wireM));
-
+  const mic = new THREE.Group();
+  const housing = box(10, 5, 9, pla);
+  mic.add(housing);
+  const pcb = box(8, 0.8, 7, mat(0x6d28d9));
+  pcb.position.y = 2.9;
+  mic.add(pcb);
+  const port = cyl(1.3, 0.6, mat(0x0f172a), 20);
+  port.rotation.z = Math.PI / 2;
+  port.position.set(-5.1, 0, 0);
+  mic.add(port);
+  mic.position.set(rMid * Math.cos(aMic), RING_H / 2 + 3.2, rMid * Math.sin(aMic));
+  mic.rotation.y = -aMic;
+  tag('mic', mic);
   // ── accionamiento: UN servo MG90S → leva → anillo actuador → 3 bielas → 3 valvas ──
   const servoMat = mat(0x1d4ed8, { roughness: 0.55 });
   const sx = R_OUT + 24;
@@ -295,10 +283,10 @@ export function buildUniversity(): Built {
     tag('base', foot);
   }
   const esp = box(52, 1.6, 28, mat(0x111827));
-  esp.position.set(-55, -93, 34);
+  esp.position.set(-55, -90.3, 34);
   tag('esp32', esp);
   const shield = box(18, 3, 16, mat(0xcbd5e1, { metalness: 0.9, roughness: 0.25 }));
-  shield.position.set(-66, -91.5, 34);
+  shield.position.set(-66, -88.8, 34);
   tag('esp32', shield);
   const cond = box(22, 1.6, 16, mat(0x0f766e));
   cond.position.set(-12, -93, 44);
@@ -312,6 +300,50 @@ export function buildUniversity(): Built {
   psu.position.set(62, -87, 42);
   tag('power', psu);
 
+  // ── protoboard bajo el ESP32 ──
+  const board = box(64, 3, 40, mat(0xf8fafc, { roughness: 0.8 }));
+  board.position.set(-52, -92.6, 30);
+  tag('wiring', board);
+  for (let k = 0; k < 2; k++) {
+    const rail = box(60, 0.3, 1.2, mat(k ? 0x2563eb : 0xdc2626));
+    rail.position.set(-52, -91, 12 + k * 2.5);
+    tag('wiring', rail);
+  }
+
+  // ── cables (siempre visibles): servo 3 hilos, piezo 2 hilos, MEMS I²S, alimentación ──
+  const wireMats: THREE.Material[] = [];
+  const W = (color: number) => {
+    const m = mat(color, { roughness: 0.55, metalness: 0.05 });
+    wireMats.push(m);
+    return m;
+  };
+  const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+  const cable = (pts: THREE.Vector3[], color: number, off: THREE.Vector3, r = 0.75) =>
+    tag(
+      'wiring',
+      tube(
+        pts.map((p) => p.clone().add(off)),
+        r,
+        W(color),
+      ),
+    );
+  // servo: café (GND), rojo (+5 V), naranjo (señal PWM) → protoboard / ESP32
+  const servoOut = [V(sx - 6, -86, -11), V(sx - 14, -91.5, -16), V(10, -91.5, -14), V(-24, -91, 8), V(-34, -90.5, 18)];
+  [0x7c2d12, 0xdc2626, 0xf59e0b].forEach((c, k) => cable(servoOut, c, V(0, 0, (k - 1) * 1.7)));
+  // alimentación externa 5 V → servo (+5 V / GND) y tierra común a la protoboard
+  cable([V(50, -84, 34), V(44, -91.5, 26), V(sx - 6, -91.5, 18), V(sx - 6, -86, 11.5)], 0xdc2626, V(0, 0, 0));
+  cable([V(50, -84, 36), V(44, -91.5, 29), V(sx - 4, -91.5, 20), V(sx - 4, -86, 11.5)], 0x111827, V(0, 0, 0));
+  cable([V(44, -84, 48), V(20, -91.5, 52), V(-20, -91.5, 30), V(-24, -91, 14.5)], 0x111827, V(0, 0, 0));
+  // piezo: 2 hilos por el exterior del anillo → acondicionamiento → ADC del ESP32
+  const pz = piezo.position;
+  const piezoOut = [pz.clone().multiplyScalar(1.03), V(pz.x * 1.12, -6, pz.z * 1.12), V(pz.x * 1.25, -40, pz.z * 1.3), V(0, -88, 46), V(-6, -91, 44)];
+  [0xdc2626, 0x111827].forEach((c, k) => cable(piezoOut, c, V(k * 1.6, 0, 0), 0.6));
+  cable([V(-20, -91, 44), V(-28, -91, 40), V(-36, -90.5, 34)], 0x16a34a, V(0, 0, 0), 0.6);
+  // MEMS: bus I²S (SCK, WS, SD) + 3,3 V + GND → ESP32
+  const mp = mic.position;
+  const micOut = [V(mp.x + 4, mp.y + 2, mp.z), V(R_OUT + 9, 2, mp.z - 2), V(R_OUT + 10, -40, -26), V(20, -91, -24), V(-30, -91, 2), V(-46, -90.5, 18)];
+  [0x7c3aed, 0x2563eb, 0x0891b2, 0xdc2626, 0x111827].forEach((c, k) => cable(micOut, c, V(0, 0, (k - 2) * 1.2), 0.5));
+
   COMPONENTS.forEach((c) => scene.add(groups[c.id]));
 
   const labels: LabelDef[] = COMPONENTS.map((c) => ({ id: c.id, num: c.num, text: c.short, anchor: new THREE.Vector3(...c.anchor), group: groups[c.id] }));
@@ -324,14 +356,14 @@ export function buildUniversity(): Built {
     meshesById,
     groups,
     cameras: {
-      iso: { pos: [235, 150, 235], target: [0, -30, 0] },
+      iso: { pos: [196, 128, 196], target: [0, -34, 0] },
       top: { pos: [0, 300, 0.01], target: [0, -20, 0] },
       side: { pos: [0, -10, 350], target: [0, -30, 0] },
       hero: { pos: [96, 92, 116], target: [0, 0, 0] },
     },
     update(t, p, o) {
       for (const c of COMPONENTS) groups[c.id].position.copy(explode[c.id]).multiplyScalar(o.exploded);
-      groups.wiring.visible = o.exploded < 0.05 && (o.xray || o.selected === 'wiring');
+      groups.wiring.visible = o.exploded < 0.05;
       mech.visible = o.exploded < 0.05 && (o.mech || o.selected === 'actuator');
       xrayMats.forEach((m) => {
         m.opacity = o.xray ? 0.32 : 1;
@@ -356,7 +388,7 @@ export function buildUniversity(): Built {
           rodBetween(links[i], foot, pin);
         });
       }
-      setHighlight(scene, meshesById, o.selected, [wireP, wireM]);
+      setHighlight(scene, meshesById, o.selected, o.selected === 'wiring' ? [] : wireMats);
     },
   };
 }
@@ -510,7 +542,10 @@ export function buildFuture(): Built {
   scene.add(rx);
   rx.traverse((c) => meshesById.set(c, 'receiver'));
   const waves = [0, 1, 2].map((k) => {
-    const w = new THREE.Mesh(new THREE.TorusGeometry(10 + k * 12, 0.5, 6, 48, Math.PI / 2.4), new THREE.MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.6 }));
+    const w = new THREE.Mesh(
+      new THREE.TorusGeometry(10 + k * 12, 0.5, 6, 48, Math.PI / 2.4),
+      new THREE.MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.6 }),
+    );
     w.position.set(30, 6, 12);
     w.rotation.set(Math.PI / 2, 0, -0.9);
     scene.add(w);
