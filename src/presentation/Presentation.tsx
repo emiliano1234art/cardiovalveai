@@ -34,7 +34,7 @@ interface SlideDef {
 /** Portada + 10 pantallas de contenido + bibliografía. */
 export const SLIDES: SlideDef[] = [
   { id: 'cover', num: null, tab: 'Inicio', title: 'Portada', C: Cover },
-  { id: 'que-es', num: 1, tab: 'CardioVal AI', title: '¿Qué es CardioVal AI?', C: D01What },
+  { id: 'que-es', num: 1, tab: 'CardioValveAI', title: '¿Qué es CardioValveAI?', C: D01What },
   { id: 'problema', num: 2, tab: 'Problema', title: 'Wicked problem', C: D02Wicked },
   { id: 'interdisciplina', num: 3, tab: 'Interdisciplina', title: 'Integración interdisciplinaria', C: D03Interdisciplinary },
   { id: 'materiales', num: 4, tab: 'Materiales', title: 'Materiales', C: D04Materials },
@@ -181,7 +181,7 @@ export function Presentation() {
             <section className="v-print-page" aria-label={s.title}>
               <s.C />
               <div style={{ position: 'absolute', right: 28, bottom: 18, fontSize: 13, color: 'var(--muted)' }}>
-                CardioVal AI {s.num ? `· ${s.num} / ${N_CONTENT}` : ''}
+                CardioValveAI {s.num ? `· ${s.num} / ${N_CONTENT}` : ''}
               </div>
             </section>
           </Deck.Provider>

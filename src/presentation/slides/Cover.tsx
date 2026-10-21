@@ -26,7 +26,7 @@ export function Cover() {
           </div>
         </div>
         <h1 className="v-cover-title">
-          CARDIOVAL <span>AI</span>
+          CARDIOVALVE<span>AI</span>
         </h1>
         <p className="v-cover-sub">{META.subtitle}</p>
         <div className="v-cover-careers">

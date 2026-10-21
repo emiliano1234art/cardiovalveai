@@ -1,4 +1,4 @@
-# CardioVal AI
+# CardioValveAI
 
 **Tecnología e inteligencia artificial para explorar el funcionamiento valvular y su relación con la rehabilitación cardiovascular.**
 
@@ -10,7 +10,7 @@ Una misma aplicación con **dos modos conectados** (menú superior **Presentaci�
 1. **Presentación interactiva oficial** (por defecto, `#/`): portada + 10 pantallas + bibliografía.
 2. **Dashboard experimental / laboratorio interactivo** (`#/dashboard`): válvula 3D trivalva, ECG, vibración, sonido, IA, paciente simulado e historial; conexión opcional al ESP32.
 
-> Nombre oficial visible: **CardioVal AI**. La dirección del repositorio (`cardiovalveai`), la URL de GitHub Pages y algunos nombres internos de archivos e identificadores (`ValveSense_*.html`, `useValveSense`, …) se mantienen a propósito para no romper enlaces ni configuraciones.
+> Nombre oficial visible: **CardioValveAI**. La dirección del repositorio (`cardiovalveai`), la URL de GitHub Pages y algunos nombres internos de archivos e identificadores (`ValveSense_*.html`, `useValveSense`, …) se mantienen a propósito para no romper enlaces ni configuraciones.
 
 > ⚠️ Prototipo académico. No es un dispositivo médico, no es una prótesis implantable y no entrega diagnósticos. Cada elemento indica su estado: **IMPLEMENTADO**, **SIMULADO**, **EXPERIMENTO**, **PROPUESTO** o **VISIÓN FUTURA**.
 
@@ -28,8 +28,8 @@ El modelo es una **válvula aórtica de tres valvas semilunares** (≈ 120° ent
 
 | # | Pantalla (ruta) | Elemento protagonista |
 |---|---|---|
-| — | Portada (`#/cover`) | válvula aórtica 3D abriéndose lentamente · CARDIOVAL AI · integrantes, profesor asesor y UDD · «Comenzar presentación →» |
-| 1 | ¿Qué es CardioVal AI? (`#/que-es`) | Válvula → Sensores → IA y flujo animado Válvula → Piezo/MEMS → ESP32 → Análisis → Dashboard |
+| — | Portada (`#/cover`) | válvula aórtica 3D abriéndose lentamente · CARDIOVALVEAI · integrantes, profesor asesor y UDD · «Comenzar presentación →» |
+| 1 | ¿Qué es CardioValveAI? (`#/que-es`) | Válvula → Sensores → IA y flujo animado Válvula → Piezo/MEMS → ESP32 → Análisis → Dashboard |
 | 2 | Wicked problem (`#/problema`) | pregunta del problema, corazón · prótesis · señales · rehabilitación, flujo Problema → Necesidad → Propuesta y «¿Por qué es un wicked problem?» (Rittel y Webber, 1973) |
 | 3 | Integración interdisciplinaria (`#/interdisciplina`) | diagrama conectado Biomedicina ↔ aportes conjuntos ↔ Kinesiología (seleccionable) |
 | 4 | Materiales (`#/materiales`) | 10 tarjetas ilustradas; al tocarlas: qué es, para qué sirve, dónde se ubica y cómo participa |

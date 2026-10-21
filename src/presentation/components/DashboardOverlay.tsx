@@ -30,12 +30,12 @@ export function DashboardOverlay({ onClose }: { onClose: () => void }) {
   }, [loaded, onClose]);
 
   return (
-    <div className="v-dash-overlay" role="dialog" aria-modal="true" aria-label="Dashboard experimental CardioVal AI">
+    <div className="v-dash-overlay" role="dialog" aria-modal="true" aria-label="Dashboard experimental CardioValveAI">
       <div className="v-dash-card">
         <header className="v-dash-head">
           <div>
             <b>Dashboard experimental</b>
-            <span>Vista previa del laboratorio interactivo de CardioVal AI</span>
+            <span>Vista previa del laboratorio interactivo de CardioValveAI</span>
           </div>
           <div className="v-row" style={{ gap: 8 }}>
             <Explain label="¿Qué está implementado?" content={PX.dashboard} />
@@ -53,7 +53,7 @@ export function DashboardOverlay({ onClose }: { onClose: () => void }) {
         <div className="v-dash-body">
           <div className="v-dash-frame">
             {!failed ? (
-              <iframe title="Dashboard CardioVal AI" src={localLab()} onLoad={() => setLoaded(true)} />
+              <iframe title="Dashboard CardioValveAI" src={localLab()} onLoad={() => setLoaded(true)} />
             ) : (
               <div className="v-dash-fallback">
                 <p>La vista previa no se pudo cargar en este navegador.</p>

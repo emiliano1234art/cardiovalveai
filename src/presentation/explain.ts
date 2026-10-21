@@ -3,7 +3,7 @@ import type { Explanation } from '../content/explanations';
 /** Explicaciones a pedido de la presentación oficial (sencilla + científica). */
 export const PX = {
   what: {
-    title: '¿Cómo funciona CardioVal AI?',
+    title: '¿Cómo funciona CardioValveAI?',
     simple:
       'Una válvula experimental de tres valvas se abre y se cierra. Un sensor piezoeléctrico capta su vibración y un micrófono MEMS su sonido. El ESP32 envía los datos, el análisis los compara con una referencia y el dashboard muestra el resultado.',
     look: ['Piezo = vibración.', 'MEMS = sonido.', 'ESP32 = adquisición y envío.'],
@@ -18,7 +18,7 @@ export const PX = {
       'Es un problema complejo: cada disciplina lo define distinto, no tiene una única solución correcta y cada persona es un caso diferente. Por eso no buscamos «resolverlo», sino aportar una herramienta que ayude a integrar información.',
     tech: [
       'Rittel y Webber (1973) describen los «wicked problems» como problemas sin formulación definitiva, sin regla de término y cuyas soluciones son mejores o peores, no verdaderas o falsas.',
-      'Las guías de enfermedad valvular recomiendan seguimiento clínico e imágenes de las prótesis, y la rehabilitación cardíaca basada en ejercicio se estudia tras la cirugía valvular. CardioVal AI explora una fuente de información complementaria, sin cuestionar esas evaluaciones.',
+      'Las guías de enfermedad valvular recomiendan seguimiento clínico e imágenes de las prótesis, y la rehabilitación cardíaca basada en ejercicio se estudia tras la cirugía valvular. CardioValveAI explora una fuente de información complementaria, sin cuestionar esas evaluaciones.',
     ],
   },
   interdisc: {
@@ -44,7 +44,7 @@ export const PX = {
     tech: ['Fechas PROPUESTAS: el Encargo 2 no estaba disponible al construir esta versión. Se editan en src/presentation/content.ts (GANTT).'],
   },
   interview: {
-    title: '¿Cómo se relaciona con CardioVal AI?',
+    title: '¿Cómo se relaciona con CardioValveAI?',
     simple:
       'El Diagrama de Wiggers muestra, en un mismo latido, la señal eléctrica del corazón (ECG), las presiones del ventrículo izquierdo y de la aorta, el volumen y los ruidos cardíacos. Nos ayuda a entender cuándo y por qué se abre y se cierra la válvula aórtica.',
     look: [

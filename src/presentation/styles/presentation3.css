@@ -1,4 +1,4 @@
-/* ═══════════════ CardioVal AI · pantallas oficiales (portada + 10 + bibliografía) ═══════════════ */
+/* ═══════════════ CardioValveAI · pantallas oficiales (portada + 10 + bibliografía) ═══════════════ */
 
 .v-root { --navy: #0b2545; }
 .brand-ai { color: var(--teal); }
@@ -19,7 +19,8 @@
 /* ───────────── portada ───────────── */
 .v-cover { grid-template-columns: minmax(0, 1fr) 720px; }
 .v-cover-text { display: flex; flex-direction: column; }
-.v-cover .v-cover-title { font-size: 112px; margin-top: 20px; }
+.v-cover .v-cover-title { font-size: 98px; margin-top: 20px; white-space: nowrap; }
+.v-cover .v-cover-title span { display: block; }
 .v-cover-careers { display: flex; align-items: center; gap: 14px; margin-top: 26px; font-size: 21px; font-weight: 700; color: var(--navy); }
 .v-cover-careers span { padding: 8px 16px; border-radius: 999px; background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow); }
 .v-cover-careers i { font-style: normal; color: var(--cyan); font-size: 26px; }

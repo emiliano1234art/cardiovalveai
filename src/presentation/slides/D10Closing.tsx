@@ -23,7 +23,7 @@ export function D10Closing() {
           <Visual3D
             kind="souvenir"
             render="souvenir"
-            alt="Llavero de la válvula trivalva CardioVal AI (propuesta)"
+            alt="Llavero de la válvula trivalva CardioValveAI (propuesta)"
             camera="iso"
             showLabels
             autoRotate
@@ -41,7 +41,7 @@ export function D10Closing() {
             <div className="v-row" style={{ gap: 14 }}>
               <BrandMark size={56} />
               <div className="v-closing-brand">
-                CARDIOVAL <span>AI</span>
+                CARDIOVALVE<span>AI</span>
               </div>
             </div>
             <p className="v-closing-text">{META.closing}</p>
