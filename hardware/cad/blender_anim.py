@@ -51,12 +51,12 @@ SEGMENTS = [
     ('apertura', 2.5, '2 · Apertura progresiva (servo 130° → 50°)'),
     ('abierta', 1.5, '3 · Válvula completamente abierta (80°)'),
     ('cierre', 2.5, '4 · Cierre progresivo'),
-    ('restringida', 5.0, '5 · Apertura restringida: valva 1 con tope de 60° y biela de recorrido perdido'),
-    ('incompleto', 5.0, f'6 · Cierre incompleto experimental: valva 1 queda en {C.IC_RESIDUAL:.0f}°'),
+    ('restringida', 5.0, '5 · Apertura restringida: valva 1 limitada a 60°'),
+    ('incompleto', 5.0, f'6 · Cierre incompleto: valva 1 queda en {C.IC_RESIDUAL:.0f}°'),
     ('explotada', 4.0, '7 · Vista explotada'),
     ('piezo', 3.5, '8 · Montaje del piezoeléctrico (soporte, disco y tapa)'),
     ('mems', 3.5, '9 · Montaje del micrófono MEMS INMP441'),
-    ('mecanismo', 6.0, '10 · Servo MG90S → palanca → empujador → plato → 3 bielas → 3 valvas'),
+    ('mecanismo', 6.0, '10 · Servo → empujador → plato → 3 bielas → 3 valvas'),
 ]
 
 def seg_frames():

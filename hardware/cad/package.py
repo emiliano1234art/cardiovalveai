@@ -23,7 +23,7 @@ def video():
         tf = os.path.join(tdir, f'{k}.txt')
         open(tf, 'w', encoding='utf-8').write(title)
         a, b = (f0 - 1) / BA.FPS, f1 / BA.FPS
-        filters.append(f"drawtext=fontfile={FONT_B}:textfile={tf}:x=36:y=34:fontsize=30:fontcolor=0x0b2545:box=1:boxcolor=white@0.88:boxborderw=14:enable='between(t,{a:.3f},{b:.3f})'")
+        filters.append(f"drawtext=fontfile={FONT_B}:textfile={tf}:x=36:y=34:fontsize=30:fontcolor=0x0b2545:box=1:boxcolor=white@0.88:boxborderw=14:enable='gte(t,{a:.3f})*lt(t,{b:.3f})'")
     foot = os.path.join(tdir, 'foot.txt')
     open(foot, 'w', encoding='utf-8').write(f'{C.PROJECT} · simulación cinemática del diseño mecánico v1 — no es un ensayo físico')
     filters.append(f"drawtext=fontfile={FONT}:textfile={foot}:x=36:y=h-52:fontsize=20:fontcolor=0x3a5068:box=1:boxcolor=white@0.8:boxborderw=8")
