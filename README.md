@@ -16,6 +16,10 @@ Una misma aplicación con **dos modos conectados** (menú superior **Presentaci�
 
 ---
 
+## Diseño mecánico para impresión 3D (v1)
+
+Modelo fabricable del prototipo (un solo servo MG90S → plato actuador → 3 bielas → 3 valvas, con piezo, MEMS y ESP32): STL listos para imprimir, STEP editables, ensamblaje, escena de Blender con animación, guías de ensamblaje e impresión, lista de materiales e informe de validación en **`entrega/CardioValAI_Modelo_Final_STL.zip`**. Código CAD paramétrico en [`hardware/`](hardware/README.md).
+
 ## La válvula: aórtica TRIVALVA
 
 El modelo es una **válvula aórtica de tres valvas semilunares** (≈ 120° entre sí): cerradas forman una «Y» de coaptación en el centro y abiertas se desplazan hacia la pared. No es la válvula tricúspide (lado derecho del corazón). Geometría compartida en `src/presentation/geometry/trileaflet.ts`; se usa en el 3D (`three/scenes.ts`), en las vistas 2D (`components/ValveSVG.tsx`) y en los renders.
