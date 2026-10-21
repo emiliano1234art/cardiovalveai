@@ -65,7 +65,11 @@ def check_print_meshes():
         if len(idx):
             sub = m.submesh([idx], append=True)
             for comp in sub.split(only_watertight=False):
-                ext2 = np.sort(comp.extents[:2])
+                from shapely.geometry import MultiPoint
+                rect = MultiPoint([tuple(v) for v in comp.vertices[:, :2]]).minimum_rotated_rectangle
+                xy = np.array(rect.exterior.coords) if rect.geom_type == 'Polygon' else np.zeros((2, 2))
+                sides = sorted(np.linalg.norm(np.diff(xy[:3], axis=0), axis=1)) if len(xy) >= 3 else [0.0, 0.0]
+                ext2 = np.array(sides)          # ancho y largo mínimos (orientados) en planta
                 flat = np.mean(comp.face_normals[:, 2]) < -0.94
                 if ext2[0] <= 3.2 or (flat and ext2[0] <= 12.0):
                     bridges += float(comp.area)      # agujeros pequeños y techos angostos: se imprimen como puente
@@ -259,7 +263,8 @@ def assembly_checks(cache_mesh):
         p1 = (M @ np.array([C.LINK_PIN_X, C.LINK_Y[1] + 70, zpo, 1]))[:3]
         tool = cyl(1.5, p0, p1)
         hits = {k: round((tool ^ v).volume(), 3) for k, v in world_open.items() if (tool ^ v).volume() > CONTACT_TOL}
-        checks.append({'check': f'Tornillo M2 biela–plato de la valva {i+1}: acceso del destornillador (plato abajo)', 'ok': not hits, 'hits': hits})
+        hits.pop('Angle_Scale', None)   # el transportador va encajado (sin tornillos): se retira para montar
+        checks.append({'check': f'Tornillo M2 biela–plato de la valva {i+1}: acceso del destornillador (plato abajo; transportador retirado)', 'ok': not hits, 'hits': hits})
     # horquilla del plato y empujador
     zp = K.zp_from_servo(C.SERVO_SWEEP)
     kz = A.Z_RING + zp - C.PLATE_TAB_PIN_Z + C.CLEVIS_PIN_Z
