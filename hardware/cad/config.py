@@ -10,8 +10,10 @@ plano dimensional no fue confirmado: medir la pieza comprada y ajustar.
 """
 from dataclasses import dataclass, field
 
-PREFIX = "CardioValAI"          # prefijo de archivos de entrega
 PROJECT = "CardioVal AI"        # nombre visible en documentos
+REVISION = "v2"                 # v1 = entrega/CardioValAI_Modelo_Final_STL.zip (commit 519c9ac), se conserva sin cambios
+PREFIX = f"CardioValAI_{REVISION}"   # prefijo de archivos de entrega (identifica la revisión)
+OUT_DIR = f"out_{REVISION}"     # carpeta de salida (hardware/out_v2); la salida v1 queda en hardware/out
 
 # ───────────────────────────── impresión / tolerancias ─────────────────────────────
 CLR_MOVE = 0.40      # holgura general entre piezas móviles (rango pedido 0,35–0,50)
@@ -22,6 +24,14 @@ M3_CLEAR = 3.4       # agujero de paso M3
 M3_PILOT = 2.6       # agujero piloto M3 autorroscante en PETG
 M3_HEAD_D = 6.0      # alojamiento cabeza M3 (allen DIN 912 ≈ 5,5)
 M3_HEAD_H = 3.4
+# v2: insertos roscados de latón termofijados (uniones que se desarman a menudo)
+M3_INSERT_D = 4.0    # agujero para inserto M3 (largo 5,7, Ø ext. 4,6): VERIFICAR con la probeta (4,0–4,2)
+M3_INSERT_L = 5.7
+M2_INSERT_D = 3.2    # agujero para inserto M2 (largo 3,0–4,0, Ø ext. 3,5): VERIFICAR (3,1–3,3)
+M2_INSERT_L = 4.0
+M2_NUT_AF = 4.0      # tuerca M2 (entre caras)
+M2_NUT_T = 1.6
+NUT_CLR = 0.25       # holgura de la trampa de tuerca
 
 # ───────────────────────────── anillo valvular ─────────────────────────────
 RING_OD = 70.0
@@ -41,9 +51,27 @@ EDGE_GAP = 0.5       # holgura de coaptación por lado (valva–valva al cerrar)
 WALL_CLEAR = 1.0     # holgura mínima valva–pared en todo el recorrido
 THETA_NORMAL = 80.0  # apertura experimental máxima
 THETA_DESIGN = 86.0  # apertura usada para dimensionar holguras (margen sobre 84° del tope)
-PIN_D = 2.0          # eje de acero Ø2 (varilla rectificada)
+PIN_D = 2.0          # v2: eje de LATÓN (o inox 316) Ø2 — no magnético (el acero deformaría el campo de los imanes Hall)
 PIN_HOLE_LEAF = M2_CLEAR   # 2,4: la valva gira libre sobre el eje
 PIN_HOLE_RING = 2.1        # el eje queda fijo en el anillo (ajuste + gota de adhesivo)
+
+# v2: pasador cola–biela: varilla de latón Ø2 a presión en la cola, libre en la biela, retenido por las paredes de la ranura
+TAIL_PIN_HOLE = 1.95     # ajuste a presión (VERIFICAR con la probeta: 1,85–2,0)
+LINK_HOLE = 2.2          # biela gira sobre el pasador (menos juego que 2,4 de v1: el juego se ve como histéresis)
+TAIL_PIN_LEN = 9.0       # de la cara −y de la cola (−4,5) a la cara exterior de la biela (4,6)
+
+# v2: medición de posición. Imán N42 Ø4×2 axial (eje y) embutido a ras en la cara −y de la cola
+MAG_LEAF = (4.0, 2.0)    # diámetro, altura (mm)
+MAG_LEAF_S = 4.0         # distancia del eje de bisagra al centro del imán, a lo largo de la cola
+MAG_POCKET_CLR = 0.2     # holgura diametral del alojamiento (se fija con una gota de cianoacrilato)
+# sensor Hall lineal DRV5055A1QLPG (TO-92) en un bolsillo de la pared del anillo (marco de la valva):
+HALL_XYZ = (26.8, -8.0, 13.5)   # centro del elemento Hall; eje sensible = x local (radial)
+TO92_BODY = (1.55, 4.0, 3.15)   # espesor (x), ancho (y), alto (z) del cuerpo: VERIFICAR con la hoja de datos/calibre
+# imán del plato (H0): N42 Ø3×2 axial (eje z) a ras en la cara superior del lóbulo de la columna 1
+MAG_PLATE = (3.0, 2.0)
+MAG_PLATE_R = 20.0
+HALL0_GAP = 4.0          # cara superior del imán → elemento Hall con la válvula cerrada (plato arriba)
+SPACER_T = 2.0           # arandela impresa entre columna y anillo (en la columna 1 es el soporte de H0)
 
 # palanca (cola) de cada valva: biela de mando
 TAIL_LT = 8.0        # brazo de palanca eje → agujero de la biela
@@ -73,8 +101,8 @@ COLUMN_R = 30.5      # radio de las columnas (en las comisuras)
 COLUMN_D = 8.0
 BUSH_CLEAR = 0.30    # holgura radial buje–columna
 
-# servo (palanca y empujador)
-SERVO_SWEEP = 40.0   # ± grados de la palanca respecto de la horizontal
+# servo (palanca y empujador). v2: el dato de entrada es el RADIO DEL AGUJERO DEL HORN (medido);
+# el barrido ±β se calcula como asin(carrera / (2·r)) en kinematics.py (r = 8 → β = 40,0°).
 PUSHROD_L = 30.0
 
 # ───────────────────────────── MG90S (modelo de referencia, VERIFICAR) ─────────────────────────────
@@ -91,7 +119,7 @@ class ServoDims:
     shaft_offset: float = 5.9   # eje respecto del extremo del cuerpo
     gear_top: float = 4.3        # domo de engranajes sobre el cuerpo
     shaft_h: float = 3.2
-    horn_r: float = 8.0          # radio del agujero usado en la palanca (VERIFICAR en el horn)
+    horn_r: float = 8.0          # radio del agujero usado en el horn (MEDIR: distancia centro del eje → centro del agujero)
     horn_t: float = 1.8
 SERVO = ServoDims()
 
@@ -99,8 +127,14 @@ SERVO = ServoDims()
 PIEZO_D = 15.0       # disco 12–15 mm: se diseña para 15 y se incluye adaptador para 12
 PIEZO_T = 0.45
 MEMS_BOARD = (14.5, 14.5, 1.6)   # INMP441 (placa redonda Ø≈14 o cuadrada ≈14): VERIFICAR
-ESP32_BOARD = (55.0, 28.0, 1.6)  # DevKit de referencia: VERIFICAR (existen 48–58 × 25–29)
+ESP32_BOARD = (55.0, 28.0, 1.6)  # DevKit de referencia: VERIFICAR (existen 48–58 × 25–29) — NO DEFINITIVO
+ESP32_ROW_PITCH = 25.4           # separación entre filas de pines: VERIFICAR (22,86 o 25,4 según el clon)
+ESP32_PINS_PER_ROW = 15          # 30 pines (15 por lado): VERIFICAR (hay versiones de 38)
 ESP32_PIN_DEPTH = 15.0           # espacio bajo la placa para pines + conectores Dupont
+# v2: placa perforada de acondicionamiento (lleva el ESP32 en zócalos hembra + filtros)
+PERFBOARD = (70.0, 90.0, 1.6)    # VERIFICAR (formato común 7 × 9 cm)
+PERF_UNDER = 6.0                 # luz bajo la placa perforada (soldaduras)
+TRAY_XY = (118.0, 70.0)          # esquina de la bandeja electrónica en la base
 
 # sujeción de sensores al anillo: almohadillas planas
 PAD_ANGLE_OFFSET = 30.0  # respecto de la dirección de cada valva
@@ -114,6 +148,8 @@ BASE_X = 200.0
 BASE_Y = 180.0
 BASE_T = 6.0
 VALVE_XY = (78.0, 92.0)  # centro de la válvula sobre la base
+MEMS_STAND_ANG = 300.0   # posición angular del soporte independiente del micrófono (grados, marco global)
+MEMS_STAND_R = 52.0      # distancia horizontal eje de la válvula → micrófono (ajustable ±10 con las ranuras)
 
 # impresora de referencia (volumen útil)
 BED = (220.0, 220.0, 250.0)

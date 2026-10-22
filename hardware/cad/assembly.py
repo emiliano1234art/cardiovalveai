@@ -15,9 +15,10 @@ D2R = math.pi / 180
 VX, VY = C.VALVE_XY
 ZS = C.BASE_T + C.SERVO_BODY_CLEAR + C.SERVO.W / 2      # eje del servo (global)
 Z_RING = ZS - K.SHAFT_Z                                   # cara inferior del anillo (global)
-COLUMN_H = Z_RING - C.BASE_T
-ESP_XY = (160.0, 128.0)
+COLUMN_H = Z_RING - C.BASE_T - C.SPACER_T                # v2: arandela/soporte H0 de 2 mm entre columna y anillo
+TRAY_XY = C.TRAY_XY
 SCALE_XY = (VX - 50.0, VY + C.HINGE_D)
+CLIP_Z = 12.0                                             # altura (sobre la base) de las pinzas de cables en las columnas
 
 def T(x=0.0, y=0.0, z=0.0):
     m = np.eye(4); m[:3, 3] = (x, y, z); return m
@@ -45,6 +46,111 @@ def servo_mount_holes():
         pts += [(VX + xc + s * (half - 6), VY + y_back + 14), (VX + xc + s * (half - 6), VY + y_face - 4.5)]
     return pts
 
+def column_angle(i):
+    return K.leaf_dir(i) + 60
+
+def stand_frame():
+    a = C.MEMS_STAND_ANG
+    return T(VX + C.MEMS_STAND_R * math.cos(a * D2R), VY + C.MEMS_STAND_R * math.sin(a * D2R), C.BASE_T) @ Rz(a + 180)
+
+def stand_holder_frame():
+    zpiv, tilt = P.stand_heights()
+    return stand_frame() @ T(P.STAND_PIVOT_X, 0, zpiv) @ Ry(tilt) @ T(0, 0, P.STAND_PIVOT_DZ)
+
+def stand_insert_xy():
+    M = stand_frame()
+    return [tuple((M @ np.array([x, y, 0, 1.0]))[:2]) for x, y in P.STAND_INSERTS]
+
+def p2_frame():
+    """Marco de almohadilla (como pad_frame del anillo) para el soporte P2 sobre el soporte del servo."""
+    bx, by, z0 = P.p2_pad_origin(ZS)
+    return T(VX + bx, VY + by - C.PAD_FACE_R, z0) @ Rz(90)
+
+def tray_frame():
+    return T(TRAY_XY[0], TRAY_XY[1], C.BASE_T)
+
+def ring_local(i, x, y, z):
+    """Punto del marco de la valva i (anillo) → global."""
+    return tuple((RING @ Rz(K.leaf_dir(i)) @ np.array([x, y, z, 1.0]))[:3])
+
+def _arc(r, a0, a1, z, step=10.0):
+    n = max(2, int(abs(a1 - a0) / step) + 1)
+    return [(VX + r * math.cos(a * D2R), VY + r * math.sin(a * D2R), z) for a in np.linspace(a0, a1, n)]
+
+ZB = C.BASE_T + 1.6          # centro de un haz de cables apoyado en la base
+R_CLIP = C.COLUMN_R + C.COLUMN_D / 2 + 5.8     # centro del cable en el apoyo de la pinza (radio desde el eje de la válvula)
+CABLE_R = {'H1': 1.0, 'H2': 1.0, 'H3': 1.0, 'H0': 1.0, 'P1': 1.25, 'P2': 1.25, 'M1': 1.5, 'SERVO': 1.0}   # radio de cada haz (mm)
+SIG_ENTRY = (TRAY_XY[0] + 14.0, TRAY_XY[1] + 9.0)        # entrada de señales: extremo −y de la bandeja
+PWR_ENTRY = (TRAY_XY[0] + 24.0, TRAY_XY[1] + 95.0)       # entrada de potencia (servo 5 V): extremo +y
+
+def cable_routes():
+    """Recorridos de los haces de cables (referencia de diseño, Ø3). Señales por el sur, potencia por el norte."""
+    hx, hy, _ = C.HALL_XYZ
+    rx = C.RING_OD / 2
+    routes = {}
+    zclip = C.BASE_T + CLIP_Z + 3.0
+    for i in range(3):
+        a_exit = K.leaf_dir(i) + math.degrees(math.atan2(hy, rx - 0.9))
+        a_col = column_angle((i - 1) % 3)
+        pts = [ring_local(i, hx, hy, C.RING_H - 0.8), ring_local(i, rx - 0.9, hy, C.RING_H - 0.8), ring_local(i, rx - 0.9, hy, -2.5)]
+        pts += _arc(41.0, a_exit, a_col + 12, Z_RING - 14.0)
+        pts += [(VX + R_CLIP * math.cos(a_col * D2R), VY + R_CLIP * math.sin(a_col * D2R), zclip),
+                (VX + 40.0 * math.cos(a_col * D2R), VY + 40.0 * math.sin(a_col * D2R), ZB)]
+        routes[f'H{i+1}'] = pts
+    # H0: por el brazo del soporte hasta la columna 1 y la pinza
+    a1 = column_angle(0) * D2R
+    u = (math.cos(a1), math.sin(a1))
+    ze = Z_RING + P.hall0_element_z()
+    v = (-u[1], u[0])                                   # tangencial: el cable pasa al costado de la columna
+    rt = lambda r, t, z: (VX + r * u[0] + t * v[0], VY + r * u[1] + t * v[1], z)
+    zarm = Z_RING - C.SPACER_T - 2.5
+    routes['H0'] = [rt(C.MAG_PLATE_R - 3.3, 0, ze), rt(C.MAG_PLATE_R - 3.3, 0, zarm), rt(C.MAG_PLATE_R - 3.3, 6.0, zarm),
+                    rt(41.0, 6.0, zarm), rt(R_CLIP, 0, zclip), rt(40.0, 0, ZB)]
+    # P1: sale por abajo del soporte (almohadilla de la valva 2) y baja a la base
+    M1 = RING @ Rz(K.leaf_dir(1) + C.PAD_ANGLE_OFFSET)
+    q = lambda M, x, y, z: tuple((M @ np.array([x, y, z, 1.0]))[:3])
+    routes['P1'] = [q(M1, C.PAD_FACE_R + 3.4, 0, -6.5), q(M1, C.PAD_FACE_R + 7.0, 0, -12.0), q(M1, C.PAD_FACE_R + 9.0, 0, -Z_RING + ZB)]
+    M2 = p2_frame()
+    routes['P2'] = [q(M2, C.PAD_FACE_R + 3.4, 0, -6.5), q(M2, C.PAD_FACE_R + 6.0, 0, -M2[2, 3] + ZB)]
+    # M1 (soporte independiente): baja por detrás del poste
+    Ms = stand_frame()
+    px = P.STAND_PIVOT_X - 6.0 - P.STAND_POST
+    zpiv, _ = P.stand_heights()
+    fh = C.MEMS_BOARD[1] + 4.4
+    Mh = stand_holder_frame()
+    ztop = zpiv + P.STAND_PIVOT_DZ + fh / 2 + 3.0
+    routes['M1'] = [q(Mh, 0, 0, fh / 2 + 1.5), q(Ms, -4.0, 0, ztop), q(Ms, px - 1.6, 0, ztop), q(Ms, px - 1.6, 0, 30.0),
+                    q(Ms, px - 14.0, 0, ZB - C.BASE_T), q(Ms, px - 18.0, -22.0, ZB - C.BASE_T)]
+    # troncales sobre la base
+    west = [(36.0, 150.0, ZB), (34.0, 70.0, ZB), (46.0, 40.0, ZB)]
+    south = [(70.0, 38.0, ZB), (124.0, 40.0, ZB), (SIG_ENTRY[0], SIG_ENTRY[1] - 6.0, ZB), (SIG_ENTRY[0], SIG_ENTRY[1], C.BASE_T + TRAY_TOP + 1.6)]
+    routes['H1'] += [(VX + 40.0 * math.cos(column_angle(2) * D2R) + 14, VY + 40.0 * math.sin(column_angle(2) * D2R) - 30, ZB)] + south[1:]
+    routes['H2'] += [(34.0, 98.0, ZB), (34.0, 70.0, ZB), (46.0, 40.0, ZB)] + south
+    routes['H3'] += [(80.0, 38.0, ZB)] + south[1:]
+    routes['H0'] += [(34.0, 98.0, ZB), (34.0, 70.0, ZB), (46.0, 40.0, ZB)] + south
+    routes['P1'] += [(46.0, 40.0, ZB)] + south
+    routes['P2'] += west + south
+    routes['M1'] += [south[1][:2] + (ZB,)] + south[2:]
+    # servo: sale por el extremo +x del cuerpo, va por el norte a la entrada de potencia
+    L = P.servo_layout(ZS)
+    sx = VX + L['body_cx'] + C.SERVO.L / 2
+    sy = VY + L['y_of_h'](3.0)
+    # pasa por encima de la cartela del soporte y baja después del extremo del pie
+    xe = VX + L['body_cx'] + C.SERVO.tab_span / 2 + 4
+    routes['SERVO'] = [(sx + 1.0, sy, ZS - 0.5), (xe + 2.0, sy, ZS - 0.5), (xe + 5.0, sy, ZB), (112.0, 150.0, ZB), (PWR_ENTRY[0], PWR_ENTRY[1] + 4.0, ZB),
+                       (PWR_ENTRY[0], PWR_ENTRY[1], C.BASE_T + TRAY_TOP + 1.6)]
+    return routes
+
+TRAY_TOP = 2.0 + C.PERF_UNDER + C.PERFBOARD[2]
+
+def zip_points():
+    """Pares de ranuras para bridas (x, y, ángulo de la ranura) a lo largo de las troncales."""
+    return [(36.0, 140.0, 0), (34.0, 84.0, 0), (60.0, 38.0, 90), (100.0, 39.0, 90), (124.0, 30.0, 0),
+            (112.0, 140.0, 90 + 30), (PWR_ENTRY[0] - 10, PWR_ENTRY[1] + 4.0, 90)]
+
+def base_labels():
+    return [('SEÑALES', 3.5, 112.0, 30.0, 0), ('SERVO 5 V', 3.5, 100.0, 170.0, 0), ('M1', 3.5, *stand_insert_xy()[0], 0)]
+
 def hinge(theta):
     """Rotación de la valva alrededor de su eje (marco local)."""
     return T(C.HINGE_D, 0, C.Z_HINGE) @ Ry(theta) @ T(-C.HINGE_D, 0, -C.Z_HINGE)
@@ -69,7 +175,18 @@ def pose_transforms(beta: float, mode: str = 'NORMAL', explode: float = 0.0, man
         out[f'Link_{i+1}'] = radial(22, -8) @ RING @ Rz(ψ) @ T(tx, C.LINK_Y[0], tz) @ Ry(alpha)
         out[f'Stop_{i+1}'] = radial(30, -26) @ RING @ Rz(ψ)
         out[f'Column_{i+1}'] = T(0, 0, -14 * ex) @ T(*column_xy(i), C.BASE_T)
+        out[f'Magnet_{i+1}'] = out[f'Leaflet_{i+1}']
+        out[f'Tail_Pin_{i+1}'] = radial(16, 46) @ RING @ Rz(ψ) @ hinge(th)
+        out[f'Cable_Clip_{i+1}'] = T(0, 0, -14 * ex) @ T(*column_xy(i), C.BASE_T + CLIP_Z) @ Rz(column_angle(i))
+    out['H0_Holder'] = T(0, 0, -6 * ex) @ RING @ Rz(column_angle(0))
+    out['Hall0_Reference'] = out['H0_Holder']
+    for i in (1, 2):
+        out[f'Column_Spacer_{i+1}'] = T(0, 0, -6 * ex) @ RING @ T(column_xy(i)[0] - VX, column_xy(i)[1] - VY, 0)
+    out['Hall_Sensors_Reference'] = T(0, 0, 18 * ex) @ RING
+    out['Ring_Fasteners_Reference'] = T(0, 0, 18 * ex) @ RING
     out['Actuator_Plate'] = T(0, 0, -30 * ex) @ RING @ T(0, 0, zp - C.PLATE_TAB_PIN_Z)
+    out['Plate_Magnet'] = out['Actuator_Plate']
+    out['Plate_Fasteners_Reference'] = out['Actuator_Plate']
     qx, qz = p['crank']
     kz = zp - C.PLATE_TAB_PIN_Z + C.CLEVIS_PIN_Z
     a = math.degrees(math.atan2(0 - qx, kz - qz))
@@ -82,8 +199,19 @@ def pose_transforms(beta: float, mode: str = 'NORMAL', explode: float = 0.0, man
     out['Piezo_Cover'] = T(0, 0, 18 * ex) @ RING @ Rz(K.leaf_dir(1) + C.PAD_ANGLE_OFFSET) @ T(32 * ex, 0, 0)
     out['MEMS_Mount'] = T(0, 0, 18 * ex) @ RING @ Rz(K.leaf_dir(0) + C.PAD_ANGLE_OFFSET) @ T(16 * ex, 0, 10 * ex)
     out['MEMS_Board_Reference'] = out['MEMS_Mount'] @ MEMS_BOARD_LOCAL @ T(0, 0, 14 * ex)
-    out['ESP32_Mount'] = T(*ESP_XY, C.BASE_T)
-    out['ESP32_Board_Reference'] = T(*ESP_XY, C.BASE_T + C.ESP32_PIN_DEPTH + 2.0 + 12 * ex)
+    out['MEMS_Board_Reference_Alt'] = out.pop('MEMS_Board_Reference')
+    out['MEMS_Stand'] = T(0, 0, 0) @ stand_frame()
+    out['MEMS_Stand_Holder'] = T(0, 0, 10 * ex) @ stand_holder_frame()
+    out['MEMS_Board_Reference'] = out['MEMS_Stand_Holder']
+    out['Piezo_Mount_P2'] = T(0, 12 * ex, 0) @ p2_frame()
+    out['Piezo_Disc_Reference_P2'] = T(0, 20 * ex, 0) @ p2_frame()
+    out['Piezo_Cover_P2'] = T(0, 28 * ex, 0) @ p2_frame()
+    out['Electronics_Tray'] = tray_frame()
+    out['Tray_Clamp_L'] = T(0, 0, 14 * ex) @ tray_frame()
+    W, Lg, _, _ = P.tray_dims()
+    out['Tray_Clamp_R'] = T(0, 0, 14 * ex) @ tray_frame() @ T(W, Lg, 0) @ Rz(180)
+    out['Perfboard_ESP32_Reference'] = T(0, 0, 8 * ex) @ tray_frame()
+    out['Cable_Routes_Reference'] = np.eye(4)
     out['Angle_Scale'] = T(-20 * ex, 0, 0) @ T(SCALE_XY[0], SCALE_XY[1], C.BASE_T)
     out['Base'] = T(0, 0, -20 * ex)
     return out

@@ -6,4 +6,5 @@ entrega/.build
 
 # salidas generadas del CAD (se entregan en entrega/CardioValAI_Modelo_Final_STL.zip)
 hardware/out/
+hardware/out_v2/
 __pycache__/

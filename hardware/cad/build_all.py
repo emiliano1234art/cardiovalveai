@@ -18,10 +18,11 @@ import trimesh
 from build123d import Compound, export_step, export_stl
 
 import config as C
+import kinematics as K
 import registry as R
 import assembly as A
 
-OUT = os.path.join(os.path.dirname(__file__), '..', 'out')
+OUT = os.path.join(os.path.dirname(__file__), '..', C.OUT_DIR)
 
 def path(*p):
     full = os.path.join(OUT, *p)
@@ -62,7 +63,7 @@ def main():
 
     # ensamblaje STEP (válvula cerrada, servo arriba)
     from build123d import Location, Matrix
-    beta_closed = C.SERVO_SWEEP
+    beta_closed = K.SWEEP
     tf = A.pose_transforms(beta_closed, 'NORMAL')
     placed = []
     for it in R.ITEMS:

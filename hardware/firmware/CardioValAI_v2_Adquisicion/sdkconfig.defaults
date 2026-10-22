@@ -1,0 +1,12 @@
+# ESP32 clásico (DevKit V1)
+CONFIG_IDF_TARGET="esp32"
+# La UART0 (puente USB) transporta el protocolo binario: sin consola de texto del sistema.
+CONFIG_ESP_CONSOLE_NONE=y
+CONFIG_LOG_DEFAULT_LEVEL_WARN=y
+CONFIG_BOOTLOADER_LOG_LEVEL_WARN=y
+CONFIG_FREERTOS_HZ=1000
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=5
+# Callback del ADC continuo en IRAM (robustez durante escrituras en flash, que no se usan en ejecución)
+CONFIG_ADC_CONTINUOUS_ISR_IRAM_SAFE=y
+CONFIG_I2S_ISR_IRAM_SAFE=y

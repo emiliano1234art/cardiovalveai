@@ -12,7 +12,7 @@ import registry as R
 import assembly as A
 import parts as P
 
-OUT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'out'))
+OUT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', C.OUT_DIR))
 DOCS = os.path.join(OUT, 'Documentacion')
 os.makedirs(DOCS, exist_ok=True)
 V = json.load(open(os.path.join(OUT, '_canon', 'verify.json'), encoding='utf-8'))
@@ -134,7 +134,7 @@ Prototipo **académico y experimental**: no es un dispositivo médico, no es imp
 ## Cómo funciona el mecanismo (un solo servo)
 `MG90S → palanca de {F(K.CRANK_R)} mm (horn) → empujador → plato actuador (corredera vertical guiada por 3 columnas) → 3 bielas → cola de cada valva → 3 valvas`.
 - Cada valva gira sobre un **eje de acero Ø2** que atraviesa el anillo en una cuerda a {F(C.HINGE_D, 0)} mm del centro. Su «cola» sale por una ranura de la pared y recibe la biela.
-- Al **bajar** el plato {F(g['stroke_mm'], 2)} mm, las tres valvas abren de 0° a 80°; al **subir**, cierran. El servo recorre ±{F(C.SERVO_SWEEP, 0)}° respecto de la horizontal (comando ≈ 130° = cerrada, 50° = abierta).
+- Al **bajar** el plato {F(g['stroke_mm'], 2)} mm, las tres valvas abren de 0° a 80°; al **subir**, cierran. El servo recorre ±{F(K.SWEEP, 0)}° respecto de la horizontal (comando ≈ 130° = cerrada, 50° = abierta).
 - Las alteraciones se hacen con **módulos intercambiables** en una valva (biela + tope), sin cambiar el comando del servo y **sin que el servo empuje contra un tope** (ver «Módulos»).
 
 ## Herramientas
@@ -276,7 +276,7 @@ def kin_table():
         w.writerow(['modo', 'comando_servo_deg', 'palanca_beta_deg', 'plato_desde_arriba_mm', 'valva1_deg', 'valva2_deg', 'valva3_deg', 'valva1_en_tope', 'ranura1_mm'])
         for mode in K.MODES:
             for k in range(41):
-                beta = C.SERVO_SWEEP - 2 * C.SERVO_SWEEP * k / 40
+                beta = K.SWEEP - 2 * K.SWEEP * k / 40
                 p = K.pose(beta, mode)
                 w.writerow([mode, round(K.servo_command(beta), 2), round(beta, 2), round(K.Z_TOP - p['zp'], 3), *[round(s['theta'], 2) for s in p['leaves']],
                             p['leaves'][0]['on_stop'], round(p['leaves'][0]['slot_used'], 3)])

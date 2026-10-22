@@ -10,7 +10,7 @@ import config as C
 import blender_anim as BA
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.abspath(os.path.join(HERE, '..', 'out'))
+OUT = os.path.abspath(os.path.join(HERE, '..', C.OUT_DIR))
 REPO = os.path.abspath(os.path.join(HERE, '..', '..'))
 FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 FONT_B = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'

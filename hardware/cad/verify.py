@@ -25,7 +25,7 @@ import kinematics as K
 import registry as R
 import assembly as A
 
-OUT = os.path.join(os.path.dirname(__file__), '..', 'out')
+OUT = os.path.join(os.path.dirname(__file__), '..', C.OUT_DIR)
 CANON = os.path.join(OUT, '_canon')
 CONTACT_TOL = 0.05     # mm³: por debajo se considera contacto/redondeo de facetado
 
@@ -88,8 +88,16 @@ def check_print_meshes():
     return res
 
 # ───────────────────────────── 2–3. barrido cinemático ─────────────────────────────
-MOVING = {'Leaflet_1', 'Leaflet_2', 'Leaflet_3', 'Link_1', 'Link_2', 'Link_3', 'Actuator_Plate', 'Pushrod', 'Servo_Horn_Reference'}
-IGNORE = {frozenset(p) for p in [('Servo_Horn_Reference', 'Servo_MG90S_Reference')]}   # horn encajado en el eje (intencional)
+MOVING = {'Leaflet_1', 'Leaflet_2', 'Leaflet_3', 'Link_1', 'Link_2', 'Link_3', 'Actuator_Plate', 'Pushrod', 'Servo_Horn_Reference',
+          'Magnet_1', 'Magnet_2', 'Magnet_3', 'Tail_Pin_1', 'Tail_Pin_2', 'Tail_Pin_3', 'Plate_Magnet', 'Plate_Fasteners_Reference',
+          'Cable_Routes_Reference'}   # los cables se comparan contra TODO (salvo las piezas por las que pasan a propósito)
+_CABLE_HOSTS = ['Valve_Ring', 'Hall_Sensors_Reference', 'H0_Holder', 'Hall0_Reference', 'Cable_Clip_1', 'Cable_Clip_2', 'Cable_Clip_3',
+                'Piezo_Mount', 'Piezo_Mount_P2', 'Piezo_Cover', 'Piezo_Cover_P2', 'MEMS_Stand', 'MEMS_Stand_Holder', 'MEMS_Board_Reference',
+                'Base', 'Electronics_Tray', 'Tray_Clamp_L', 'Tray_Clamp_R', 'Perfboard_ESP32_Reference', 'Servo_MG90S_Reference',
+                'Piezo_Disc_Reference', 'Piezo_Disc_Reference_P2']
+IGNORE = {frozenset(p) for p in [('Servo_Horn_Reference', 'Servo_MG90S_Reference')]   # horn encajado en el eje (intencional)
+          + [(f'Tail_Pin_{i}', f'Leaflet_{i}') for i in (1, 2, 3)]                       # pasador a presión en la cola (intencional)
+          + [('Cable_Routes_Reference', h) for h in _CABLE_HOSTS]}
 
 def instance_meshes(mode: str):
     """Mallas canónicas por instancia, con la biela que corresponde a cada módulo del modo."""
@@ -115,7 +123,7 @@ def sweep(n_pos=25):
     worst = {}
     contacts = {}
     t0 = time.time()
-    betas = np.linspace(C.SERVO_SWEEP, -C.SERVO_SWEEP, n_pos)
+    betas = np.linspace(K.SWEEP, -K.SWEEP, n_pos)
     for mode in K.MODES:
         names = instance_meshes(mode)
         for beta in betas:
@@ -154,6 +162,10 @@ def sweep(n_pos=25):
 def clearance(cache_mesh, n_pos=9):
     """Holgura mínima (mm) entre pares móviles críticos, por muestreo punto–superficie."""
     pairs = [('Leaflet_1', 'Valve_Ring'), ('Leaflet_1', 'Leaflet_2'), ('Leaflet_2', 'Leaflet_3'), ('Leaflet_1', 'MEMS_Mount'),
+             ('Leaflet_1', 'Hall_Sensors_Reference'), ('Magnet_1', 'Hall_Sensors_Reference'), ('Actuator_Plate', 'H0_Holder'),
+             ('Plate_Magnet', 'Hall0_Reference'), ('Actuator_Plate', 'Ring_Fasteners_Reference'), ('Plate_Fasteners_Reference', 'Stop_1'),
+             ('Plate_Fasteners_Reference', 'Column_1'), ('Cable_Routes_Reference', 'Actuator_Plate'), ('Cable_Routes_Reference', 'Pushrod'),
+             ('Cable_Routes_Reference', 'Link_1'), ('Cable_Routes_Reference', 'Column_1'),
              ('Leaflet_1', 'Stop_1'), ('Link_1', 'Valve_Ring'), ('Link_1', 'Stop_1'), ('Link_1', 'Leaflet_1'),
              ('Actuator_Plate', 'Valve_Ring'), ('Actuator_Plate', 'Column_1'), ('Actuator_Plate', 'Stop_1'),
              ('Pushrod', 'Actuator_Plate'), ('Pushrod', 'Servo_Horn_Reference'), ('Pushrod', 'Servo_MG90S_Reference')]
@@ -161,7 +173,7 @@ def clearance(cache_mesh, n_pos=9):
     rng = np.random.default_rng(0)
     for mode in K.MODES:
         names = instance_meshes(mode)
-        for beta in np.linspace(C.SERVO_SWEEP, -C.SERVO_SWEEP, n_pos):
+        for beta in np.linspace(K.SWEEP, -K.SWEEP, n_pos):
             tf = A.pose_transforms(float(beta), mode)
             for a, b in pairs:
                 ma = cache_mesh.get(names[a]) or load(names[a]); mb = cache_mesh.get(names[b]) or load(names[b])
@@ -188,7 +200,7 @@ def assembly_checks(cache_mesh):
     """Trayectorias de herramientas y elementos de unión (cilindros) que no deben chocar con nada."""
     import parts as P
     from build123d import export_stl
-    tf = A.pose_transforms(C.SERVO_SWEEP, 'NORMAL')
+    tf = A.pose_transforms(K.SWEEP, 'NORMAL')
     names = instance_meshes('NORMAL')
     world = {}
     for inst, nm in names.items():
@@ -232,43 +244,45 @@ def assembly_checks(cache_mesh):
         a = (K.leaf_dir(i) + 60) * math.pi / 180
         cx, cy = A.VX + C.COLUMN_R * math.cos(a), A.VY + C.COLUMN_R * math.sin(a)
         top = A.Z_RING + C.RING_H + C.POST_H
-        test(f'Tornillo M3 de la columna {i+1}: acceso vertical desde arriba', cyl(1.4, (cx, cy, top - 25), (cx, cy, top + 60)), allowed=(f'Column_{i+1}',))
-        # tornillo del tope: M2 desde arriba
+        test(f'Tornillo M3 de la columna {i+1}: acceso vertical desde arriba', cyl(1.4, (cx, cy, top - 25), (cx, cy, top + 60)), allowed=(f'Column_{i+1}', 'Ring_Fasteners_Reference'))
+        # tornillo del tope: M2 desde arriba, tuerca atrapada en la brida
         sx, sy = __import__('parts').STOP_SCREW
-        test(f'Tornillo M2 del tope {i+1}: acceso vertical desde arriba', cyl(0.9, ring_pt(i, sx, sy, -2.0), ring_pt(i, sx, sy, 80)), allowed=(f'Stop_{i+1}',))
-        # tornillos de las almohadillas: acceso radial
+        test(f'Tornillo M2 de latón del tope {i+1}: acceso vertical desde arriba', cyl(0.9, ring_pt(i, sx, sy, -2.0), ring_pt(i, sx, sy, 80)), allowed=(f'Stop_{i+1}', 'Ring_Fasteners_Reference'))
+        # sensor Hall: inserción vertical en su bolsillo desde arriba (con los soportes de sensores montados)
+        hx, hy, hz = C.HALL_XYZ
+        test(f'Sensor Hall H{i+1}: inserción vertical desde arriba', cyl(0.6, ring_pt(i, hx, hy, hz), ring_pt(i, hx, hy, 80)), allowed=('Hall_Sensors_Reference', 'Cable_Routes_Reference'))
+        # tornillos de las almohadillas: acceso radial (insertos M2)
         for s in (-1, 1):
             Mp = ring @ A.Rz(K.leaf_dir(i) + C.PAD_ANGLE_OFFSET)
-            p0 = (Mp @ np.array([C.PAD_FACE_R - 5.5, s * C.PAD_SCREW_SPACING / 2, C.PAD_H / 2, 1]))[:3]
+            p0 = (Mp @ np.array([C.PAD_FACE_R - C.M2_INSERT_L, s * C.PAD_SCREW_SPACING / 2, C.PAD_H / 2, 1]))[:3]
             p1 = (Mp @ np.array([C.PAD_FACE_R + 60, s * C.PAD_SCREW_SPACING / 2, C.PAD_H / 2, 1]))[:3]
             mount = {0: 'MEMS_Mount', 1: 'Piezo_Mount'}.get(i)
             allowed = (mount, 'Piezo_Cover') if mount else ()
             test(f'Tornillo M2 de la almohadilla {i+1}{"ab"[s > 0]}: acceso radial', cyl(0.9, p0, p1), allowed=allowed)
-        # tornillo M2 cola–biela: eje libre (cola con piloto 1,8; biela 2,4)
-        th = 0.0
-        tx, tz = K.tail_end(th)
-        test(f'Tornillo M2 cola–biela de la valva {i+1}: agujeros alineados', cyl(0.8, ring_pt(i, tx, C.TAIL_Y[0] + 0.5, tz), ring_pt(i, tx, C.LINK_Y[1] + 0.2, tz)))
-        # tornillo M2 biela–orejeta del plato
-        zp = K.zp_from_servo(C.SERVO_SWEEP)
-        test(f'Tornillo M2 biela–plato de la valva {i+1}: agujeros alineados', cyl(0.8, ring_pt(i, C.LINK_PIN_X, C.TAB_Y[0] - 0.5, zp), ring_pt(i, C.LINK_PIN_X, C.LINK_Y[1] + 0.5, zp)))
-    # acceso del destornillador al tornillo biela–plato: tangencial, bajo el anillo, con el plato abajo (servo 50°)
-    tf_open = A.pose_transforms(-C.SERVO_SWEEP, 'NORMAL')
+        # pasador de latón cola–biela: agujeros alineados (cola Ø{TAIL_PIN_HOLE}, biela Ø{LINK_HOLE})
+        tx, tz = K.tail_end(0.0)
+        test(f'Pasador Ø2 cola–biela de la valva {i+1}: agujeros alineados', cyl(0.8, ring_pt(i, tx, C.TAIL_Y[0] + 0.5, tz), ring_pt(i, tx, C.LINK_Y[1] + 0.2, tz)), allowed=(f'Tail_Pin_{i+1}',))
+        zp = K.zp_from_servo(K.SWEEP)
+        test(f'Tornillo M2 biela–plato de la valva {i+1}: agujeros alineados', cyl(0.8, ring_pt(i, C.LINK_PIN_X, C.TAB_Y[0] - 0.5, zp), ring_pt(i, C.LINK_PIN_X, C.LINK_Y[1] + 0.5, zp)), allowed=('Plate_Fasteners_Reference',))
+    # acceso al tornillo biela–plato con el plato abajo (servo 50°): destornillador por la cabeza (−y) y llave de tubo 4 mm por la tuerca (+y)
+    tf_open = A.pose_transforms(-K.SWEEP, 'NORMAL')
     world_open = {}
     for inst, nm in names.items():
         m = (cache_mesh.get(nm) or load(nm)).copy(); m.apply_transform(tf_open[inst]); world_open[inst] = to_manifold(m)
-    zpo = K.zp_from_servo(-C.SERVO_SWEEP)
+    zpo = K.zp_from_servo(-K.SWEEP)
+    def tool_test(label, tool, allowed=()):
+        hits = {k: round((tool ^ v).volume(), 3) for k, v in world_open.items() if k not in allowed and (tool ^ v).volume() > CONTACT_TOL}
+        checks.append({'check': label, 'ok': not hits, 'hits': hits})
     for i in range(3):
         M = ring @ A.Rz(K.leaf_dir(i))
-        p0 = (M @ np.array([C.LINK_PIN_X, C.LINK_Y[1] + 1.6, zpo, 1]))[:3]
-        p1 = (M @ np.array([C.LINK_PIN_X, C.LINK_Y[1] + 70, zpo, 1]))[:3]
-        tool = cyl(1.5, p0, p1)
-        hits = {k: round((tool ^ v).volume(), 3) for k, v in world_open.items() if (tool ^ v).volume() > CONTACT_TOL}
-        hits.pop('Angle_Scale', None)   # el transportador va encajado (sin tornillos): se retira para montar
-        checks.append({'check': f'Tornillo M2 biela–plato de la valva {i+1}: acceso del destornillador (plato abajo; transportador retirado)', 'ok': not hits, 'hits': hits})
-    # horquilla del plato y empujador
-    zp = K.zp_from_servo(C.SERVO_SWEEP)
+        P = lambda y: (M @ np.array([C.LINK_PIN_X, y, zpo, 1]))[:3]
+        tool_test(f'Tornillo M2 biela–plato de la valva {i+1}: destornillador por la cabeza (−y), plato abajo, transportador retirado',
+                  cyl(1.5, P(C.TAB_Y[0] - 2.2), P(C.TAB_Y[0] - 70)), allowed=('Angle_Scale', 'Cable_Routes_Reference'))
+        tool_test(f'Tornillo M2 biela–plato de la valva {i+1}: llave de tubo 4 mm por la tuerca (+y), plato abajo, transportador retirado',
+                  cyl(3.2, P(C.LINK_Y[1] + C.M2_NUT_T + 0.1), P(C.LINK_Y[1] + 70)), allowed=('Angle_Scale', 'Cable_Routes_Reference', 'Plate_Fasteners_Reference'))   # el tubo es hueco: la punta del tornillo entra
+    zp = K.zp_from_servo(K.SWEEP)
     kz = A.Z_RING + zp - C.PLATE_TAB_PIN_Z + C.CLEVIS_PIN_Z
-    test('Tornillo M2 horquilla–empujador: agujeros alineados', cyl(0.8, (A.VX, A.VY - 5, kz), (A.VX, A.VY + 5, kz)))
+    test('Tornillo M2 horquilla–empujador: agujeros alineados', cyl(0.8, (A.VX, A.VY - 5, kz), (A.VX, A.VY + 5, kz)), allowed=('Plate_Fasteners_Reference',))
     # tornillos de las orejas del servo: acceso desde el lado del horn (−y)
     import parts as P
     L = P.servo_layout(A.ZS)
@@ -276,6 +290,31 @@ def assembly_checks(cache_mesh):
         x = A.VX + L['body_cx'] + s * C.SERVO.tab_hole_spacing / 2
         y = A.VY + L['y_of_h'](C.SERVO.tab_h + C.SERVO.tab_t)
         test(f'Tornillo M2 oreja {"izq der".split()[s > 0]} del servo: acceso con destornillador', cyl(1.2, (x, y + 0.5, A.ZS), (x, y - 60, A.ZS)), allowed=('Servo_MG90S_Reference', 'Servo_Mount'))
+    # P2: tornillos M2 hacia la almohadilla del soporte del servo (+y)
+    M2f = A.p2_frame()
+    for s in (-1, 1):
+        p0 = (M2f @ np.array([C.PAD_FACE_R - C.M2_INSERT_L, s * C.PAD_SCREW_SPACING / 2, C.PAD_H / 2, 1]))[:3]
+        p1 = (M2f @ np.array([C.PAD_FACE_R + 60, s * C.PAD_SCREW_SPACING / 2, C.PAD_H / 2, 1]))[:3]
+        test(f'Tornillo M2 de la almohadilla P2{"ab"[s > 0]}: acceso', cyl(0.9, p0, p1), allowed=('Piezo_Mount_P2', 'Piezo_Cover_P2', 'Servo_Mount'))
+    # soporte del micrófono: tornillos M3 verticales por la ranura
+    for k, (x, y) in enumerate(A.stand_insert_xy()):
+        test(f'Tornillo M3 {k+1} del soporte M1: acceso vertical', cyl(1.4, (x, y, C.BASE_T - C.M3_INSERT_L), (x, y, C.BASE_T + 80)), allowed=('MEMS_Stand', 'Base'))
+    # bandeja: tornillos M3 a la base (antes de colocar la placa) y de las barras de sujeción
+    for hx, hy in P.tray_base_holes():
+        x, y = A.TRAY_XY[0] + hx, A.TRAY_XY[1] + hy
+        test(f'Tornillo M3 bandeja→base ({hx:.0f},{hy:.0f}): acceso vertical sin la placa', cyl(1.4, (x, y, C.BASE_T - 2), (x, y, C.BASE_T + 80)),
+             allowed=('Electronics_Tray', 'Base', 'Perfboard_ESP32_Reference'))
+    for hx, hy in P.tray_post_xy():
+        x, y = A.TRAY_XY[0] + hx, A.TRAY_XY[1] + hy
+        test(f'Tornillo M3 barra de sujeción ({hx:.0f},{hy:.0f}): acceso vertical', cyl(1.4, (x, y, C.BASE_T + 4), (x, y, C.BASE_T + 80)),
+             allowed=('Electronics_Tray', 'Tray_Clamp_L', 'Tray_Clamp_R'))
+    # USB, EN y BOOT del ESP32: deben quedar descubiertos desde arriba (verificación con la referencia NO definitiva)
+    W, Lg, zb, (bx, by) = P.tray_dims()
+    bl = C.ESP32_BOARD[0]
+    ey_usb = A.TRAY_XY[1] + by - 6.0 + bl
+    zt = C.BASE_T + zb + C.PERFBOARD[2] + 8.5 + C.ESP32_BOARD[2]
+    test('Conector USB del ESP32: enchufable desde +y sin obstáculos (referencia)', cyl(4.0, (A.TRAY_XY[0] + W / 2, ey_usb + 1.0, zt + 1.5), (A.TRAY_XY[0] + W / 2, ey_usb + 40, zt + 1.5)),
+         allowed=('Perfboard_ESP32_Reference', 'Cable_Routes_Reference'))
     return checks
 
 # ───────────────────────────── 5. carga del servo ─────────────────────────────
@@ -311,7 +350,7 @@ def main():
     kin = {}
     for mode in K.MODES:
         rows = []
-        for beta in np.linspace(C.SERVO_SWEEP, -C.SERVO_SWEEP, 9):
+        for beta in np.linspace(K.SWEEP, -K.SWEEP, 9):
             p = K.pose(float(beta), mode)
             rows.append({'servo_cmd_deg': round(K.servo_command(float(beta)), 1), 'plate_mm': round(p['zp'] - K.Z_TOP, 2),
                          'theta': [round(s['theta'], 1) for s in p['leaves']], 'on_stop': [s['on_stop'] for s in p['leaves']],

@@ -104,12 +104,15 @@ def leaflet_state(zp: float, m: Module) -> dict:
     return {'theta': th, 'on_stop': on_stop, 'slot_used': slot_used, 'tail': (tx, tz), 'link_tilt': math.degrees(math.atan2(C.LINK_PIN_X - tx, tz - zp)), 'transmission': trans}
 
 # ───────────────────────────── servo (biela-manivela vertical) ─────────────────────────────
-CRANK_R = STROKE / (2 * math.sin(C.SERVO_SWEEP * D2R))
-CRANK_XC = -CRANK_R * (1 + math.cos(C.SERVO_SWEEP * D2R)) / 2   # centra el empujador
-_qx = CRANK_XC + CRANK_R * math.cos(C.SERVO_SWEEP * D2R)
+CRANK_R = C.SERVO.horn_r                                       # radio del agujero del horn (dato medido)
+if STROKE / (2 * CRANK_R) > math.sin(60 * D2R):
+    raise ValueError(f'horn_r = {CRANK_R} mm es demasiado chico para la carrera {STROKE:.2f} mm (barrido > ±60°)')
+SWEEP = math.degrees(math.asin(STROKE / (2 * CRANK_R)))        # ± grados de la palanca respecto de la horizontal
+CRANK_XC = -CRANK_R * (1 + math.cos(SWEEP * D2R)) / 2   # centra el empujador
+_qx = CRANK_XC + CRANK_R * math.cos(SWEEP * D2R)
 # altura (marco del anillo) del eje del servo para que la horquilla quede en Z_TOP con β=+sweep
 CLEVIS_OFFSET = C.CLEVIS_PIN_Z - C.PLATE_TAB_PIN_Z               # horquilla respecto del pasador de orejeta
-SHAFT_Z = (Z_TOP + CLEVIS_OFFSET) - CRANK_R * math.sin(C.SERVO_SWEEP * D2R) - math.sqrt(C.PUSHROD_L ** 2 - _qx ** 2)
+SHAFT_Z = (Z_TOP + CLEVIS_OFFSET) - CRANK_R * math.sin(SWEEP * D2R) - math.sqrt(C.PUSHROD_L ** 2 - _qx ** 2)
 
 def crank(beta: float) -> tuple[float, float]:
     b = beta * D2R
@@ -120,7 +123,7 @@ def zp_from_servo(beta: float) -> float:
     return qz + math.sqrt(C.PUSHROD_L ** 2 - qx ** 2) - CLEVIS_OFFSET
 
 def servo_from_zp(zp: float) -> float:
-    a, b = -C.SERVO_SWEEP - 10, C.SERVO_SWEEP + 10
+    a, b = -SWEEP - 10, SWEEP + 10
     for _ in range(80):
         m = 0.5 * (a + b)
         if zp_from_servo(m) < zp:
@@ -146,7 +149,7 @@ if __name__ == '__main__':
         print('──', mode)
         mins = [1e9] * 3; maxs = [-1e9] * 3; slot = [0] * 3; trans = [1e9] * 3
         for k in range(0, 81):
-            beta = C.SERVO_SWEEP - 2 * C.SERVO_SWEEP * k / 80
+            beta = SWEEP - 2 * SWEEP * k / 80
             p = pose(beta, mode)
             for i, s in enumerate(p['leaves']):
                 mins[i] = min(mins[i], s['theta']); maxs[i] = max(maxs[i], s['theta'])

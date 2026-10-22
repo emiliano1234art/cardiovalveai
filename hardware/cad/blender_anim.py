@@ -25,7 +25,7 @@ import kinematics as K      # noqa: E402
 import assembly as A        # noqa: E402
 import registry as R        # noqa: E402
 
-OUT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'out'))
+OUT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', C.OUT_DIR))
 CANON = os.path.join(OUT, '_canon')
 FPS = 24
 
@@ -73,19 +73,19 @@ def smooth(u):
 
 def cycle_beta(u):
     """Ciclo completo cerrado → abierto → cerrado con perfil suave."""
-    return C.SERVO_SWEEP * math.cos(2 * math.pi * u)
+    return K.SWEEP * math.cos(2 * math.pi * u)
 
 def state(frame: int) -> dict:
     for key, f0, f1, title in seg_frames():
         if f0 <= frame <= f1:
             u = (frame - f0) / max(1, f1 - f0)
-            s = {'seg': key, 'beta': C.SERVO_SWEEP, 'mode': 'NORMAL', 'explode': 0.0, 'piezo': 0.0, 'mems': 0.0}
+            s = {'seg': key, 'beta': K.SWEEP, 'mode': 'NORMAL', 'explode': 0.0, 'piezo': 0.0, 'mems': 0.0}
             if key == 'apertura':
-                s['beta'] = C.SERVO_SWEEP - 2 * C.SERVO_SWEEP * smooth(u)
+                s['beta'] = K.SWEEP - 2 * K.SWEEP * smooth(u)
             elif key == 'abierta':
-                s['beta'] = -C.SERVO_SWEEP
+                s['beta'] = -K.SWEEP
             elif key == 'cierre':
-                s['beta'] = -C.SERVO_SWEEP + 2 * C.SERVO_SWEEP * smooth(u)
+                s['beta'] = -K.SWEEP + 2 * K.SWEEP * smooth(u)
             elif key == 'restringida':
                 s['mode'] = 'RESTRINGIDA_60'; s['beta'] = cycle_beta(u)
             elif key == 'incompleto':
@@ -97,9 +97,9 @@ def state(frame: int) -> dict:
             elif key == 'mems':
                 s['mems'] = 1 - smooth(u * 1.25)
             elif key == 'mecanismo':
-                s['beta'] = C.SERVO_SWEEP * math.cos(4 * math.pi * u)
+                s['beta'] = K.SWEEP * math.cos(4 * math.pi * u)
             return s
-    return {'seg': 'mecanismo', 'beta': C.SERVO_SWEEP, 'mode': 'NORMAL', 'explode': 0.0, 'piezo': 0.0, 'mems': 0.0}
+    return {'seg': 'mecanismo', 'beta': K.SWEEP, 'mode': 'NORMAL', 'explode': 0.0, 'piezo': 0.0, 'mems': 0.0}
 
 # ───────────────────────────── cámaras por segmento ─────────────────────────────
 VX, VY, ZR = A.VX, A.VY, A.Z_RING
