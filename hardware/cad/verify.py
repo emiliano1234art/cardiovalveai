@@ -92,7 +92,7 @@ MOVING = {'Leaflet_1', 'Leaflet_2', 'Leaflet_3', 'Link_1', 'Link_2', 'Link_3', '
           'Magnet_1', 'Magnet_2', 'Magnet_3', 'Tail_Pin_1', 'Tail_Pin_2', 'Tail_Pin_3', 'Plate_Magnet', 'Plate_Fasteners_Reference',
           'Cable_Routes_Reference'}   # los cables se comparan contra TODO (salvo las piezas por las que pasan a propósito)
 _CABLE_HOSTS = ['Valve_Ring', 'Hall_Sensors_Reference', 'H0_Holder', 'Hall0_Reference', 'Cable_Clip_1', 'Cable_Clip_2', 'Cable_Clip_3',
-                'Piezo_Mount', 'Piezo_Mount_P2', 'Piezo_Cover', 'Piezo_Cover_P2', 'MEMS_Stand', 'MEMS_Stand_Holder', 'MEMS_Board_Reference',
+                'Piezo_Mount', 'Piezo_Mount_P2', 'Piezo_Cover', 'Piezo_Cover_P2', 'MEMS_Stand_Holder', 'MEMS_Board_Reference',
                 'Base', 'Electronics_Tray', 'Tray_Clamp_L', 'Tray_Clamp_R', 'Perfboard_ESP32_Reference', 'Servo_MG90S_Reference',
                 'Piezo_Disc_Reference', 'Piezo_Disc_Reference_P2']
 IGNORE = {frozenset(p) for p in [('Servo_Horn_Reference', 'Servo_MG90S_Reference')]   # horn encajado en el eje (intencional)

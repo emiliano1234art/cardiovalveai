@@ -119,18 +119,21 @@ def cable_routes():
     fh = C.MEMS_BOARD[1] + 4.4
     Mh = stand_holder_frame()
     ztop = zpiv + P.STAND_PIVOT_DZ + fh / 2 + 3.0
-    routes['M1'] = [q(Mh, 0, 0, fh / 2 + 1.5), q(Ms, -4.0, 0, ztop), q(Ms, px - 1.6, 0, ztop), q(Ms, px - 1.6, 0, 30.0),
-                    q(Ms, px - 14.0, 0, ZB - C.BASE_T), q(Ms, px - 18.0, -22.0, ZB - C.BASE_T)]
+    zf = 4.0 + 1.5 + 0.3                              # sobre el pie del soporte, sin apoyarse
+    routes['M1'] = [q(Mh, 0, 0, fh / 2 + 1.5), q(Ms, -4.0, 0, ztop), q(Ms, px - 1.6, 4.5, ztop), q(Ms, px - 1.6, 4.5, zf),
+                    q(Ms, -38.0, 4.5, zf), q(Ms, -42.0, 4.5, ZB - C.BASE_T)]
     # troncales sobre la base
     west = [(36.0, 150.0, ZB), (34.0, 70.0, ZB), (46.0, 40.0, ZB)]
-    south = [(70.0, 38.0, ZB), (124.0, 40.0, ZB), (SIG_ENTRY[0], SIG_ENTRY[1] - 6.0, ZB), (SIG_ENTRY[0], SIG_ENTRY[1], C.BASE_T + TRAY_TOP + 1.6)]
-    routes['H1'] += [(VX + 40.0 * math.cos(column_angle(2) * D2R) + 14, VY + 40.0 * math.sin(column_angle(2) * D2R) - 30, ZB)] + south[1:]
+    # troncal sur: bordea el pie del soporte del micrófono por el borde de la base
+    south = [(58.0, 14.0, ZB), (100.0, 5.0, ZB), (130.0, 5.0, ZB), (147.0, 12.0, ZB), (SIG_ENTRY[0], SIG_ENTRY[1] - 8.0, ZB),
+             (SIG_ENTRY[0], SIG_ENTRY[1], C.BASE_T + TRAY_TOP + 1.6)]
+    routes['H1'] += [(115.0, 76.0, ZB)] + south[-2:]
     routes['H2'] += [(34.0, 98.0, ZB), (34.0, 70.0, ZB), (46.0, 40.0, ZB)] + south
-    routes['H3'] += [(80.0, 38.0, ZB)] + south[1:]
+    routes['H3'] += [(80.0, 30.0, ZB)] + south[1:]
     routes['H0'] += [(34.0, 98.0, ZB), (34.0, 70.0, ZB), (46.0, 40.0, ZB)] + south
     routes['P1'] += [(46.0, 40.0, ZB)] + south
     routes['P2'] += west + south
-    routes['M1'] += [south[1][:2] + (ZB,)] + south[2:]
+    routes['M1'] += [(128.0, 8.0, ZB)] + south[3:]
     # servo: sale por el extremo +x del cuerpo, va por el norte a la entrada de potencia
     L = P.servo_layout(ZS)
     sx = VX + L['body_cx'] + C.SERVO.L / 2
@@ -145,11 +148,11 @@ TRAY_TOP = 2.0 + C.PERF_UNDER + C.PERFBOARD[2]
 
 def zip_points():
     """Pares de ranuras para bridas (x, y, ángulo de la ranura) a lo largo de las troncales."""
-    return [(36.0, 140.0, 0), (34.0, 84.0, 0), (60.0, 38.0, 90), (100.0, 39.0, 90), (124.0, 30.0, 0),
+    return [(36.0, 140.0, 0), (34.0, 84.0, 0), (80.0, 9.5, 90 - 12), (115.0, 6.0, 90), (149.0, 40.0, 0),
             (112.0, 140.0, 90 + 30), (PWR_ENTRY[0] - 10, PWR_ENTRY[1] + 4.0, 90)]
 
 def base_labels():
-    return [('SEÑALES', 3.5, 112.0, 30.0, 0), ('SERVO 5 V', 3.5, 100.0, 170.0, 0), ('M1', 3.5, *stand_insert_xy()[0], 0)]
+    return [('SEÑALES', 3.5, 160.0, 30.0, 90), ('SERVO 5 V', 3.5, 100.0, 170.0, 0)]
 
 def hinge(theta):
     """Rotación de la valva alrededor de su eje (marco local)."""

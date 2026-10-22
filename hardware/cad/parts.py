@@ -621,8 +621,8 @@ def base(col_xy, servo_holes, tray_xy, scale_xy, stand_pts, zip_pts, labels) -> 
             p -= rz_at(box(-1.0, 1.0, -2.0, 2.0, -1, T + 1), ang, cx, cy)
     for txt, size, x, y, rot in labels:
         p -= engrave_text(txt, size, x, y, T, 0.4, rot)
-    p -= engrave_text(f'{C.PROJECT} {C.REVISION}', 7, 60, 14, T, 0.6)
-    p -= engrave_text('Prototipo académico experimental · no implantable', 3.2, 60, 5.5, T, 0.4)
+    p -= engrave_text(f'{C.PROJECT} {C.REVISION}', 7, 52, 172, T, 0.6)
+    p -= engrave_text('Prototipo académico experimental · no implantable', 3.2, 52, 164, T, 0.4)
     return p
 
 def rz_at(part, deg, x, y):

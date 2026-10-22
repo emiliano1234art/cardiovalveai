@@ -27,7 +27,8 @@ HEAD = f'> {C.PROJECT} · revisión **{C.REVISION}** · prototipo académico de 
 
 
 def F(x, d=1):
-    return f'{x:.{d}f}'.replace('.', ',')
+    v = round(float(x), d)
+    return f'{(0.0 if v == 0 else v):.{d}f}'.replace('.', ',')
 
 
 def P3(p):
