@@ -188,7 +188,7 @@ export function Panel() {
         <div className="p-brand">
           <BrandMark />
           <div>
-            <b>CardioValveAI</b>
+            <b>CardioVal AI</b>
             <span>Presentación con panel en vivo</span>
           </div>
         </div>
@@ -210,7 +210,7 @@ export function Panel() {
       <div className="p-body">
         <header className="p-top">
           <div className="p-title">
-            <span className="v-kicker">{slide.num ? `Tema ${slide.num} de 10` : 'CardioValveAI'}</span>
+            <span className="v-kicker">{slide.num ? `Tema ${slide.num} de 10` : 'CardioVal AI'}</span>
             <h1>{slide.title}</h1>
           </div>
           <div className="p-kpis">

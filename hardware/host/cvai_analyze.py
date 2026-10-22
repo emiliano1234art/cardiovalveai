@@ -291,8 +291,30 @@ def complementary(d, rows):
             vals['fin_apertura_vs_mitad_dB'].append(20 * np.log10(eo / mid_o))
             vals['fin_cierre_vs_quieto_dB'].append(20 * np.log10(ec / q))
             vals['fin_cierre_vs_mitad_dB'].append(20 * np.log10(ec / mid_c))
-        res[name] = {k: {'mediana': float(np.nanmedian(v)) if v else None, 'p25': float(np.nanpercentile(v, 25)) if v else None,
-                         'p75': float(np.nanpercentile(v, 75)) if v else None, 'n': len(v)} for k, v in vals.items()}
+        # relación temporal y espectro: pico de |x| en ±100 ms alrededor del fin de apertura medido y potencia por bandas
+        fs = 1.0 / np.median(np.diff(t)) if len(t) > 1 else 0
+        lags, bands = [], []
+        for r in rows:
+            toe = r['v1_t_fin_apertura_s']
+            if not np.isfinite(toe):
+                continue
+            m = (t >= toe - 0.1) & (t <= toe + 0.1)
+            if np.sum(m) < 64:
+                continue
+            y = x[m].astype(float) - np.mean(x[m])
+            lags.append((t[m][int(np.argmax(np.abs(y)))] - toe) * 1e3)
+            spec = np.abs(np.fft.rfft(y * np.hanning(len(y)))) ** 2
+            f = np.fft.rfftfreq(len(y), 1 / fs)
+            tot = spec.sum() + 1e-12
+            bands.append([spec[(f >= lo) & (f < hi)].sum() / tot for lo, hi in ((20, 200), (200, 1000), (1000, 3000))])
+        vals['_lag'] = lags
+        res[name] = {'pico_respecto_fin_apertura_ms': {'mediana': float(np.median(lags)) if lags else None,
+                                                       'iqr': float(np.subtract(*np.percentile(lags, [75, 25]))) if lags else None,
+                                                       'nota': 'IQR grande = el pico no está ligado temporalmente al evento'},
+                     'fraccion_energia_20_200_200_1k_1k_3k_Hz': np.round(np.median(bands, 0), 3).tolist() if bands else None}
+        vals.pop('_lag')
+        res[name].update({k: {'mediana': float(np.nanmedian(v)) if v else None, 'p25': float(np.nanpercentile(v, 25)) if v else None,
+                         'p75': float(np.nanpercentile(v, 75)) if v else None, 'n': len(v)} for k, v in vals.items()})
         m = res[name]['fin_apertura_vs_mitad_dB']['mediana']
         res[name]['lectura'] = ('el fin de apertura NO se distingue del ruido del servo en movimiento (contraste < 6 dB)'
                                 if m is None or m < 6 else 'contraste ≥ 6 dB respecto de la mitad de la carrera: evaluar con más ensayos')

@@ -95,6 +95,7 @@ static void send_cmd(int64_t t, float deg)
     deg_to_duty(deg, &us);
     struct __attribute__((packed)) { int64_t t; int16_t deg_x100; uint16_t us; uint8_t phase; uint32_t cycle; } m =
         { t, (int16_t)lroundf(deg * 100), us, (uint8_t)s_phase, s_cycle };
+    _Static_assert(sizeof m == 17, "CMD = 17 bytes (cvai_proto.CMD)");
     if (g_acq.streaming) proto_send(FR_CMD, &m, sizeof m);
 }
 

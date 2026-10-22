@@ -48,6 +48,7 @@ static void i2s_task(void *arg)
     static int32_t hist[64];
     static int16_t outs[AUDIO_BLOCK];
     struct __attribute__((packed)) hdr { int64_t t_last; uint32_t idx0; uint16_t n; uint8_t fmt; uint8_t flags; };
+    _Static_assert(sizeof(struct hdr) == 16, "cabecera de bloque = 16 bytes");
     static uint8_t out[sizeof(struct hdr) + sizeof outs];
     uint8_t hp = 0, phase = 0, flags = 0;
     int nout = 0;

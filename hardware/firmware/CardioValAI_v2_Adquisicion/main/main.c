@@ -42,6 +42,7 @@ void app_main(void)
         uint32_t sat[6]; uint32_t audio_sat; uint32_t free_heap; uint16_t hall_last[4];
         int16_t cmd_x100; uint8_t phase; uint8_t estop; uint32_t cycle; int16_t servo_ma;
     } st;
+    _Static_assert(sizeof st == 90, "STATUS: el host (cvai_proto.STATUS) espera 90 bytes");
     TickType_t wake = xTaskGetTickCount();
     bool led = false;
     for (;;) {

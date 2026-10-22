@@ -335,6 +335,36 @@ def servo_load(masses):
     return {'plate_and_links_g': round(m_plate, 1), 'force_N': round(F, 3), 'torque_Nmm': round(torque_Nm * 1000, 2),
             'torque_kgcm': round(torque_Nm * 100 / 9.81, 3), 'mg90s_stall_kgcm_unverified': 1.8, 'margin_x': round(stall_Nm / torque_Nm, 1)}
 
+def horn_table(force_N):
+    """Consecuencia de usar otro agujero del horn (radio r): barrido, comando, altura de columnas y par. Requiere regenerar."""
+    out = []
+    S = K.STROKE
+    for r in (6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 14.0):
+        if S / (2 * r) > math.sin(math.radians(60)):
+            out.append({'horn_r_mm': r, 'valido': False, 'motivo': 'barrido > ±60° (ángulo de transmisión pobre)'}); continue
+        sw = math.degrees(math.asin(S / (2 * r)))
+        xc = -r * (1 + math.cos(math.radians(sw))) / 2
+        qx = xc + r * math.cos(math.radians(sw))
+        shaft_z = (K.Z_TOP + K.CLEVIS_OFFSET) - r * math.sin(math.radians(sw)) - math.sqrt(C.PUSHROD_L ** 2 - qx ** 2)
+        z_ring = A.ZS - shaft_z
+        tilt = max(abs(math.degrees(math.asin((xc + r * math.cos(math.radians(b))) / C.PUSHROD_L))) for b in np.linspace(-sw, sw, 41))
+        out.append({'horn_r_mm': r, 'valido': True, 'barrido_deg': round(sw, 1), 'comando_deg': [round(90 - sw, 1), round(90 + sw, 1)],
+                    'columna_mm': round(z_ring - C.BASE_T - C.SPACER_T, 2), 'inclinacion_max_empujador_deg': round(tilt, 1),
+                    'par_kgcm': round(force_N * r * 1e-3 * 100 / 9.81, 3)})
+    return out
+
+def plate_binding():
+    """Efecto cajón en los bujes del plato: se traba si la fuerza resultante queda a más de L/(2μ) del eje del buje."""
+    L = C.BUSH_H
+    res = {'largo_buje_mm': L, 'holgura_radial_mm': C.BUSH_CLEAR, 'radio_articulacion_biela_mm': C.LINK_PIN_X}
+    for mu, txt in ((0.35, 'PETG–PETG seco'), (0.15, 'con grasa PTFE')):
+        res[f'limite_mm_mu_{mu}'] = round(L / (2 * mu), 1)
+        res[f'nota_mu_{mu}'] = txt
+    res['lectura'] = (f'Con cargas simétricas (3 valvas iguales) la resultante pasa por el centro: sin riesgo. Si UNA valva se traba, la resultante '
+                      f'se desplaza hasta ≈ {C.LINK_PIN_X} mm: supera {res["limite_mm_mu_0.35"]} mm en seco (puede trabarse el plato) y queda por debajo de '
+                      f'{res["limite_mm_mu_0.15"]} mm lubricado. Lubricar y dejar activa la detección de atasco (H0) del firmware.')
+    return res
+
 def main():
     t0 = time.time()
     res = {'generated': time.strftime('%Y-%m-%d %H:%M'), 'units': 'mm'}
@@ -346,6 +376,8 @@ def main():
     print('· holguras'); res['clearance'] = clearance(cache)
     print('· montaje'); res['assembly'] = assembly_checks(cache)
     res['servo'] = servo_load(masses)
+    res['horn_table'] = horn_table(res['servo']['force_N'])
+    res['plate_binding'] = plate_binding()
     # cinemática tabulada
     kin = {}
     for mode in K.MODES:

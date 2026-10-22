@@ -38,6 +38,7 @@ static esp_err_t rd16(uint8_t reg, int16_t *v)
 static void ina_task(void *arg)
 {
     struct __attribute__((packed)) hdr { int64_t t_last; uint32_t idx0; uint16_t n; uint16_t ua_per_lsb; };
+    _Static_assert(sizeof(struct hdr) == 16, "cabecera INA = 16 bytes (cvai_proto.INA_HDR)");
     static uint8_t out[sizeof(struct hdr) + INA_BLOCK * 2];
     int16_t blk[INA_BLOCK];
     int n = 0;

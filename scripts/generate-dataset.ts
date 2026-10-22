@@ -50,7 +50,7 @@ writeFileSync(
   'public/data/valvesense_sample_dataset.json',
   JSON.stringify(
     {
-      description: 'CardioValveAI — dataset SINTÉTICO de ejemplo (modelo sincronizado con ECG simulado). No contiene datos clínicos ni experimentales.',
+      description: 'CardioVal AI — dataset SINTÉTICO de ejemplo (modelo sincronizado con ECG simulado). No contiene datos clínicos ni experimentales.',
       generated_with: 'scripts/generate-dataset.ts',
       sampling: { fs_piezo_hz: 1000, fs_ecg_hz: 1000, fs_audio_hz: 8000 },
       timing: { delay_ms: DEFAULT_PARAMS.delayMs, open_ms: DEFAULT_PARAMS.openMs, theta_max_deg: DEFAULT_PARAMS.thetaMax },

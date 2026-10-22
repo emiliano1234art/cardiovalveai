@@ -82,6 +82,7 @@ static void adc_task(void *arg)
     static uint16_t hall[HALL_BLOCK * 4];
     struct __attribute__((packed)) fast_hdr { int64_t t_last; uint32_t idx0; uint16_t n; uint8_t nch; uint8_t flags; };
     struct __attribute__((packed)) hall_hdr { int64_t t_last; uint32_t idx0; uint16_t n; uint8_t nch; uint8_t flags; };
+    _Static_assert(sizeof(struct fast_hdr) == 16 && sizeof(struct hall_hdr) == 16, "cabecera de bloque = 16 bytes (cvai_proto.BLOCK_HDR)");
     static uint8_t out[sizeof(struct fast_hdr) + sizeof fast];
 
     fir_state_t fir = { 0 };

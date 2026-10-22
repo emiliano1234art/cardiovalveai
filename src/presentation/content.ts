@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════
- *  CONTENIDO EDITABLE DE LA PRESENTACIÓN — CardioValveAI
+ *  CONTENIDO EDITABLE DE LA PRESENTACIÓN — CardioVal AI
  * ═══════════════════════════════════════════════════════════════════════
  *
  *  Todo lo que el equipo debe completar o actualizar está en este archivo:
@@ -18,7 +18,7 @@ export const isPending = (s: string | null | undefined) => !s || /^\[.*\]$/.test
 
 // ─────────────────────────────── Portada ───────────────────────────────
 export const META = {
-  project: 'CardioValveAI',
+  project: 'CardioVal AI',
   subtitle: 'Escuchamos el funcionamiento de una válvula para comprender sus cambios.',
   tagline: 'Tecnología e inteligencia artificial para explorar el funcionamiento valvular y su relación con la rehabilitación cardiovascular.',
   careers: ['Ingeniería Civil en Biomedicina', 'Kinesiología'],
@@ -442,7 +442,7 @@ export const refIndex = (id: string) => REFERENCES.findIndex((r) => r.id === id)
 
 // ─────────────────────────── Notas del expositor ───────────────────────────
 export const NOTES: Record<string, string> = {
-  cover: 'Presentar CardioValveAI y al equipo de Biomedicina y Kinesiología. La válvula es aórtica, de tres valvas.',
+  cover: 'Presentar CardioVal AI y al equipo de Biomedicina y Kinesiología. La válvula es aórtica, de tres valvas.',
   'que-es': 'Válvula → sensores → IA. Recorrer el flujo: piezo y MEMS registran, el ESP32 transmite, el análisis compara y el dashboard muestra.',
   problema:
     'Leer la pregunta. No decir que las evaluaciones actuales son insuficientes: son especializadas y complementarias. Abrir «¿Por qué es un wicked problem?».',

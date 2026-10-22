@@ -1,5 +1,5 @@
 /**
- * MODELO DE SIMULACIÓN — CardioValveAI (válvula aórtica TRIVALVA experimental, 3 valvas)
+ * MODELO DE SIMULACIÓN — CardioVal AI (válvula aórtica TRIVALVA experimental, 3 valvas)
  * ──────────────────────────────────────────────────────────────────
  * Fuente única de verdad: ECG sintético, detección del pico R, movimiento de
  * las valvas, vibración (piezo), sonido (MEMS) y descriptores para la IA se

@@ -25,7 +25,7 @@ def video():
         a, b = (f0 - 1) / BA.FPS, f1 / BA.FPS
         filters.append(f"drawtext=fontfile={FONT_B}:textfile={tf}:x=36:y=34:fontsize=30:fontcolor=0x0b2545:box=1:boxcolor=white@0.88:boxborderw=14:enable='gte(t,{a:.3f})*lt(t,{b:.3f})'")
     foot = os.path.join(tdir, 'foot.txt')
-    open(foot, 'w', encoding='utf-8').write(f'{C.PROJECT} · simulación cinemática del diseño mecánico v1 — no es un ensayo físico')
+    open(foot, 'w', encoding='utf-8').write(f'{C.PROJECT} · simulación cinemática del diseño {C.REVISION} — no es un ensayo físico ni una medición')
     filters.append(f"drawtext=fontfile={FONT}:textfile={foot}:x=36:y=h-52:fontsize=20:fontcolor=0x3a5068:box=1:boxcolor=white@0.8:boxborderw=8")
     mp4 = os.path.join(OUT, f'{C.PREFIX}_Animacion.mp4')
     subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-framerate', str(BA.FPS), '-i', frames, '-vf', ','.join(filters),

@@ -29,7 +29,7 @@ export function D01What() {
   }, [print]);
 
   return (
-    <Screen num={1} kicker="CardioValveAI" title="¿Qué es CardioValveAI?" actions={<Explain label="¿Cómo funciona?" content={PX.what} />}>
+    <Screen num={1} kicker="CardioVal AI" title="¿Qué es CardioVal AI?" actions={<Explain label="¿Cómo funciona?" content={PX.what} />}>
       <div className="v-col" style={{ gap: 26, height: '100%', justifyContent: 'space-around' }}>
         <div className="v-concepts">
           {CONCEPTS.map((c, i) => (

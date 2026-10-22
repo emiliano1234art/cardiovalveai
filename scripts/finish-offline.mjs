@@ -13,7 +13,7 @@ writeFileSync(
   'entrega/ValveSense_panel.html',
   html.replace('<head>', `<head><script>if(!location.hash||location.hash==='#')location.hash='#/panel'</script>`),
 );
-// copia principal con nombre estándar: entrega/index.html (presentación oficial CardioValveAI)
+// copia principal con nombre estándar: entrega/index.html (presentación oficial CardioVal AI)
 writeFileSync('entrega/index.html', html);
 const mb = (statSync('entrega/ValveSense_presentacion.html').size / 1e6).toFixed(1);
 console.log(`OK · entrega/index.html, entrega/ValveSense_presentacion.html entrega/ValveSense_dashboard.html y entrega/ValveSense_panel.html (${mb} MB c/u) — abrir con doble clic, funciona sin internet.`);

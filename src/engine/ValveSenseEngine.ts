@@ -62,7 +62,7 @@ export interface EngineSnapshot {
 }
 
 /**
- * Motor de CardioValveAI: conecta una fuente de datos con el pipeline de análisis
+ * Motor de CardioVal AI: conecta una fuente de datos con el pipeline de análisis
  * y mantiene los buffers de visualización. No depende de React.
  */
 export class ValveSenseEngine {

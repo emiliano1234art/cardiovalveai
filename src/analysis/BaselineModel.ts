@@ -30,7 +30,7 @@ export interface BaselineStats {
 }
 
 /**
- * Línea basal CardioValveAI: perfil estadístico de N ciclos de referencia.
+ * Línea basal CardioVal AI: perfil estadístico de N ciclos de referencia.
  * Se calibra en simulación al iniciar y puede recapturarse con datos reales.
  */
 export class BaselineModel {

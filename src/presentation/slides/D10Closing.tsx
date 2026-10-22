@@ -23,7 +23,7 @@ export function D10Closing() {
           <Visual3D
             kind="souvenir"
             render="souvenir"
-            alt="Llavero de la válvula trivalva CardioValveAI (propuesta)"
+            alt="Llavero de la válvula trivalva CardioVal AI (propuesta)"
             camera="iso"
             showLabels
             autoRotate

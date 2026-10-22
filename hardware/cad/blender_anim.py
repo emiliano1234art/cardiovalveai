@@ -5,7 +5,8 @@ Cada cuadro se calcula con la MISMA cinemática que el CAD (kinematics.py / asse
 el servo mueve la palanca → empujador → plato → bielas → valvas. Nada se anima "a mano".
 
 Uso:  python blender_anim.py [--render] [--fps 24] [--res 1280x720]
-Salida: out/CardioValAI_Final.blend, out/anim_frames/*.png, out/CardioValAI_Animacion.mp4
+Salida: out_v2/CardioValAI_v2_Final.blend (guardado con el bpy del Blender que lo ejecuta: usar Blender 4.5 LTS),
+        out_v2/anim_frames/*.png, out_v2/CardioValAI_v2_Animacion.mp4
 """
 from __future__ import annotations
 import argparse
@@ -36,7 +37,14 @@ COLORS = {
     'MEMS_Mount': (0.35, 0.37, 0.45), 'MEMS_Board_Reference': (0.45, 0.25, 0.75), 'Servo_MG90S_Reference': (0.12, 0.3, 0.85),
     'Servo_Horn_Reference': (0.95, 0.95, 0.95), 'Servo_Mount': (0.6, 0.65, 0.72), 'ESP32_Mount': (0.6, 0.65, 0.72),
     'ESP32_Board_Reference': (0.08, 0.1, 0.14), 'Angle_Scale': (0.97, 0.97, 0.97), 'Base': (0.88, 0.9, 0.93),
+    # v2
+    'Magnet': (0.75, 0.1, 0.12), 'Plate_Magnet': (0.75, 0.1, 0.12), 'Tail_Pin': (0.82, 0.66, 0.28), 'Hall_Sensors_Reference': (0.05, 0.05, 0.05),
+    'Hall0_Reference': (0.05, 0.05, 0.05), 'H0_Holder': (0.45, 0.47, 0.55), 'Column_Spacer': (0.78, 0.82, 0.87), 'Cable_Clip': (0.3, 0.32, 0.38),
+    'MEMS_Stand': (0.45, 0.47, 0.55), 'Electronics_Tray': (0.6, 0.65, 0.72), 'Tray_Clamp': (0.45, 0.47, 0.55),
+    'Perfboard_ESP32_Reference': (0.1, 0.42, 0.2), 'Cable_Routes_Reference': (0.98, 0.78, 0.1),
+    'Plate_Fasteners_Reference': (0.5, 0.52, 0.56), 'Ring_Fasteners_Reference': (0.82, 0.66, 0.28),
 }
+COLORS['Pin'] = (0.82, 0.66, 0.28)      # v2: ejes de latón
 
 def color_for(inst: str):
     for k, v in COLORS.items():
@@ -55,8 +63,10 @@ SEGMENTS = [
     ('incompleto', 5.0, f'6 · Cierre incompleto: valva 1 queda en {C.IC_RESIDUAL:.0f}°'),
     ('explotada', 4.0, '7 · Vista explotada'),
     ('piezo', 3.5, '8 · Montaje del piezoeléctrico (soporte, disco y tapa)'),
-    ('mems', 3.5, '9 · Montaje del micrófono MEMS INMP441'),
+    ('mems', 3.5, '9 · Micrófono M1 en soporte independiente (alternativa: escuadra en el anillo)'),
     ('mecanismo', 6.0, '10 · Servo → empujador → plato → 3 bielas → 3 valvas'),
+    ('hall', 5.0, '11 · Posición medida: imán en la cola + sensor Hall en el anillo (H1–H3)'),
+    ('cables', 5.0, '12 · Recorrido de cables (amarillo) durante el ciclo'),
 ]
 
 def seg_frames():
@@ -96,8 +106,10 @@ def state(frame: int) -> dict:
                 s['piezo'] = 1 - smooth(u * 1.25)
             elif key == 'mems':
                 s['mems'] = 1 - smooth(u * 1.25)
-            elif key == 'mecanismo':
+            elif key in ('mecanismo', 'cables'):
                 s['beta'] = K.SWEEP * math.cos(4 * math.pi * u)
+            elif key == 'hall':
+                s['beta'] = K.SWEEP * math.cos(2 * math.pi * u)
             return s
     return {'seg': 'mecanismo', 'beta': K.SWEEP, 'mode': 'NORMAL', 'explode': 0.0, 'piezo': 0.0, 'mems': 0.0}
 
@@ -118,8 +130,13 @@ def camera_for(seg):
         c, n = pad_center(1)
         return c + n * 120 + np.array([0, 0, 60]), c + n * 12, 45
     if seg == 'mems':
-        c, n = pad_center(0, 31, 24)
-        return c - n * 95 + np.array([30, -40, 95]), c, 42
+        c = A.stand_holder_frame()[:3, 3]
+        return c + np.array([95, -100, 45]), c + np.array([-20, 15, -20]), 38
+    if seg == 'hall':
+        h = A.ring_local(0, *C.HALL_XYZ)
+        return np.array(h) + np.array([-20, -75, 45]), np.array(h) + np.array([-3, 0, -2]), 50
+    if seg == 'cables':
+        return np.array([VX + 150, VY - 260, ZR + 190]), np.array([VX + 35, VY - 10, 15]), 34
     return np.array([VX + 185, VY - 175, ZR + 25]), np.array([VX, VY, ZR - 28]), 40
 
 def look_at(cam, tgt):
@@ -212,8 +229,8 @@ def frame_transforms(s):
         tf['Piezo_Cover'] = ring_pad(1) @ A.T(105 * u, 0, 0)
     if s['mems'] > 0:
         u = s['mems']
-        tf['MEMS_Mount'] = ring_pad(0) @ A.T(45 * u, 0, 25 * u)
-        tf['MEMS_Board_Reference'] = tf['MEMS_Mount'] @ A.MEMS_BOARD_LOCAL @ A.T(0, 0, 40 * u)
+        tf['MEMS_Stand_Holder'] = A.T(0, 0, 45 * u) @ tf['MEMS_Stand_Holder']
+        tf['MEMS_Board_Reference'] = A.T(0, 0, 80 * u) @ tf['MEMS_Board_Reference']
     # módulos alternativos de la valva 1
     tf['Link_1_LostMotion'] = tf['Link_1']
     tf['Link_1_LostMotion_IC'] = tf['Link_1']

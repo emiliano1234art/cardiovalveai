@@ -82,6 +82,7 @@ bool proto_send(uint8_t type, const void *payload, uint16_t len)
 void proto_event(uint8_t code, int32_t arg)
 {
     struct __attribute__((packed)) { int64_t t; uint8_t code; int32_t arg; } e = { esp_timer_get_time(), code, arg };
+    _Static_assert(sizeof e == 13, "EVENT = 13 bytes (cvai_proto.EVENT)");
     proto_send(FR_EVENT, &e, sizeof e);
 }
 

@@ -134,7 +134,7 @@ export function D06Interview() {
   const p = useMemo(() => ({ ...params, condition: 'normal' as const }), [params]);
   const I = INTERVIEW;
   return (
-    <Screen num={6} kicker="Entrevista docente" title={I.topic} actions={<Explain label="¿Cómo se relaciona con CardioValveAI?" content={PX.interview} />}>
+    <Screen num={6} kicker="Entrevista docente" title={I.topic} actions={<Explain label="¿Cómo se relaciona con CardioVal AI?" content={PX.interview} />}>
       <div className="v-col" style={{ gap: 18, height: '100%' }}>
         <div className="v-grid" style={{ gridTemplateColumns: '300px 1fr 330px', gap: 20, flex: 1, minHeight: 0 }}>
           <div className="v-panel v-wg-person">
@@ -152,7 +152,7 @@ export function D06Interview() {
               <Visual3D
                 kind="university"
                 render="university-hero"
-                alt="Válvula aórtica trivalva experimental de CardioValveAI"
+                alt="Válvula aórtica trivalva experimental de CardioVal AI"
                 camera="hero"
                 showLabels={false}
               />
