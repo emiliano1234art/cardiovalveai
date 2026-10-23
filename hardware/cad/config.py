@@ -1,5 +1,5 @@
 """
-CardioVal AI — PARÁMETROS ÚNICOS DEL DISEÑO MECÁNICO (unidades: mm, grados).
+CardioValveAI — PARÁMETROS ÚNICOS DEL DISEÑO MECÁNICO (unidades: mm, grados).
 
 Todas las piezas, la cinemática, las verificaciones y la animación leen
 este archivo. Cambiar un valor aquí y volver a ejecutar `python build_all.py`
@@ -10,9 +10,9 @@ plano dimensional no fue confirmado: medir la pieza comprada y ajustar.
 """
 from dataclasses import dataclass, field
 
-PROJECT = "CardioVal AI"        # nombre visible en documentos
-REVISION = "v2"                 # v1 = entrega/CardioValAI_Modelo_Final_STL.zip (commit 519c9ac), se conserva sin cambios
-PREFIX = f"CardioValAI_{REVISION}"   # prefijo de archivos de entrega (identifica la revisión)
+PROJECT = "CardioValveAI"       # nombre definitivo (sin espacios)
+REVISION = "v3"                 # revisiones anteriores archivadas sin cambios en entrega/ (v1 commit 519c9ac, v2 commit 2b3999f)
+PREFIX = f"CardioValveAI_{REVISION}"   # prefijo de archivos de entrega (identifica la revisión)
 OUT_DIR = f"out_{REVISION}"     # carpeta de salida (hardware/out_v2); la salida v1 queda en hardware/out
 
 # ───────────────────────────── impresión / tolerancias ─────────────────────────────
@@ -60,18 +60,19 @@ TAIL_PIN_HOLE = 1.95     # ajuste a presión (VERIFICAR con la probeta: 1,85–2
 LINK_HOLE = 2.2          # biela gira sobre el pasador (menos juego que 2,4 de v1: el juego se ve como histéresis)
 TAIL_PIN_LEN = 9.0       # de la cara −y de la cola (−4,5) a la cara exterior de la biela (4,6)
 
-# v2: medición de posición. Imán N42 Ø4×2 axial (eje y) embutido a ras en la cara −y de la cola
+# Medición de posición (una pareja Hall–imán por valva). Imán N42 Ø4×2 axial (eje y) en la cara −y de la cola.
+# MEDIDAS DEL IMÁN COMPRADO: VERIFICAR (diámetro, espesor y dirección de magnetización).
 MAG_LEAF = (4.0, 2.0)    # diámetro, altura (mm)
 MAG_LEAF_S = 4.0         # distancia del eje de bisagra al centro del imán, a lo largo de la cola
 MAG_POCKET_CLR = 0.2     # holgura diametral del alojamiento (se fija con una gota de cianoacrilato)
-# sensor Hall lineal DRV5055A1QLPG (TO-92) en un bolsillo de la pared del anillo (marco de la valva):
-HALL_XYZ = (26.8, -8.0, 13.5)   # centro del elemento Hall; eje sensible = x local (radial)
-TO92_BODY = (1.55, 4.0, 3.15)   # espesor (x), ancho (y), alto (z) del cuerpo: VERIFICAR con la hoja de datos/calibre
-# imán del plato (H0): N42 Ø3×2 axial (eje z) a ras en la cara superior del lóbulo de la columna 1
-MAG_PLATE = (3.0, 2.0)
-MAG_PLATE_R = 20.0
-HALL0_GAP = 4.0          # cara superior del imán → elemento Hall con la válvula cerrada (plato arriba)
-SPACER_T = 2.0           # arandela impresa entre columna y anillo (en la columna 1 es el soporte de H0)
+# Sensor Hall LINEAL (modelo por confirmar; ver sensing.SENSORS) en un PORTASENSOR extraíble que entra desde arriba en
+# un bolsillo de la pared del anillo (marco de la valva). Posición NOMINAL (portasensor con desplazamiento 0):
+HALL_XYZ = (26.1, -8.0, 13.0)   # centro del elemento Hall; eje sensible = x local (radial). Cara del TO-92 al ras del diámetro interior
+TO92_BODY = (1.55, 4.0, 3.15)   # espesor (x), ancho (y), alto (z) del cuerpo TO-92: VERIFICAR con el sensor comprado
+HALL_OFFSETS = (0.0, 0.25, 0.5) # variantes del portasensor: alejan el sensor del imán (mm). Solo si hay saturación (imán más fuerte)
+HALL_POCKET_BACK = 29.4         # cara exterior del bolsillo (x local): apoyo del lomo del portasensor
+CARRIER_FLANGE_T = 1.2          # pestaña del portasensor sobre la cara superior del anillo
+CALIB_ANGLES = (0, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80)   # galgas angulares de calibración (más densas cerca del cierre, donde la curva cambia más)
 
 # palanca (cola) de cada valva: biela de mando
 TAIL_LT = 8.0        # brazo de palanca eje → agujero de la biela
@@ -124,8 +125,6 @@ class ServoDims:
 SERVO = ServoDims()
 
 # ───────────────────────────── sensores y electrónica (VERIFICAR) ─────────────────────────────
-PIEZO_D = 15.0       # disco 12–15 mm: se diseña para 15 y se incluye adaptador para 12
-PIEZO_T = 0.45
 MEMS_BOARD = (14.5, 14.5, 1.6)   # INMP441 (placa redonda Ø≈14 o cuadrada ≈14): VERIFICAR
 ESP32_BOARD = (55.0, 28.0, 1.6)  # DevKit de referencia: VERIFICAR (existen 48–58 × 25–29) — NO DEFINITIVO
 ESP32_ROW_PITCH = 25.4           # separación entre filas de pines: VERIFICAR (22,86 o 25,4 según el clon)
@@ -136,12 +135,6 @@ PERFBOARD = (70.0, 90.0, 1.6)    # VERIFICAR (formato común 7 × 9 cm)
 PERF_UNDER = 6.0                 # luz bajo la placa perforada (soldaduras)
 TRAY_XY = (118.0, 70.0)          # esquina de la bandeja electrónica en la base
 
-# sujeción de sensores al anillo: almohadillas planas
-PAD_ANGLE_OFFSET = 30.0  # respecto de la dirección de cada valva
-PAD_FACE_R = 37.0
-PAD_W = 28.0
-PAD_H = 14.5
-PAD_SCREW_SPACING = 22.0
 
 # ───────────────────────────── base ─────────────────────────────
 BASE_X = 200.0

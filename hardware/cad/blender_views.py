@@ -28,7 +28,7 @@ FONT_S = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 1
 
 
 def pose(objs, beta):
-    tf = BA.frame_transforms({'beta': beta, 'mode': 'NORMAL', 'explode': 0.0, 'piezo': 0.0, 'mems': 0.0})
+    tf = BA.frame_transforms({'beta': beta, 'mode': 'NORMAL', 'explode': 0.0, 'carrier': 0.0, 'gauge': 0.0, 'theta1': None, 'mems': 0.0})
     for inst, o in objs.items():
         if inst in tf:
             o.animation_data_clear()
@@ -84,33 +84,52 @@ def main():
     co = D.sensor_coords()
     lab = lambda k, off: (f"{k}  {D.P3(co[k]['global'])}", co[k]['global'], off)
     VX, VY, ZR = A.VX, A.VY, A.Z_RING
+    hide_gauge = ('Calib_Gauge_40', 'Link_1_LostMotion', 'Link_1_LostMotion_IC', 'Stop_1_60')
     pose(objs, K.SWEEP)
     camera(cam, (VX, VY - 0.01, 400), (VX, VY, 0), ortho=230)
-    render(sc, 'Vista_Sensores_Superior.png',
-           [lab('H1', (40, -80)), lab('H2', (-330, -60)), lab('H3', (60, 40)), lab('H0', (-360, -120)), lab('P1', (-330, 60)), lab('P2', (60, 30)),
-            lab('M1', (40, 40)), lab('M1_alt', (-380, -40))],
-           'Ubicación de sensores (vista superior, válvula cerrada) · H = Hall de posición · P = piezo · M = micrófono')
+    render(sc, 'Vista_Sensores_Superior.png', [lab('H1', (40, -80)), lab('H2', (-330, -60)), lab('H3', (60, 40)), lab('M1', (40, 40))],
+           'Ubicación de sensores (vista superior, válvula cerrada) · H1–H3 = Hall de posición · M1 = micrófono INMP441', hide=hide_gauge)
+    mx, mz = P.tail_point(C.MAG_LEAF_S)
+    for i in range(3):
+        h = np.array(A.ring_local(i, *C.HALL_XYZ))
+        mag = A.ring_local(i, mx, C.TAIL_Y[0] + 1.0, mz)
+        out = h - np.array([VX, VY, h[2]]); out /= np.linalg.norm(out)
+        tang = np.array([-out[1], out[0], 0.0])
+        for beta, tag in ((K.SWEEP, 'cerrada'), (-K.SWEEP, 'abierta')):
+            pose(objs, beta)
+            camera(cam, h + out * 55 - tang * 40 + np.array([0, 0, 38]), h + np.array([0, 0, -2]), lens=60)
+            th = K.pose(beta, 'NORMAL')['leaves'][i]['theta']
+            magw = A.pose_transforms(beta, 'NORMAL')[f'Leaflet_{i+1}'] @ np.array([mx, C.TAIL_Y[0] + 1.0, mz, 1.0])
+            render(sc, f'Vista_Hall_Iman_Valva{i+1}_{tag}.png',
+                   [lab(f'H{i+1}', (60, -90)), (f'imán Ø{C.MAG_LEAF[0]:.0f}×{C.MAG_LEAF[1]:.0f} (θ = {th:.0f}°)  {D.P3(magw[:3])}', tuple(magw[:3]), (-560, 90))],
+                   f'Valva {i+1} · pareja Hall–imán · válvula {tag} (transparencia) · sensor fijo en el portasensor, imán en la cola', xray=True, hide=hide_gauge)
+    pose(objs, K.SWEEP)
+    tf = A.pose_transforms(K.SWEEP, 'NORMAL')
+    for i in range(3):
+        objs[f'Hall_Carrier_{i+1}'].matrix_world = Matrix((A.T(0, 0, 28) @ tf[f'Hall_Carrier_{i+1}']).tolist())
+        objs[f'Hall_{i+1}'].matrix_world = Matrix((A.T(0, 0, 28) @ tf[f'Hall_{i+1}']).tolist())
+    h = np.array(A.ring_local(1, *C.HALL_XYZ))
+    camera(cam, h + np.array([-70, -95, 80]), h + np.array([0, 0, 12]), lens=45)
+    render(sc, 'Vista_Portasensor_Retirado.png', [lab('H2', (60, -60))], 'Portasensor Hall retirado hacia arriba (sin desarmar el mecanismo) · bolsillo con ventana al interior', hide=hide_gauge)
+    pose(objs, K.servo_from_zp(K.zp_rigid(40.0, C.LINK_L)))
+    objs['Calib_Gauge_40'].matrix_world = Matrix((A.RING @ A.Rz(K.leaf_dir(0))).tolist())
+    g = np.array(A.ring_local(0, 22.0, 0.0, 18.0))
+    camera(cam, g + np.array([-120, 15, 45]), g, lens=40)
+    render(sc, 'Vista_Galga_Calibracion_40.png', [], 'Galga de calibración de 40° sobre la valva 1: la cara superior de la valva la toca exactamente a 40°',
+           hide=('Link_1_LostMotion', 'Link_1_LostMotion_IC', 'Stop_1_60'))
+    pose(objs, K.SWEEP)
     camera(cam, (VX + 250, VY - 300, ZR + 230), (VX + 30, VY - 5, 20), lens=32)
     cab = A.cable_routes()
-    render(sc, 'Vista_Cables_Isometrica_Cerrada.png',
-           [(f'{k}', pts[min(2, len(pts) - 1)], (30, -30 - 22 * i)) for i, (k, pts) in enumerate(cab.items())],
-           'Recorrido de cables (amarillo) · válvula CERRADA · señales por el sur, servo/5 V por el norte')
+    render(sc, 'Vista_Cables_Isometrica_Cerrada.png', [(f'{k}', pts[min(2, len(pts) - 1)], (30, -30 - 22 * i)) for i, (k, pts) in enumerate(cab.items())],
+           'Recorrido de cables (amarillo) · válvula CERRADA · señales por el sur, servo/5 V por el norte', hide=hide_gauge)
     pose(objs, -K.SWEEP)
-    render(sc, 'Vista_Cables_Isometrica_Abierta.png', [], 'Recorrido de cables (amarillo) · válvula ABIERTA (plato abajo): sin interferencias en el barrido de 125 poses')
+    render(sc, 'Vista_Cables_Isometrica_Abierta.png', [], 'Recorrido de cables (amarillo) · válvula ABIERTA (plato abajo)', hide=hide_gauge)
     pose(objs, K.SWEEP)
-    h = np.array(A.ring_local(0, *C.HALL_XYZ))
-    camera(cam, h + np.array([-25, -90, 55]), h + np.array([-3, 0, -3]), lens=55)
-    mx, mz = P.tail_point(C.MAG_LEAF_S)
-    render(sc, 'Vista_Hall_H1_Detalle.png', [lab('H1', (60, -90)), ('imán Ø4×2 en la cola (valva 1)', A.ring_local(0, mx, C.TAIL_Y[0] + 1.0, mz), (-420, 80))],
-           'Medición de posición: imán en la cola + DRV5055 en el anillo (vista con transparencia)', xray=True)
-    M2 = A.p2_frame()
-    camera(cam, M2[:3, 3] + np.array([95, 120, 60]), M2[:3, 3] + np.array([-10, 0, 0]), lens=38)
-    render(sc, 'Vista_P2_Servo.png', [lab('P2', (60, -60))], 'P2: piezo en la almohadilla del soporte del servo (lado aislado por las gomas)')
     st = A.stand_holder_frame()[:3, 3]
     camera(cam, st + np.array([110, -120, 30]), np.array([VX, VY, ZR + 5]), lens=34)
-    render(sc, 'Vista_M1_Soporte.png', [lab('M1', (50, -70)), lab('M1_alt', (50, 40))], 'M1: soporte independiente (recomendado al inicio) y escuadra alternativa en el anillo')
+    render(sc, 'Vista_M1_Soporte.png', [lab('M1', (50, -70))], 'M1: INMP441 en soporte independiente (ranura radial ±8 mm, pivote) · puerto acústico libre', hide=hide_gauge)
     camera(cam, (C.TRAY_XY[0] + 40, C.TRAY_XY[1] - 140, 190), (C.TRAY_XY[0] + 40, C.TRAY_XY[1] + 50, 10), lens=40)
-    render(sc, 'Vista_Bandeja_Electronica.png', [], 'Bandeja: placa perforada 70×90, ESP32 en zócalos (antena hacia −y fuera de la placa, USB hacia +y) · NO DEFINITIVA')
+    render(sc, 'Vista_Bandeja_Electronica.png', [], 'Bandeja: placa perforada 70×90, ESP32 en zócalos (antena hacia −y, USB hacia +y) · NO DEFINITIVA', hide=hide_gauge)
 
 
 if __name__ == '__main__':

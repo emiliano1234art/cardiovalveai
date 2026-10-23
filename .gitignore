@@ -4,7 +4,8 @@ dist
 .DS_Store
 entrega/.build
 
-# salidas generadas del CAD (se entregan en entrega/CardioValAI_Modelo_Final_STL.zip)
+# salidas generadas del CAD (se entregan en los ZIP de entrega/)
 hardware/out/
 hardware/out_v2/
+hardware/out_v3/
 __pycache__/

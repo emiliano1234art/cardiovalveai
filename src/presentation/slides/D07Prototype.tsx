@@ -135,7 +135,7 @@ export function D07Prototype() {
                 kind={real ? 'aortic' : 'university'}
                 render={render}
                 alt={
-                  real ? 'Válvula aórtica natural' : 'Prototipo CardioVal AI: anillo, tres valvas, servo, leva, anillo actuador, bielas, piezo, MEMS y ESP32'
+                  real ? 'Válvula aórtica natural' : 'Prototipo CardioValveAI: anillo, tres valvas, servo, leva, anillo actuador, bielas, piezo, MEMS y ESP32'
                 }
                 camera="iso"
                 cameraNonce={nonce}

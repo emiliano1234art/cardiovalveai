@@ -1,6 +1,6 @@
 import { useId } from 'react';
 
-/** Isotipo CardioVal AI: anillo valvular con tres valvas (línea de cierre en «Y») y un pulso. */
+/** Isotipo CardioValveAI: anillo valvular con tres valvas (línea de cierre en «Y») y un pulso. */
 export function BrandMark({ size = 34 }: { size?: number }) {
   const id = useId().replace(/:/g, '');
   return (
@@ -24,7 +24,7 @@ export function BrandMark({ size = 34 }: { size?: number }) {
 export function BrandName({ className }: { className?: string }) {
   return (
     <span className={className}>
-      CardioVal <span className="brand-ai">AI</span>
+      CardioValve<span className="brand-ai">AI</span>
     </span>
   );
 }

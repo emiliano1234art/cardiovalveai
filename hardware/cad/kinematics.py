@@ -1,5 +1,5 @@
 """
-Cinemática del mecanismo CardioVal AI (un servo → plato actuador → 3 bielas → 3 valvas).
+Cinemática del mecanismo CardioValveAI (un servo → plato actuador → 3 bielas → 3 valvas).
 
 Marco del ANILLO: origen en el centro de la cara inferior, z hacia arriba.
 Marco LOCAL de la valva i: x = dirección radial ψ_i, y = tangencial (+90°), z = arriba.

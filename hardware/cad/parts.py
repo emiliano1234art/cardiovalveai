@@ -1,5 +1,5 @@
 """
-Piezas de CardioVal AI (build123d / OpenCascade).
+Piezas de CardioValveAI (build123d / OpenCascade).
 
 Cada constructor devuelve el sólido en su MARCO CANÓNICO (el que usa el
 ensamblaje en `assembly.py`). La orientación de impresión se define en
@@ -68,9 +68,6 @@ def rz(part, deg):
 def leaf_frame(part, i):
     return rz(part, K.leaf_dir(i))
 
-def pad_frame(part, i):
-    return rz(part, K.leaf_dir(i) + C.PAD_ANGLE_OFFSET)
-
 def engrave_text(txt, size, x, y, z_top, depth=0.5, rot=0.0):
     t = Text(txt, size, align=(Align.CENTER, Align.CENTER))
     return Pos(x, y, z_top - depth) * Rot(Z=rot) * extrude(t, depth + 1)
@@ -117,7 +114,7 @@ def leaflet(idx: int) -> Part:
     barrel = cyl_y(C.BARREL_R, -C.BARREL_HALF, C.BARREL_HALF, d, zh)
     tprof, tend = tail_profile()
     tail = prism_xz(tprof, *C.TAIL_Y)
-    # v2: oreja del elástico sobre el barril (lado −y, dentro del anillo): libera la cola para el imán
+    # oreja del elástico sobre el barril (lado −y, dentro del anillo): libera la cola para el imán
     ear = prism_xz(stadium((d, zh), tail_point(EAR_S), C.BARREL_R, 1.4), *EAR_Y)
     p = plate + barrel + tail + ear
     # eje Ø2 de latón (agujero de giro) y pasador de latón Ø2 a presión cola–biela
@@ -125,7 +122,7 @@ def leaflet(idx: int) -> Part:
     p -= cyl_y(C.TAIL_PIN_HOLE / 2, C.TAIL_Y[0] - 1, C.TAIL_Y[1] + 1, *tend)
     ex, ez = tail_point(EAR_S)
     p -= cyl_y(0.6, EAR_Y[0] - 1, EAR_Y[1] + 1, ex, ez)
-    # v2: alojamiento del imán N42 Ø4×2 (a ras de la cara −y de la cola; profundidad = imán + 0,2)
+    # alojamiento del imán N42 Ø4×2 (a ras de la cara −y de la cola; profundidad = imán + 0,2)
     mx, mz = tail_point(C.MAG_LEAF_S)
     p -= cyl_y((C.MAG_LEAF[0] + C.MAG_POCKET_CLR) / 2, C.TAIL_Y[0] - 0.1, C.TAIL_Y[0] + C.MAG_LEAF[1] + 0.2, mx, mz)
     # referencias ópticas (medición del ángulo con cámara) e identificación 1–3
@@ -144,8 +141,6 @@ def valve_ring() -> Part:
         wedge = prism_xy(SPoly([(0, 0), (60 * math.cos((a - C.POST_W_DEG / 2) * D2R), 60 * math.sin((a - C.POST_W_DEG / 2) * D2R)),
                                 (60 * math.cos((a + C.POST_W_DEG / 2) * D2R), 60 * math.sin((a + C.POST_W_DEG / 2) * D2R))]), C.RING_H - 1, C.RING_H + C.POST_H)
         r += Cylinder(RX, C.RING_H + C.POST_H, align=(Align.CENTER, Align.CENTER, Align.MIN)) & wedge
-        pad = box(RX - 2.5, C.PAD_FACE_R, -C.PAD_W / 2, C.PAD_W / 2, 0, C.PAD_H)
-        r += pad_frame(pad, i)
     r -= Cylinder(RO, 200)
     for i in range(C.N_LEAF):
         # ranura de cola y biela
@@ -157,18 +152,14 @@ def valve_ring() -> Part:
         cx, cy = C.COLUMN_R * math.cos(a), C.COLUMN_R * math.sin(a)
         r -= cyl_z(C.M3_CLEAR / 2, -1, 40, cx, cy)
         r -= cyl_z(C.M3_HEAD_D / 2, C.RING_H + C.POST_H - C.M3_HEAD_H - 0.6, 40, cx, cy)
-        # almohadillas: 2 insertos roscados M2 horizontales (los soportes se cambian a menudo)
-        for s in (-1, 1):
-            r -= pad_frame(cyl_x(C.M2_INSERT_D / 2, C.PAD_FACE_R - C.M2_INSERT_L - 0.5, C.PAD_FACE_R + 1, s * C.PAD_SCREW_SPACING / 2, C.PAD_H / 2), i)
         # tope: tornillo M2 de latón pasante desde la cara superior (tuerca atrapada en la brida del tope)
         r -= leaf_frame(cyl_z(C.M2_CLEAR / 2, -1, 40, *STOP_SCREW), i)
         r -= leaf_frame(cyl_z(2.1, C.RING_H - 1.6, 40, *STOP_SCREW), i)
-        # v2: bolsillo del sensor Hall TO-92 (posición calculada en sensing.py), abierto arriba;
-        # el piso fija la altura del sensor. Canal de patas/cables por la cara superior y bajada por el exterior.
-        hx, hy, hz = C.HALL_XYZ
-        bt, bw, bh = C.TO92_BODY
-        r -= leaf_frame(box(hx - bt / 2 - 0.15, hx + bt / 2 + 0.15, hy - bw / 2 - 0.15, hy + bw / 2 + 0.15, hz - bh / 2 - 0.15, 40), i)
-        r -= leaf_frame(box(hx, RX + 1, hy - 1.0, hy + 1.0, C.RING_H - 1.6, 40), i)
+        # bolsillo del portasensor Hall (posición calculada en sensing.py), abierto arriba y con VENTANA hacia el diámetro
+        # interior: la cara del TO-92 queda al ras del interior (sin pared delante). El piso fija la altura del sensor;
+        # el lomo del portasensor apoya en la cara exterior del bolsillo. Bajada de cables por un canal en la pared exterior.
+        r -= leaf_frame(hall_pocket(), i)
+        hy = C.HALL_XYZ[1]
         r -= leaf_frame(box(RX - 1.8, RX + 1, hy - 1.0, hy + 1.0, -1, 40), i)
         # marca fiduciaria y número de valva grabados en la cara superior
         fa = (K.leaf_dir(i) - 34) * D2R
@@ -177,7 +168,57 @@ def valve_ring() -> Part:
         r -= engrave_text(str(i + 1), 4.5, 30.6 * math.cos(na), 30.6 * math.sin(na), C.RING_H, 0.5, K.leaf_dir(i) - 90)
     return r
 
-STOP_SCREW = (30.0, -11.8)   # (x, y) en el marco de la valva (v2: alejado del bolsillo Hall)
+STOP_SCREW = (30.0, -11.8)   # (x, y) en el marco de la valva (alejado del bolsillo Hall)
+
+
+def hall_pocket():
+    hx, hy, hz = C.HALL_XYZ
+    bt, bw, bh = C.TO92_BODY
+    z0 = hz - bh / 2 - 0.15
+    p = box(RO - 4.0, C.HALL_POCKET_BACK, hy - bw / 2 - 0.15, hy + bw / 2 + 0.15, z0, 40)           # cuerpo del sensor + ventana
+    return p
+
+
+def hall_carrier(offset: float) -> Part:
+    """Portasensor extraíble (marco de la valva). El TO-92 se pega con silicona neutra al lomo; la pestaña apoya en la cara superior
+    del anillo; se retira tirando de la lengüeta, sin desarmar el mecanismo. `offset` aleja el sensor del imán (variantes 0 / 0,25 / 0,5)."""
+    hx, hy, hz = C.HALL_XYZ
+    bt, bw, bh = C.TO92_BODY
+    x_back_s = hx + offset + bt / 2                       # cara trasera del sensor
+    x_back = C.HALL_POCKET_BACK - 0.15
+    zb = hz - bh / 2
+    p = box(x_back_s, x_back, hy - 1.3, hy + 1.3, zb, C.RING_H)                                   # lomo
+    p += box(x_back_s + 0.3, x_back, hy - bw / 2, hy + bw / 2, hz + bh / 2 + 0.3, C.RING_H)        # alas: centran en el bolsillo
+    ft = C.CARRIER_FLANGE_T
+    p += box(x_back_s + 0.3, 33.6, hy - 1.3, hy + 1.3, C.RING_H, C.RING_H + ft)                    # pestaña sobre el anillo
+    p -= box(x_back_s + 0.3, 33.7, hy - 0.5, hy + 0.5, C.RING_H + ft - 0.5, C.RING_H + ft + 1)     # canal del cable
+    p += cyl_y(1.4, hy - 1.3, hy + 1.3, 33.6, C.RING_H + ft + 1.0)                                 # lengüeta para retirar
+    p -= cyl_y(0.6, hy - 2, hy + 2, 33.6, C.RING_H + ft + 1.0)
+    p -= engrave_text(f'{offset:.2f}'.replace('0.', '.'), 1.6, 31.4, hy, C.RING_H + ft, 0.3, 90)
+    return p
+
+
+def calib_gauge(theta: float) -> Part:
+    """Galga angular de calibración (marco de la valva). Se apoya en la cara superior del anillo, con una chaveta dentro de la ranura
+    de la cola, y presenta una cara plana donde la cara superior de la valva toca EXACTAMENTE a θ. La valva se lleva a mano (empujador
+    desconectado) hasta tocarla: posición angular conocida para calibrar el Hall."""
+    from shapely.geometry import MultiPoint
+    d0, d1 = 7.5, 13.0
+    A = np.array(K.rotate_leaf_point(C.HINGE_D - d0, PLATE_Z1, theta))
+    B = np.array(K.rotate_leaf_point(C.HINGE_D - d1, PLATE_Z1, theta))
+    n = np.array([math.sin(theta * D2R), math.cos(theta * D2R)])      # normal de la cara superior girada θ (hacia afuera de la valva)
+    pad = [A, B, B + 3 * n, A + 3 * n]
+    zarm = max(C.RING_H + 7.0, max(q[1] for q in pad) + 3.0)
+    lifted = [np.array([q[0], zarm]) for q in pad]
+    leg = MultiPoint([tuple(q) for q in pad + lifted]).convex_hull
+    xs = [q[0] for q in pad]
+    arm = SPoly([(min(xs), zarm - 3), (34.6, zarm - 3), (34.6, zarm), (min(xs), zarm)])
+    foot = SPoly([(31.8, C.RING_H), (34.6, C.RING_H), (34.6, zarm), (31.8, zarm)])
+    key = SPoly([(29.8, C.RING_H - 2.0), (31.4, C.RING_H - 2.0), (31.4, C.RING_H + 0.5), (29.8, C.RING_H + 0.5)])
+    prof = unary_union([leg, arm, foot])
+    p = prism_xz(prof, -3.0, 3.0) + prism_xz(key, C.SLOT_Y[0] + 0.3, C.SLOT_Y[1] - 0.3) + box(31.3, 31.9, -3, 3, C.RING_H, C.RING_H + 1.2)   # puente chaveta–pie SOBRE la cara superior (no entra en la pared)
+    p -= engrave_text(f'{theta:.0f}°', 3.0, 33.2, 0, zarm, 0.4, 90)
+    return p
 ELASTIC_HOLE = (23.0, -6.15) # paso del elástico en la brida del tope (bajo la oreja de la valva)
 
 # ───────────────────────────── bielas ─────────────────────────────
@@ -212,7 +253,7 @@ def opening_stop(theta_stop: float) -> Part:
     p = prism_xz(body, C.STOP_Y[0], C.STOP_Y[1]) if body.area > 0.5 else box(x0, x1, C.STOP_Y[0], C.STOP_Y[1], -2.5, -2.4)
     p += box(22.0, 33.0, -14.0, C.STOP_Y[1], -2.5, 0)
     p -= box(31.6, 34.0, C.HALL_XYZ[1] - 1.3, C.HALL_XYZ[1] + 1.3, -3.0, 1.0)   # paso del cable del Hall (bajada exterior)
-    # v2: agujero de paso + tuerca M2 atrapada desde abajo (sin rosca en el plástico)
+    # agujero de paso + tuerca M2 atrapada desde abajo (sin rosca en el plástico)
     p -= cyl_z(C.M2_CLEAR / 2, -5, 5, *STOP_SCREW)
     p -= prism_xy(hexagon(STOP_SCREW, (C.M2_NUT_AF + C.NUT_CLR) / math.sqrt(3)), -3.0, -2.5 + C.M2_NUT_T + 0.2)
     p -= cyl_z(0.65, -5, 5, *ELASTIC_HOLE)     # paso del elástico (se anuda bajo la brida)
@@ -255,14 +296,7 @@ def actuator_plate() -> Part:
         p += ear
     p -= cyl_y(C.M2_CLEAR / 2, -10, 10, 0, C.CLEVIS_PIN_Z)
     p -= box(-5.0, 5.0, -2.0, 2.0, -1, T + 0.01)   # paso del empujador
-    # v2: alojamiento del imán de H0 (N42 Ø3×2, a ras de la cara superior, lóbulo de la columna 1)
-    mx, my = plate_magnet_xy()
-    p -= cyl_z((C.MAG_PLATE[0] + C.MAG_POCKET_CLR) / 2, T - C.MAG_PLATE[1] - 0.2, T + 1, mx, my)
     return p
-
-def plate_magnet_xy():
-    a = (K.leaf_dir(0) + 60) * D2R
-    return C.MAG_PLATE_R * math.cos(a), C.MAG_PLATE_R * math.sin(a)
 
 # ───────────────────────────── empujador del servo ─────────────────────────────
 # marco: agujero inferior (palanca) en el origen, eje hacia +z, espesor y ∈ [−1,5; 1,5]
@@ -277,113 +311,11 @@ def pushrod() -> Part:
 # ───────────────────────────── columnas ─────────────────────────────
 
 def column(height: float) -> Part:
-    """v2: insertos M3 termofijados en ambos extremos (agujero más largo que el inserto para la punta del tornillo)."""
+    """insertos M3 termofijados en ambos extremos (agujero más largo que el inserto para la punta del tornillo)."""
     p = cyl_z(C.COLUMN_D / 2, 0, height, 0, 0)
     p -= cyl_z(C.M3_INSERT_D / 2, -1, 9.5, 0, 0)
     p -= cyl_z(C.M3_INSERT_D / 2, height - 10.5, height + 1, 0, 0)
     return p
-
-# ───────────────────────────── v2: arandela de columna y soporte del Hall del plato (H0) ─────────────────────────────
-# marco del anillo (z = 0 en la cara inferior del anillo); la arandela ocupa z ∈ [−SPACER_T, 0]
-
-def column_spacer() -> Part:
-    p = cyl_z(6.0, -C.SPACER_T, 0, 0, 0)
-    p -= cyl_z(C.M3_CLEAR / 2, -5, 5, 0, 0)
-    return p
-
-def hall0_element_z() -> float:
-    """Altura (marco del anillo) del elemento Hall de H0: cara superior del plato cerrado + separación."""
-    return K.Z_TOP - C.PLATE_TAB_PIN_Z + C.PLATE_T + C.HALL0_GAP
-
-def hall0_holder() -> Part:
-    """Arandela de la columna 1 con brazo y pata que sostienen un DRV5055A2 (TO-92 acostado, cara plana hacia
-    abajo) sobre el imán del plato. Marco: anillo girado al ángulo de la columna 1 (x radial)."""
-    t = C.SPACER_T
-    p = cyl_z(6.0, -t, 0, C.COLUMN_R, 0)
-    p += box(C.MAG_PLATE_R - 3.0, C.COLUMN_R, -3.0, 3.0, -t, 0)
-    bt, bw, bh = C.TO92_BODY
-    ze = hall0_element_z()
-    zb = ze - bt / 2 - 0.1 - 0.6                  # piso de 0,6 mm bajo el cuerpo
-    p += box(C.MAG_PLATE_R - 3.0, C.MAG_PLATE_R + 3.0, -3.2, 3.2, zb, -t + 0.01)
-    # bolsillo del cuerpo (ancho 4,0 tangencial, alto 3,15 radial) con salida de patas hacia el centro (−x):
-    # el cable sube por la cara interior de la pata, lejos del buje del plato (que sube hasta 6,9 mm de la columna)
-    p -= box(C.MAG_PLATE_R - 3.5, C.MAG_PLATE_R + bh / 2 + 0.15, -bw / 2 - 0.15, bw / 2 + 0.15, zb + 0.6, zb + 0.6 + bt + 0.25)
-    p -= box(C.MAG_PLATE_R - 3.5, C.MAG_PLATE_R - 1.0, -1.6, 1.6, zb + 0.6, -t + 0.6)   # canal de cables por la pata
-    p -= cyl_z(C.M3_CLEAR / 2, -5, 5, C.COLUMN_R, 0)
-    p -= engrave_text('H0', 3.0, C.COLUMN_R - 9.0, 0, 0, 0.4, 90)
-    return p
-
-# ───────────────────────────── soportes de sensores ─────────────────────────────
-# marco de la almohadilla: x radial (cara en x = PAD_FACE_R), y tangencial, z del anillo
-
-def piezo_mount() -> Part:
-    x0 = C.PAD_FACE_R
-    t = 4.0
-    w = C.PAD_W + 2
-    p = box(x0, x0 + t, -w / 2, w / 2, -6.0, C.PAD_H + 1.5)
-    rec = C.PIEZO_D / 2 + 0.3
-    zc = C.PAD_H / 2
-    p -= cyl_x(rec, x0 + t - 0.8, x0 + t + 1, 0, zc)                      # asiento del disco (0,8 mm)
-    p -= box(x0 + t - 1.2, x0 + t + 1, -1.2, 1.2, -7, zc - rec + 0.5)      # canal de cables
-    p -= box(x0 - 1, x0 + t + 1, -5.5, -3.8, -4.6, -2.2)      # alivio de tensión: ranuras para brida
-    p -= box(x0 - 1, x0 + t + 1, 3.8, 5.5, -4.6, -2.2)
-    for s in (-1, 1):
-        y = s * C.PAD_SCREW_SPACING / 2
-        p -= cyl_x(C.M2_CLEAR / 2, x0 - 1, x0 + t + 1, y, zc)
-        p -= cyl_x(2.1, x0 + t - 1.6, x0 + t + 1, y, zc)                    # cabeza M2 rebajada
-    return p
-
-def piezo_cover() -> Part:
-    x0 = C.PAD_FACE_R + 4.0
-    t = 3.4
-    w = C.PAD_W + 2
-    zc = C.PAD_H / 2
-    p = box(x0, x0 + t, -w / 2, w / 2, -6.0, C.PAD_H + 1.5)
-    p -= cyl_x(C.PIEZO_D / 2 + 1.2, x0 - 1, x0 + 1.8, 0, zc)               # cámara de protección (sin tocar el disco)
-    p -= box(x0 - 1, x0 + 1.8, -1.6, 1.6, -7, zc)                          # salida de cables
-    for s in (-1, 1):
-        y = s * C.PAD_SCREW_SPACING / 2
-        p -= cyl_x(C.M2_CLEAR / 2, x0 - 1, x0 + t + 1, y, zc)
-        p -= cyl_x(2.1, x0 + t - 1.6, x0 + t + 1, y, zc)
-    return p
-
-def piezo_adapter_12() -> Part:
-    x0 = C.PAD_FACE_R + 4.0 - 0.8
-    p = cyl_x(C.PIEZO_D / 2 + 0.1, x0, x0 + 0.6, 0, C.PAD_H / 2)
-    p -= cyl_x(6.2, x0 - 1, x0 + 2, 0, C.PAD_H / 2)
-    return p
-
-MEMS_TILT = 40.0   # inclinación del micrófono hacia el centro de la válvula
-
-def mems_mount() -> Part:
-    """Escuadra atornillada a una almohadilla del anillo, con portaplaca regulable."""
-    x0 = C.PAD_FACE_R
-    w = 14.0
-    zc = C.PAD_H / 2
-    back = box(x0, x0 + 3.5, -w / 2, w / 2, -2.0, 34.0)
-    bridge = box(29.0, x0 + 3.5, -w / 2, w / 2, 30.5, 34.0)
-    p = back + bridge
-    # orejas de fijación con ranuras verticales (ajuste de altura ±3 mm) sobre los pilotos de la almohadilla
-    ear = box(x0, x0 + 3.5, -C.PAD_W / 2 - 1, C.PAD_W / 2 + 1, zc - 4.5, zc + 4.5)
-    p += ear
-    for s in (-1, 1):
-        y = s * C.PAD_SCREW_SPACING / 2
-        p -= prism_xz_slot(y, x0, zc)
-    # portaplaca: marco con ventana a ambos lados (puerto acústico libre, sea cual sea la cara)
-    bw, bh, bt = C.MEMS_BOARD
-    fw, fh, ft = bw + 4.4, bh + 4.4, 4.2
-    holder = box(-ft / 2, ft / 2, -fw / 2, fw / 2, -fh / 2, fh / 2)
-    holder -= box(-(bt + 0.4) / 2, (bt + 0.4) / 2, -(bw + 0.5) / 2, (bw + 0.5) / 2, -(bh + 0.5) / 2, fh)   # ranura de inserción desde arriba
-    holder -= box(-ft, ft, -(bw - 3.0) / 2, (bw - 3.0) / 2, -(bh - 3.0) / 2, (bh - 3.0) / 2)         # ventanas
-    holder -= box(-ft, ft, -3.0, 3.0, (bh - 3.0) / 2 - 0.1, fh)                                     # salida de pines/cables
-    holder = Pos(30.5, 0, 30.5 - fh / 2 * math.cos(MEMS_TILT * D2R) - 1.5) * Rot(Y=-MEMS_TILT) * holder
-    hanger = box(28.0, 33.5, -fw / 2, fw / 2, 26.0, 31.0)
-    p += holder + hanger
-    return p
-
-def prism_xz_slot(y, x0, zc):
-    """Ranura vertical (regulación ±3 mm) para tornillo M2 en la escuadra del MEMS."""
-    return cyl_x(C.M2_CLEAR / 2, x0 - 1, x0 + 5, y, zc - 3) + cyl_x(C.M2_CLEAR / 2, x0 - 1, x0 + 5, y, zc + 3) + box(x0 - 1, x0 + 5, y - C.M2_CLEAR / 2, y + C.M2_CLEAR / 2, zc - 3, zc + 3)
 
 # ───────────────────────────── servo: soporte ─────────────────────────────
 S = C.SERVO
@@ -396,15 +328,6 @@ def servo_layout(zs_global: float):
     horn_mid_h = S.H + S.gear_top + S.shaft_h + 0.3 + 1.5      # plano medio del empujador (sobre el horn)
     y_of_h = lambda h: horn_mid_h - h                         # h (a lo largo del eje) → y global (relativa)
     return {'shaft_x': shaft_x, 'body_cx': body_cx, 'y_of_h': y_of_h, 'zs': zs_global, 'horn_mid_h': horn_mid_h}
-
-P2_WALL = (17.0, 23.0)    # pared de la almohadilla P2: y desde la cara trasera del soporte
-P2_Z0 = 7.5               # base de la almohadilla P2 sobre la base (z local 0 de la almohadilla)
-
-def p2_pad_origin(zs: float):
-    """(x, y, z) de la cara de la almohadilla P2 (x, y relativos al centro de la válvula; z global) y su normal +y."""
-    L = servo_layout(zs)
-    y_back = L['y_of_h'](S.tab_h) + 4.0
-    return L['body_cx'], y_back + P2_WALL[1], C.BASE_T + P2_Z0
 
 def servo_mount(zs: float) -> Part:
     """Marco: x,y relativos al centro de la válvula; z global (base en z = BASE_T)."""
@@ -419,14 +342,8 @@ def servo_mount(zs: float) -> Part:
     plate -= box(xc - S.L / 2 - 0.3, xc + S.L / 2 + 0.3, y_face - 1, y_back + 1, zs - S.W / 2 - 0.3, zs + S.W / 2 + 0.3)
     for s in (-1, 1):
         plate -= cyl_y(C.M2_PILOT / 2, y_face - 1, y_back + 1, xc + s * S.tab_hole_spacing / 2, zs)
-    foot = box(xc - half, xc + half, y_face - 8, y_back + P2_WALL[1], zb, zb + 3.0)
+    foot = box(xc - half, xc + half, y_face - 8, y_back + 19.0, zb, zb + 3.0)
     p = plate + foot
-    # v2: almohadilla P2 (misma interfaz que las del anillo: 2 insertos M2 a 22 mm) en el extremo del pie
-    pz0 = zb + P2_Z0
-    p += box(xc - C.PAD_W / 2 - 1, xc + C.PAD_W / 2 + 1, y_back + P2_WALL[0], y_back + P2_WALL[1], zb + 3.0, pz0 + C.PAD_H)
-    for s in (-1, 1):
-        p -= cyl_y(C.M2_INSERT_D / 2, y_back + P2_WALL[1] - C.M2_INSERT_L - 0.5, y_back + P2_WALL[1] + 1, xc - s * C.PAD_SCREW_SPACING / 2, pz0 + C.PAD_H / 2)
-    p -= engrave_text('P2', 4.0, xc, y_back + P2_WALL[1] - 3.0, pz0 + C.PAD_H, 0.5)
     for s in (-1, 1):
         gx = xc + s * (half - 2.5)
         p += prism_yz(SPoly([(y_back, zb + 3), (y_back + 14, zb + 3), (y_back, zb + 3 + 12)]), gx - 1.5, gx + 1.5)
@@ -444,25 +361,7 @@ def prism_yz(geom, x0, x1):
 
 # ───────────────────────────── soporte ESP32 ─────────────────────────────
 
-def esp32_mount_v1() -> Part:
-    bl, bw, _ = C.ESP32_BOARD
-    wall = 2.0
-    il, iw = bl + 0.8, bw + 0.8
-    h = C.ESP32_PIN_DEPTH + 2.0
-    p = box(-il / 2 - wall, il / 2 + wall, -iw / 2 - wall, iw / 2 + wall, 0, h + 2.0)
-    p -= box(-il / 2, il / 2, -iw / 2, iw / 2, 2.0, h + 5)                         # cavidad para pines y Dupont
-    for s in (-1, 1):                                                              # repisas en los extremos (la placa apoya sin pines)
-        p += box(s * il / 2 - (3.0 if s > 0 else 0), s * il / 2 + (0 if s > 0 else 3.0), -iw / 2, iw / 2, 2.0, h)
-    p -= box(il / 2 - 1, il / 2 + wall + 1, -6.5, 6.5, h - 6, h + 5)               # USB
-    p -= box(-il / 2 + 8, il / 2 - 8, -iw / 2 - wall - 1, -iw / 2 + 0.1, 5.0, h - 2)   # ventanas laterales para cables
-    p -= box(-il / 2 + 8, il / 2 - 8, iw / 2 - 0.1, iw / 2 + wall + 1, 5.0, h - 2)
-    for s in (-1, 1):
-        p += cyl_z(4.0, 0, 8.0, s * 16.0, 0)
-        p -= cyl_z(C.M3_PILOT / 2, -1, 7.5, s * 16.0, 0)
-    p -= box(-6, 6, -iw / 2 - wall - 1, -iw / 2 + 0.1, 2.0, 4.0)                  # paso de brida bajo la placa (retención)
-    return p
-
-# ───────────────────────────── v2: bandeja electrónica (placa perforada + ESP32 en zócalos) ─────────────────────────────
+# ───────────────────────────── bandeja electrónica (placa perforada + ESP32 en zócalos) ─────────────────────────────
 # marco: esquina de la bandeja en el origen, z = 0 en la cara superior de la base. El ESP32 va en zócalos hembra
 # soldados a la placa perforada (no se perfora ni se flexiona la placa del ESP32). Antena hacia −y, USB hacia +y.
 TRAY_FLOOR = 2.0
@@ -516,10 +415,10 @@ def tray_clamp() -> Part:
     p -= box(-1, bx - 0.3, -1, Lg + 1, z0 - 1, z0 + 0.3)      # alivio de 0,3 mm: la barra solo apoya sobre la placa
     for x, y in tray_post_xy()[::2]:
         p -= cyl_z(C.M3_CLEAR / 2, z0 - 1, z0 + 5, x, y)
-    p -= engrave_text('CardioVal AI v2', 2.6, TRAY_RAIL / 2, Lg / 2, z0 + 3.0, 0.4, 90)
+    p -= engrave_text(f'{C.PROJECT} {C.REVISION}', 2.6, TRAY_RAIL / 2, Lg / 2, z0 + 3.0, 0.4, 90)
     return p
 
-# ───────────────────────────── v2: soporte independiente del micrófono (MEMS_Stand) ─────────────────────────────
+# ───────────────────────────── soporte independiente del micrófono (MEMS_Stand) ─────────────────────────────
 # marco: origen en la base (z = 0 en la cara superior), +x hacia el eje de la válvula. El micrófono queda en x = 0.
 STAND_POST = 12.0
 STAND_PIVOT_X = 0.0              # el pivote queda bajo el micrófono (la inclinación no cambia la distancia horizontal)
@@ -565,7 +464,7 @@ def stand_holder() -> Part:
     tongue -= cyl_y(C.M3_CLEAR / 2, -5, 5, 0, zp)
     return holder + tongue
 
-# ───────────────────────────── v2: pinza de cables para columna ─────────────────────────────
+# ───────────────────────────── pinza de cables para columna ─────────────────────────────
 # marco: eje de la columna en el origen; abertura hacia −x (lado del plato), soporte del cable hacia +x
 
 def cable_clip() -> Part:
@@ -602,7 +501,7 @@ def angle_scale(center_h: float) -> Part:
 # ───────────────────────────── base ─────────────────────────────
 
 def base(col_xy, servo_holes, tray_xy, scale_xy, stand_pts, zip_pts, labels) -> Part:
-    """v2: insertos M3 para servo, bandeja y soporte del micrófono; ranuras para bridas a lo largo de los cables."""
+    """insertos M3 para servo, bandeja y soporte del micrófono; ranuras para bridas a lo largo de los cables."""
     T = C.BASE_T
     p = box(0, C.BASE_X, 0, C.BASE_Y, 0, T)
     for x, y in col_xy:
@@ -635,11 +534,11 @@ COUPON_ROWS = [
     ('Eje Ø2 a presión', (1.80, 1.85, 1.90, 1.95, 2.00, 2.05), None),
     ('Pilotos M2/M3', (1.6, 1.7, 1.8, 1.9, 2.4, 2.6), 5.0),
     ('Insertos M2 / M3', (3.1, 3.2, 3.3, 4.0, 4.1, 4.2), 6.0),
-    ('Imán Ø4×2 / Ø3×2', (4.1, 4.2, 4.3, 3.1, 3.2, 3.3), 2.2),
+    ('Imán Ø4×2 (alojamiento)', (4.05, 4.10, 4.15, 4.20, 4.25, 4.30), 2.2),
 ]
 
 def tolerance_coupon() -> Part:
-    """Probeta v2: 5 filas × 6 agujeros. Fila k a y = 5 + 9·k. Diámetros grabados en la documentación."""
+    """Probeta: 5 filas × 6 agujeros. Fila k a y = 5 + 9·k. Diámetros grabados en la documentación."""
     n = len(COUPON_ROWS)
     p = box(0, 66, 0, 9 * n + 1, 0, 6.5)
     for r, (_, ds, depth) in enumerate(COUPON_ROWS):
@@ -688,11 +587,6 @@ def ref_mems_board() -> Part:
     bw, bh, bt = C.MEMS_BOARD
     return box(-bt / 2, bt / 2, -bw / 2, bw / 2, -bh / 2, bh / 2)
 
-def ref_piezo() -> Part:
-    x0 = C.PAD_FACE_R + 4.0 - 0.8
-    return cyl_x(C.PIEZO_D / 2, x0, x0 + C.PIEZO_T, 0, C.PAD_H / 2) + cyl_x(6.0, x0 + C.PIEZO_T, x0 + C.PIEZO_T + 0.25, 0, C.PAD_H / 2)
-
-# v2: referencias de imanes, sensores, pasadores, tornillería y placas
 def ref_magnet_leaf() -> Part:
     """Imán Ø4×2 en la cola (marco de la valva)."""
     mx, mz = tail_point(C.MAG_LEAF_S)
@@ -704,27 +598,14 @@ def ref_tail_pin() -> Part:
     return cyl_y(C.PIN_D / 2, C.TAIL_Y[0], C.TAIL_Y[0] + C.TAIL_PIN_LEN, *tend)
 
 def ref_hall_ring() -> Part:
-    """3 sensores DRV5055A1 (TO-92) en sus bolsillos del anillo, con patas hacia arriba (marco del anillo)."""
+    """Sensor Hall TO-92 en su portasensor (variante 0), patas hacia arriba (marco de la valva)."""
     hx, hy, hz = C.HALL_XYZ
     bt, bw, bh = C.TO92_BODY
-    out = None
-    for i in range(C.N_LEAF):
-        body = box(hx - bt / 2, hx + bt / 2, hy - bw / 2, hy + bw / 2, hz - bh / 2, hz + bh / 2)
-        for k in (-1, 0, 1):
-            body += box(hx - 0.2, hx + 0.2, hy + 1.27 * k - 0.2, hy + 1.27 * k + 0.2, hz + bh / 2, C.RING_H + 0.6)
-        body = leaf_frame(body, i)
-        out = body if out is None else out + body
-    return out
+    body = box(hx - bt / 2, hx + bt / 2, hy - bw / 2, hy + bw / 2, hz - bh / 2, hz + bh / 2)
+    for k in (-1, 0, 1):
+        body += box(hx - 0.2, hx + 0.2, hy + 1.27 * k - 0.2, hy + 1.27 * k + 0.2, hz + bh / 2, C.RING_H + C.CARRIER_FLANGE_T - 0.6)
+    return body
 
-def ref_hall0() -> Part:
-    """DRV5055A2 de H0 acostado en su soporte (marco del soporte H0)."""
-    bt, bw, bh = C.TO92_BODY
-    ze = hall0_element_z()
-    return box(C.MAG_PLATE_R - bh / 2, C.MAG_PLATE_R + bh / 2, -bw / 2, bw / 2, ze - bt / 2, ze + bt / 2)
-
-def ref_magnet_plate() -> Part:
-    mx, my = plate_magnet_xy()
-    return cyl_z(C.MAG_PLATE[0] / 2, C.PLATE_T - C.MAG_PLATE[1], C.PLATE_T, mx, my)
 
 def _screw_y(x, z, y_head, y_tip, nut_y0=None, d=2.0, head_d=3.8, head_h=2.0, af=4.0, nut_t=1.6):
     """Tornillo a lo largo de y con cabeza del lado de y_head; tuerca hexagonal opcional."""

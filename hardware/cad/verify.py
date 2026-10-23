@@ -1,5 +1,5 @@
 """
-Verificaciones digitales de CardioVal AI (no reemplazan ensayos físicos).
+Verificaciones digitales de CardioValveAI (no reemplazan ensayos físicos).
 
 1. Mallas STL de impresión: cerradas (watertight), orientación coherente, un solo cuerpo,
    volumen positivo, escala en mm, volumen de impresión, voladizos > 45° (soportes).
@@ -89,12 +89,11 @@ def check_print_meshes():
 
 # ───────────────────────────── 2–3. barrido cinemático ─────────────────────────────
 MOVING = {'Leaflet_1', 'Leaflet_2', 'Leaflet_3', 'Link_1', 'Link_2', 'Link_3', 'Actuator_Plate', 'Pushrod', 'Servo_Horn_Reference',
-          'Magnet_1', 'Magnet_2', 'Magnet_3', 'Tail_Pin_1', 'Tail_Pin_2', 'Tail_Pin_3', 'Plate_Magnet', 'Plate_Fasteners_Reference',
+          'Magnet_1', 'Magnet_2', 'Magnet_3', 'Tail_Pin_1', 'Tail_Pin_2', 'Tail_Pin_3', 'Plate_Fasteners_Reference',
           'Cable_Routes_Reference'}   # los cables se comparan contra TODO (salvo las piezas por las que pasan a propósito)
-_CABLE_HOSTS = ['Valve_Ring', 'Hall_Sensors_Reference', 'H0_Holder', 'Hall0_Reference', 'Cable_Clip_1', 'Cable_Clip_2', 'Cable_Clip_3',
-                'Piezo_Mount', 'Piezo_Mount_P2', 'Piezo_Cover', 'Piezo_Cover_P2', 'MEMS_Stand_Holder', 'MEMS_Board_Reference',
-                'Base', 'Electronics_Tray', 'Tray_Clamp_L', 'Tray_Clamp_R', 'Perfboard_ESP32_Reference', 'Servo_MG90S_Reference',
-                'Piezo_Disc_Reference', 'Piezo_Disc_Reference_P2']
+_CABLE_HOSTS = ['Valve_Ring', 'Hall_1', 'Hall_2', 'Hall_3', 'Hall_Carrier_1', 'Hall_Carrier_2', 'Hall_Carrier_3', 'Cable_Clip_1', 'Cable_Clip_2', 'Cable_Clip_3',
+                'MEMS_Stand_Holder', 'MEMS_Board_Reference', 'Base', 'Electronics_Tray', 'Tray_Clamp_L', 'Tray_Clamp_R', 'Perfboard_ESP32_Reference',
+                'Servo_MG90S_Reference']
 IGNORE = {frozenset(p) for p in [('Servo_Horn_Reference', 'Servo_MG90S_Reference')]   # horn encajado en el eje (intencional)
           + [(f'Tail_Pin_{i}', f'Leaflet_{i}') for i in (1, 2, 3)]                       # pasador a presión en la cola (intencional)
           + [('Cable_Routes_Reference', h) for h in _CABLE_HOSTS]}
@@ -161,9 +160,9 @@ def sweep(n_pos=25):
 
 def clearance(cache_mesh, n_pos=9):
     """Holgura mínima (mm) entre pares móviles críticos, por muestreo punto–superficie."""
-    pairs = [('Leaflet_1', 'Valve_Ring'), ('Leaflet_1', 'Leaflet_2'), ('Leaflet_2', 'Leaflet_3'), ('Leaflet_1', 'MEMS_Mount'),
-             ('Leaflet_1', 'Hall_Sensors_Reference'), ('Magnet_1', 'Hall_Sensors_Reference'), ('Actuator_Plate', 'H0_Holder'),
-             ('Plate_Magnet', 'Hall0_Reference'), ('Actuator_Plate', 'Ring_Fasteners_Reference'), ('Plate_Fasteners_Reference', 'Stop_1'),
+    pairs = [('Leaflet_1', 'Valve_Ring'), ('Leaflet_1', 'Leaflet_2'), ('Leaflet_2', 'Leaflet_3'),
+             ('Leaflet_1', 'Hall_1'), ('Leaflet_1', 'Hall_Carrier_1'), ('Magnet_1', 'Hall_1'), ('Link_1', 'Hall_Carrier_1'), ('Tail_Pin_1', 'Hall_Carrier_1'),
+             ('Leaflet_2', 'Hall_Carrier_1'), ('Actuator_Plate', 'Ring_Fasteners_Reference'), ('Plate_Fasteners_Reference', 'Stop_1'),
              ('Plate_Fasteners_Reference', 'Column_1'), ('Cable_Routes_Reference', 'Actuator_Plate'), ('Cable_Routes_Reference', 'Pushrod'),
              ('Cable_Routes_Reference', 'Link_1'), ('Cable_Routes_Reference', 'Column_1'),
              ('Leaflet_1', 'Stop_1'), ('Link_1', 'Valve_Ring'), ('Link_1', 'Stop_1'), ('Link_1', 'Leaflet_1'),
@@ -248,17 +247,12 @@ def assembly_checks(cache_mesh):
         # tornillo del tope: M2 desde arriba, tuerca atrapada en la brida
         sx, sy = __import__('parts').STOP_SCREW
         test(f'Tornillo M2 de latón del tope {i+1}: acceso vertical desde arriba', cyl(0.9, ring_pt(i, sx, sy, -2.0), ring_pt(i, sx, sy, 80)), allowed=(f'Stop_{i+1}', 'Ring_Fasteners_Reference'))
-        # sensor Hall: inserción vertical en su bolsillo desde arriba (con los soportes de sensores montados)
+        # portasensor Hall: se retira y se vuelve a colocar verticalmente sin desarmar
         hx, hy, hz = C.HALL_XYZ
-        test(f'Sensor Hall H{i+1}: inserción vertical desde arriba', cyl(0.6, ring_pt(i, hx, hy, hz), ring_pt(i, hx, hy, 80)), allowed=('Hall_Sensors_Reference', 'Cable_Routes_Reference'))
-        # tornillos de las almohadillas: acceso radial (insertos M2)
-        for s in (-1, 1):
-            Mp = ring @ A.Rz(K.leaf_dir(i) + C.PAD_ANGLE_OFFSET)
-            p0 = (Mp @ np.array([C.PAD_FACE_R - C.M2_INSERT_L, s * C.PAD_SCREW_SPACING / 2, C.PAD_H / 2, 1]))[:3]
-            p1 = (Mp @ np.array([C.PAD_FACE_R + 60, s * C.PAD_SCREW_SPACING / 2, C.PAD_H / 2, 1]))[:3]
-            mount = {0: 'MEMS_Mount', 1: 'Piezo_Mount'}.get(i)
-            allowed = (mount, 'Piezo_Cover') if mount else ()
-            test(f'Tornillo M2 de la almohadilla {i+1}{"ab"[s > 0]}: acceso radial', cyl(0.9, p0, p1), allowed=allowed)
+        test(f'Portasensor H{i+1}: extracción vertical sin desarmar (cuerpo del sensor)', cyl(0.7, ring_pt(i, hx, hy, hz), ring_pt(i, hx, hy, 90)),
+             allowed=(f'Hall_{i+1}', f'Hall_Carrier_{i+1}', 'Cable_Routes_Reference'))
+        test(f'Portasensor H{i+1}: extracción vertical sin desarmar (lomo)', cyl(0.7, ring_pt(i, C.HALL_POCKET_BACK - 0.9, hy, hz), ring_pt(i, C.HALL_POCKET_BACK - 0.9, hy, 90)),
+             allowed=(f'Hall_{i+1}', f'Hall_Carrier_{i+1}', 'Cable_Routes_Reference'))
         # pasador de latón cola–biela: agujeros alineados (cola Ø{TAIL_PIN_HOLE}, biela Ø{LINK_HOLE})
         tx, tz = K.tail_end(0.0)
         test(f'Pasador Ø2 cola–biela de la valva {i+1}: agujeros alineados', cyl(0.8, ring_pt(i, tx, C.TAIL_Y[0] + 0.5, tz), ring_pt(i, tx, C.LINK_Y[1] + 0.2, tz)), allowed=(f'Tail_Pin_{i+1}',))
@@ -290,12 +284,6 @@ def assembly_checks(cache_mesh):
         x = A.VX + L['body_cx'] + s * C.SERVO.tab_hole_spacing / 2
         y = A.VY + L['y_of_h'](C.SERVO.tab_h + C.SERVO.tab_t)
         test(f'Tornillo M2 oreja {"izq der".split()[s > 0]} del servo: acceso con destornillador', cyl(1.2, (x, y + 0.5, A.ZS), (x, y - 60, A.ZS)), allowed=('Servo_MG90S_Reference', 'Servo_Mount'))
-    # P2: tornillos M2 hacia la almohadilla del soporte del servo (+y)
-    M2f = A.p2_frame()
-    for s in (-1, 1):
-        p0 = (M2f @ np.array([C.PAD_FACE_R - C.M2_INSERT_L, s * C.PAD_SCREW_SPACING / 2, C.PAD_H / 2, 1]))[:3]
-        p1 = (M2f @ np.array([C.PAD_FACE_R + 60, s * C.PAD_SCREW_SPACING / 2, C.PAD_H / 2, 1]))[:3]
-        test(f'Tornillo M2 de la almohadilla P2{"ab"[s > 0]}: acceso', cyl(0.9, p0, p1), allowed=('Piezo_Mount_P2', 'Piezo_Cover_P2', 'Servo_Mount'))
     # soporte del micrófono: tornillos M3 verticales por la ranura
     for k, (x, y) in enumerate(A.stand_insert_xy()):
         test(f'Tornillo M3 {k+1} del soporte M1: acceso vertical', cyl(1.4, (x, y, C.BASE_T - C.M3_INSERT_L), (x, y, C.BASE_T + 80)), allowed=('MEMS_Stand', 'Base'))
@@ -349,7 +337,7 @@ def horn_table(force_N):
         z_ring = A.ZS - shaft_z
         tilt = max(abs(math.degrees(math.asin((xc + r * math.cos(math.radians(b))) / C.PUSHROD_L))) for b in np.linspace(-sw, sw, 41))
         out.append({'horn_r_mm': r, 'valido': True, 'barrido_deg': round(sw, 1), 'comando_deg': [round(90 - sw, 1), round(90 + sw, 1)],
-                    'columna_mm': round(z_ring - C.BASE_T - C.SPACER_T, 2), 'inclinacion_max_empujador_deg': round(tilt, 1),
+                    'columna_mm': round(z_ring - C.BASE_T, 2), 'inclinacion_max_empujador_deg': round(tilt, 1),
                     'par_kgcm': round(force_N * r * 1e-3 * 100 / 9.81, 3)})
     return out
 
@@ -362,8 +350,58 @@ def plate_binding():
         res[f'nota_mu_{mu}'] = txt
     res['lectura'] = (f'Con cargas simétricas (3 valvas iguales) la resultante pasa por el centro: sin riesgo. Si UNA valva se traba, la resultante '
                       f'se desplaza hasta ≈ {C.LINK_PIN_X} mm: supera {res["limite_mm_mu_0.35"]} mm en seco (puede trabarse el plato) y queda por debajo de '
-                      f'{res["limite_mm_mu_0.15"]} mm lubricado. Lubricar y dejar activa la detección de atasco (H0) del firmware.')
+                      f'{res["limite_mm_mu_0.15"]} mm lubricado. Lubricar y dejar activa la detección de falta de movimiento (Hall de las valvas) del firmware.')
     return res
+
+def beta_for_theta(theta):
+    """Posición de la palanca que lleva a las valvas (modo normal) al ángulo θ (θ fuera del recorrido → extremo)."""
+    zp = K.zp_rigid(max(0.0, min(80.0, theta)), C.LINK_L)
+    return K.servo_from_zp(zp)
+
+
+def gauge_checks(cache_mesh):
+    """Cada galga (montada en la valva 1): con la valva 0,3° por debajo de su ángulo no toca nada; con la valva 0,7° por encima,
+    la valva la penetra (es decir, la galga detiene la valva en su ángulo). Además no toca otras piezas en ese estado."""
+    out = []
+    names = instance_meshes('NORMAL')
+    for a in C.CALIB_ANGLES:
+        g = mtf(to_manifold(cache_mesh.get(f'Calib_Gauge_{a:02d}') or load(f'Calib_Gauge_{a:02d}')), A.RING @ A.Rz(K.leaf_dir(0)))
+        res = {'angulo': a}
+        for tag, dth in (('debajo', -0.3), ('encima', 0.7)):
+            th = a + dth
+            tf = A.pose_transforms(beta_for_theta(th), 'NORMAL', manual_theta=[th, max(0.0, min(80.0, th)), max(0.0, min(80.0, th))])
+            hits = {}
+            for inst, nm in names.items():
+                bb = None
+                m = mtf(to_manifold(cache_mesh.get(nm) or load(nm)), tf[inst])
+                v = (g ^ m).volume()
+                if v > CONTACT_TOL:
+                    hits[inst] = round(v, 3)
+            res[tag] = hits
+        res['ok'] = (not res['debajo']) and ('Leaflet_1' in res['encima']) and set(res['encima']) <= {'Leaflet_1'}
+        out.append(res)
+    return out
+
+
+def drive_checks():
+    """Ángulo entre palanca y empujador en todo el recorrido (lejos de 0°/180° = sin punto muerto) y velocidad pedida al servo."""
+    worst = 180.0
+    for b in np.linspace(-K.SWEEP, K.SWEEP, 81):
+        qx, qz = K.crank(b)
+        crank_v = np.array([qx - K.CRANK_XC, qz - K.SHAFT_Z])
+        zp = K.zp_from_servo(b)
+        kz = zp - C.PLATE_TAB_PIN_Z + C.CLEVIS_PIN_Z
+        rod_v = np.array([0 - qx, kz - qz])
+        ang = math.degrees(math.acos(np.dot(crank_v, rod_v) / np.linalg.norm(crank_v) / np.linalg.norm(rod_v)))
+        worst = min(worst, ang, 180 - ang)
+    rows = []
+    for t_ms in (400, 800, 1500):
+        peak = math.pi / 2 * (2 * K.SWEEP) / (t_ms / 1000.0)        # perfil coseno: velocidad máxima = π/2 · Δ/t
+        rows.append({'t_apertura_ms': t_ms, 'vel_pico_deg_s': round(peak, 0), 'MG90S_sin_carga_deg_s_no_verificado': 600,
+                     'margen_x': round(600 / peak, 1)})
+    return {'margen_punto_muerto_deg': round(worst, 1), 'velocidades': rows,
+            'nota': 'Velocidad del MG90S según distribuidores (0,1 s/60° a 4,8 V sin carga): NO verificada. Comenzar con t_apertura ≥ 1500 ms.'}
+
 
 def main():
     t0 = time.time()
@@ -378,6 +416,8 @@ def main():
     res['servo'] = servo_load(masses)
     res['horn_table'] = horn_table(res['servo']['force_N'])
     res['plate_binding'] = plate_binding()
+    print('· galgas de calibración'); res['gauges'] = gauge_checks(cache)
+    res['drive'] = drive_checks()
     # cinemática tabulada
     kin = {}
     for mode in K.MODES:
@@ -399,6 +439,8 @@ def main():
     print('montaje fallido:', [c for c in res['assembly'] if not c['ok']])
     print('holgura mínima:', min(v['min_mm'] for v in res['clearance'].values()))
     print('servo:', res['servo'])
+    print('galgas:', [(g['angulo'], g['ok'], list(g['debajo']), list(g['encima'])) for g in res['gauges']])
+    print('accionamiento:', res['drive'])
     print(f'Total {time.time() - t0:.0f} s')
 
 if __name__ == '__main__':

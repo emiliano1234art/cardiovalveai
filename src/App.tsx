@@ -42,7 +42,7 @@ export default function App() {
         <footer className="footer">
           <div className="container">
             <span>
-              <b style={{ color: 'var(--text-2)' }}>CardioVal AI</b> · Proyecto universitario — Ingeniería Biomédica + Kinesiología
+              <b style={{ color: 'var(--text-2)' }}>CardioValveAI</b> · Proyecto universitario — Ingeniería Biomédica + Kinesiología
             </span>
             <span>Herramienta experimental de investigación · no es un dispositivo médico ni entrega diagnósticos.</span>
           </div>

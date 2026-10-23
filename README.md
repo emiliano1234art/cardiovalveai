@@ -1,4 +1,4 @@
-# CardioVal AI
+# CardioValveAI
 
 **Tecnología e inteligencia artificial para explorar el funcionamiento valvular y su relación con la rehabilitación cardiovascular.**
 
@@ -10,15 +10,22 @@ Una misma aplicación con **dos modos conectados** (menú superior **Presentaci�
 1. **Presentación interactiva oficial** (por defecto, `#/`): portada + 10 pantallas + bibliografía.
 2. **Dashboard experimental / laboratorio interactivo** (`#/dashboard`): válvula 3D trivalva, ECG, vibración, sonido, IA, paciente simulado e historial; conexión opcional al ESP32.
 
-> Nombre oficial visible: **CardioVal AI**. La dirección del repositorio (`cardiovalveai`), la URL de GitHub Pages y algunos nombres internos de archivos e identificadores (`ValveSense_*.html`, `useValveSense`, …) se mantienen a propósito para no romper enlaces ni configuraciones.
+> Nombre oficial visible: **CardioValveAI**. La dirección del repositorio (`cardiovalveai`), la URL de GitHub Pages y algunos nombres internos de archivos e identificadores (`ValveSense_*.html`, `useValveSense`, …) se mantienen a propósito para no romper enlaces ni configuraciones.
 
 > ⚠️ Prototipo académico. No es un dispositivo médico, no es una prótesis implantable y no entrega diagnósticos. Cada elemento indica su estado: **IMPLEMENTADO**, **SIMULADO**, **EXPERIMENTO**, **PROPUESTO** o **VISIÓN FUTURA**.
 
 ---
 
-## Diseño mecánico para impresión 3D (v1)
+## Banco experimental para impresión 3D (revisión v3)
 
-Modelo fabricable del prototipo (un solo servo MG90S → plato actuador → 3 bielas → 3 valvas, con piezo, MEMS y ESP32): STL listos para imprimir, STEP editables, ensamblaje, escena de Blender con animación, guías de ensamblaje e impresión, lista de materiales e informe de validación en **`entrega/CardioValAI_Modelo_Final_STL.zip`**. Código CAD paramétrico en [`hardware/`](hardware/README.md).
+Banco con **un solo servo → plato actuador → 3 bielas → 3 valvas**, sin fluido, con **un par sensor Hall–imán por valva** (posición real de cada valva), micrófono INMP441
+como señal complementaria y ESP32 DevKit V1. Incluye STL individuales, STEP, ensamblaje, escena de Blender 4.5 LTS con animación, galgas de calibración angular, firmware de
+adquisición (compila; **no probado en hardware**), herramientas para Mac, esquemas, guías y plan de ensayos en
+**`entrega/CardioValveAI_v3_Modelo_y_Adquisicion.zip`**. Código fuente en [`hardware/`](hardware/README.md).
+Las entregas anteriores se conservan sin cambios (`entrega/CardioValAI_Modelo_Final_STL.zip`, `entrega/CardioValAI_v2_Modelo_y_Adquisicion.zip`).
+
+> La presentación y el laboratorio web conservan contenidos de etapas anteriores (piezoeléctrico, ECG simulado) que **no** forman parte del banco v3; el ECG queda para una
+> etapa separada.
 
 ## La válvula: aórtica TRIVALVA
 
@@ -33,7 +40,7 @@ El modelo es una **válvula aórtica de tres valvas semilunares** (≈ 120° ent
 | # | Pantalla (ruta) | Elemento protagonista |
 |---|---|---|
 | — | Portada (`#/cover`) | válvula aórtica 3D abriéndose lentamente · CARDIOVALVEAI · integrantes, profesor asesor y UDD · «Comenzar presentación →» |
-| 1 | ¿Qué es CardioVal AI? (`#/que-es`) | Válvula → Sensores → IA y flujo animado Válvula → Piezo/MEMS → ESP32 → Análisis → Dashboard |
+| 1 | ¿Qué es CardioValveAI? (`#/que-es`) | Válvula → Sensores → IA y flujo animado Válvula → Piezo/MEMS → ESP32 → Análisis → Dashboard |
 | 2 | Wicked problem (`#/problema`) | pregunta del problema, corazón · prótesis · señales · rehabilitación, flujo Problema → Necesidad → Propuesta y «¿Por qué es un wicked problem?» (Rittel y Webber, 1973) |
 | 3 | Integración interdisciplinaria (`#/interdisciplina`) | diagrama conectado Biomedicina ↔ aportes conjuntos ↔ Kinesiología (seleccionable) |
 | 4 | Materiales (`#/materiales`) | 10 tarjetas ilustradas; al tocarlas: qué es, para qué sirve, dónde se ubica y cómo participa |

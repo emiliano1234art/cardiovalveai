@@ -1,8 +1,7 @@
 """
-CardioVal AI v2 — diseño de la MEDICIÓN DE POSICIÓN (cálculo, no medición).
+CardioValveAI — diseño de la MEDICIÓN DE POSICIÓN (cálculo, no medición).
 
 Valvas (H1–H3): imán cilíndrico en la cola de cada valva + sensor Hall lineal fijo en el anillo.
-Plato (H0): imán en el plato + sensor Hall fijo sobre él (mide la carrera real del accionamiento).
 
 Modelo: imán cilíndrico magnetizado axialmente, discretizado en dipolos puntuales
 (suma de N subvolúmenes). Es una aproximación de campo lejano por subvolumen; sirve para
@@ -102,75 +101,113 @@ def search_leaflet(y_sensor_options=(-6.6, -7.2), z_max=15.5, axes=('x', 'y', 'z
     best.sort(key=lambda b: -b[0])
     return [b[1] for b in best[:8]]
 
-# ───────────────────────────── H0: imán en el plato ─────────────────────────────
+# ───────────────────────────── sensores candidatos (VERIFICAR con el componente real) ─────────────────────────────
+# s_mV_mT: sensibilidad en el pin de salida a la alimentación indicada; vq: salida sin campo; v_lo/v_hi: rango lineal de salida;
+# k_div: divisor resistivo hasta el ADC (salidas de 5 V NUNCA directo al ESP32). Fuentes en la documentación (05).
+SENSORS = {
+    'DRV5055A1 @3,3 V': dict(s=66.0, vq=1.65, v_lo=0.2, v_hi=3.1, k_div=1.0, b_max=21.0, nota='100 mV/mT a 5 V (TI); 66 a 3,3 V supone salida ratiométrica: VERIFICAR'),
+    'DRV5055A2 @3,3 V': dict(s=33.0, vq=1.65, v_lo=0.2, v_hi=3.1, k_div=1.0, b_max=42.0, nota='50 mV/mT a 5 V (TI); ratiométrica: VERIFICAR'),
+    'DRV5055A3 @3,3 V': dict(s=16.5, vq=1.65, v_lo=0.2, v_hi=3.1, k_div=1.0, b_max=85.0, nota='25 mV/mT a 5 V (TI): VERIFICAR'),
+    'SS49E @3,3 V': dict(s=9.2, vq=1.65, v_lo=0.95, v_hi=2.35, k_div=1.0, b_max=100.0, nota='1,4 mV/G a 5 V (distribuidores); escalado a 3,3 V NO confirmado'),
+    'SS49E/49E @5 V + divisor 0,6': dict(s=14.0 * 0.6, vq=2.5 * 0.6, v_lo=0.95 * 0.6, v_hi=4.05 * 0.6, k_div=0.6, b_max=100.0, nota='salida de 5 V reducida con divisor 20k/30k antes del ADC'),
+}
+NOISE_MV = 1.0          # ruido efectivo supuesto en el ADC tras promediar 8 muestras (se MIDE en el ensayo 6)
+RES_LIMIT_DEG = 1.0     # criterio propuesto: incertidumbre angular (2σ/pendiente) ≤ 1° en 0–80°
 
-def plate_response(gap_closed, mag=(6.0, 3.0)):
-    """Imán axial (eje z) en el plato; sensor fijo encima, en el eje. Campo B_z vs desplazamiento del plato."""
-    P0, M = magnet_points(*mag)
-    # reorientar el cilindro: eje local y → z
-    P0 = P0[:, [0, 2, 1]]
-    travel = np.linspace(0, K.STROKE, 60)
-    Bz = []
-    for d in travel:
-        c = np.array([0.0, 0.0, -(gap_closed + d) - mag[1] / 2])
-        pts = P0 + c
-        mv = np.zeros_like(pts); mv[:, 2] = M
-        Bz.append(field(np.zeros(3), pts, mv)[2])
-    return travel, np.array(Bz)
 
-# ───────────────────────────── diseño elegido (v2) ─────────────────────────────
-# Marco local de la valva (ver kinematics.py). Elemento Hall del TO-92 en el centro del cuerpo (aprox.).
-HALL_LEAF = dict(x=26.8, y=-8.0, z=13.5, axis='x', s=4.0, mag=(4.0, 2.0))
-HALL_PLATE = dict(r=20.0, gap_closed=4.0, mag=(3.0, 2.0))
-DRV5055 = {'A1': 60.0, 'A2': 30.0}   # mV/mT a VCC = 3,3 V (hoja de datos TI DRV5055, tabla de sensibilidad)
+def sensor_eval(thetas, B, name):
+    """Salida, saturación y resolución angular estimada de un sensor candidato para la curva B(θ) (mT, signo físico)."""
+    p = SENSORS[name]
+    # el imán se orienta para que la salida BAJE con el campo (más margen hasta el rango lineal inferior)
+    v = p['vq'] - np.abs(B) * p['s'] / 1000.0
+    sat = bool(np.any(v < p['v_lo']) or np.any(np.abs(B) > p['b_max']))
+    sel = (thetas >= 0) & (thetas <= 80)
+    dv = np.abs(np.gradient(v, thetas))[sel] * 1000.0          # mV/°
+    res = 2 * NOISE_MV / np.maximum(dv, 1e-9)
+    mono = bool(np.all(np.diff(v[sel]) < 0) or np.all(np.diff(v[sel]) > 0))
+    worst = float(np.max(res))
+    return {'sensor': name, 'v_cerrada_V': round(float(v[np.argmin(abs(thetas))]), 3), 'v_80_V': round(float(v[np.argmin(abs(thetas - 80))]), 3),
+            'satura': sat, 'monotona': mono, 'pendiente_min_mV_por_grado': round(float(dv.min()), 2),
+            'incertidumbre_max_deg': round(worst, 2), 'theta_peor': float(thetas[sel][int(np.argmax(res))]),
+            'cumple_criterio': (not sat) and mono and worst <= RES_LIMIT_DEG, 'nota': p['nota']}
+
+
+def neighbor_crosstalk(h=None):
+    """Campo (mT) que los imanes de las OTRAS dos valvas producen en el Hall de la valva 1 (eje sensible x local)
+    cuando se mueven entre 0° y 84° de forma independiente (modos asimétricos). Marco del anillo."""
+    h = h or HALL_LEAF
+    sensor_local = np.array([h['x'], h['y'], h['z']])
+    P0, M = magnet_points(*h['mag'])
+    yc = C.TAIL_Y[0] + h['mag'][1] / 2
+    vals = []
+    for j in (1, 2):
+        ang = 120.0 * j * D2R
+        Rz = np.array([[math.cos(ang), -math.sin(ang), 0], [math.sin(ang), math.cos(ang), 0], [0, 0, 1]])
+        out = []
+        for th in np.linspace(0, 84, 43):
+            c = tail_magnet_center(th, h['s'], yc)
+            pts = (P0 + c) @ Rz.T
+            mv = np.zeros_like(pts); mv[:, 1] = -M
+            mv = mv @ Rz.T
+            out.append(field(sensor_local, pts, mv)[0])
+        vals.append(np.array(out))
+    span = sum(float(v.max() - v.min()) for v in vals)
+    return {'variacion_por_vecinas_mT': round(span, 4), 'por_vecina_mT': [round(float(v.max() - v.min()), 4) for v in vals]}
+
+
+def servo_stray(dist_mm, moments=(0.005, 0.05)):
+    """Campo del imán del motor del servo como dipolo (momento SUPUESTO, A·m²) a la distancia dada: orden de magnitud."""
+    r = dist_mm * 1e-3
+    return [round(MU0_4PI * 2 * m / r ** 3 * 1e3, 4) for m in moments]
+
+
+def magnet_mass_g(d, h, rho=7.5):
+    return math.pi * (d / 20) ** 2 * (h / 10) * rho
+
+
+# ───────────────────────────── diseño elegido (v3) ─────────────────────────────
+HALL_LEAF = dict(x=C.HALL_XYZ[0], y=C.HALL_XYZ[1], z=C.HALL_XYZ[2], axis='x', s=C.MAG_LEAF_S, mag=C.MAG_LEAF)
+
 
 def final_design():
     h = HALL_LEAF
-    sensor = np.array([h['x'], h['y'], h['z']])
-    th = np.array([-2, 0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 84], float)
-    _, B = leaflet_response(sensor, 'xyz'.index(h['axis']), h['s'], h['mag'], thetas=th)
-    thf, Bf = leaflet_response(sensor, 'xyz'.index(h['axis']), h['s'], h['mag'])
-    sc = score(thf, Bf)
-    slope = np.gradient(Bf, thf)
-    rows = []
-    for t, b in zip(th, B):
-        k = int(np.argmin(abs(thf - t)))
-        rows.append({'theta_deg': float(t), 'B_mT': round(float(b), 3), 'V_out_A1_V': round(1.65 - abs(float(b)) * DRV5055['A1'] / 1000, 3),
-                     'slope_mV_per_deg': round(abs(float(slope[k])) * DRV5055['A1'], 2)})
-    # tolerancia de montaje ±0,5 mm
+    thf = np.linspace(-4, 86, 361)
+    out = {'iman': {'medidas_mm': list(h['mag']), 'masa_g': round(magnet_mass_g(*h['mag']), 3), 's_mm': h['s']}, 'variantes': {}}
+    for off in C.HALL_OFFSETS:
+        sensor = np.array([h['x'] + off, h['y'], h['z']])
+        _, B = leaflet_response(sensor, 0, h['s'], h['mag'], thetas=thf)
+        out['variantes'][f'{off:.2f}'] = {'B_cerrada_mT': round(float(abs(B[np.argmin(abs(thf))])), 2), 'B_80_mT': round(float(abs(B[np.argmin(abs(thf - 80))])), 2),
+                                          'sensores': [sensor_eval(thf, B, n) for n in SENSORS]}
+        if off == 0.0:
+            tab = []
+            for t in (-2, 0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 84):
+                k = int(np.argmin(abs(thf - t)))
+                tab.append({'theta_deg': t, 'B_mT': round(float(abs(B[k])), 3)})
+            out['tabla_B'] = tab
+            sc = score(thf, B)
+            out['resumen'] = {k: (round(v, 4) if isinstance(v, float) else v) for k, v in sc.items()}
     tol = {}
     for name, d in (('x+0.5', (0.5, 0, 0)), ('x-0.5', (-0.5, 0, 0)), ('y-0.5', (0, -0.5, 0)), ('z+0.5', (0, 0, 0.5)), ('z-0.5', (0, 0, -0.5))):
-        t2, B2 = leaflet_response(sensor + np.array(d), 'xyz'.index(h['axis']), h['s'], h['mag'])
+        t2, B2 = leaflet_response(np.array([h['x'], h['y'], h['z']]) + np.array(d), 0, h['s'], h['mag'], thetas=thf)
         s2 = score(t2, B2)
-        tol[name] = {'monotonic': s2['monotonic'], 'min_slope_mV_per_deg': round(s2['min_slope_mV_per_deg'], 2), 'max_abs_mT': round(s2['max_abs_mT'], 2)}
-    tr, Bz = plate_response(HALL_PLATE['gap_closed'], HALL_PLATE['mag'])
-    plate = {'travel_mm': [round(float(x), 2) for x in tr[::6]], 'Bz_mT': [round(float(x), 2) for x in Bz[::6]],
-             'monotonic': bool(np.all(np.diff(Bz) < 0)), 'min_slope_mV_per_mm_A2': round(float(np.min(np.abs(np.diff(Bz) / np.diff(tr)))) * DRV5055['A2'], 1)}
-    # diafonía: imán del plato visto por el Hall de la valva (peor caso: plato arriba)
-    P0, M = magnet_points(*HALL_PLATE['mag']); P0 = P0[:, [0, 2, 1]]
-    xt = []
-    for zp in (K.Z_TOP, K.Z_BOT):
-        top = zp - C.PLATE_TAB_PIN_Z + C.PLATE_T
-        for ang in (60.0, -60.0):   # imán en un lóbulo de comisura (a ±60° de la valva)
-            c = np.array([HALL_PLATE['r'] * math.cos(ang * D2R), HALL_PLATE['r'] * math.sin(ang * D2R), top - HALL_PLATE['mag'][1] / 2])
-            mv = np.zeros_like(P0); mv[:, 2] = M
-            xt.append(abs(field(sensor, P0 + c, mv)[0]) * DRV5055['A1'])
-    return {'leaflet_sensor': h, 'summary': {k: (round(v, 3) if isinstance(v, float) else v) for k, v in sc.items()}, 'table': rows,
-            'mount_tolerance': tol, 'plate': plate, 'plate_to_leaf_crosstalk_mV_max': round(max(xt), 2)}
+        tol[name] = {'monotonic': s2['monotonic'], 'min_slope_mT_per_deg': round(s2['min_slope_mT_per_deg'], 4), 'max_abs_mT': round(s2['max_abs_mT'], 2)}
+    out['tolerancia_montaje'] = tol
+    out['diafonia_vecinas'] = neighbor_crosstalk()
+    out['servo_campo_mT_a_57mm_momento_0.005_0.05'] = servo_stray(57.0)
+    return out
+
 
 if __name__ == '__main__':
     import sys
     if '--search' in sys.argv:
-        # TO-92 (DRV5055A1QLPG): cuerpo ≈ 4,0 × 3,05 × 1,55 mm; elemento Hall cerca del centro.
-        # Centro en y = −8,0 (pared de 0,65 mm hacia la ranura en y = −5,3); z ≤ 14,45 deja el
-        # cuerpo bajo la cara superior del anillo (z = 16) con las patas saliendo hacia arriba.
         res = search_leaflet(y_sensor_options=(-8.0,), z_max=14.45, axes=('x',))
         for r in res[:5]:
             print(r)
-        json.dump({'leaflet_candidates': res}, open(os.path.join(os.path.dirname(__file__), '..', 'out_v2', '_canon', 'sensing_search.json'), 'w'), indent=1)
     d = final_design()
-    print(json.dumps(d['summary']), '\n', json.dumps(d['mount_tolerance']), '\n', json.dumps(d['plate']), '\n xtalk', d['plate_to_leaf_crosstalk_mV_max'])
-    for r in d['table']:
-        print(r)
-    os.makedirs(os.path.join(os.path.dirname(__file__), '..', 'out_v2', '_canon'), exist_ok=True)
-    json.dump(d, open(os.path.join(os.path.dirname(__file__), '..', 'out_v2', '_canon', 'sensing_design.json'), 'w'), indent=1)
+    os.makedirs(os.path.join(os.path.dirname(__file__), '..', C.OUT_DIR, '_canon'), exist_ok=True)
+    json.dump(d, open(os.path.join(os.path.dirname(__file__), '..', C.OUT_DIR, '_canon', 'sensing_design.json'), 'w'), indent=1, ensure_ascii=False)
+    for off, v in d['variantes'].items():
+        print('desplazamiento', off, 'B', v['B_cerrada_mT'], '→', v['B_80_mT'])
+        for e in v['sensores']:
+            print('   ', e['sensor'], 'satura' if e['satura'] else '', 'mono' if e['monotona'] else 'NO MONÓTONA', e['pendiente_min_mV_por_grado'], 'mV/°  peor', e['incertidumbre_max_deg'], '° a', e['theta_peor'], '°', 'OK' if e['cumple_criterio'] else 'NO CUMPLE')
+    print(json.dumps({k: d[k] for k in ('iman', 'diafonia_vecinas', 'servo_campo_mT_a_57mm_momento_0.005_0.05')}, ensure_ascii=False))

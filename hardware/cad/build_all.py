@@ -1,10 +1,10 @@
 """
-Genera TODO el paquete de CardioVal AI:
-  out/CardioValAI_STL/*.stl              piezas imprimibles, ya orientadas para la cama
-  out/CardioValAI_STEP/*.step            sólidos B-rep editables (marco de ensamblaje)
-  out/CardioValAI_Assembly.step          ensamblaje completo (válvula cerrada)
-  out/Referencia_NO_IMPRIMIR/*.stl       servo, horn, ESP32, MEMS, piezo, ejes
-  out/_canon/*.stl                       mallas en marco canónico (verificación y animación)
+Genera los sólidos de CardioValveAI (revisión y carpeta de salida en config.py: REVISION, PREFIX, OUT_DIR):
+  out_v3/CardioValveAI_v3_STL/*.stl              piezas imprimibles, ya orientadas para la cama
+  out_v3/CardioValveAI_v3_STEP/*.step            sólidos B-rep editables (marco de ensamblaje)
+  out_v3/CardioValveAI_v3_Assembly_Cerrada.step  ensamblaje completo (válvula cerrada)
+  out_v3/Referencia_NO_IMPRIMIR/*.stl            servo, horn, ESP32, INMP441, sensores Hall, imanes, ejes, cables
+  out_v3/_canon/*.stl                            mallas en marco canónico (verificación y animación)
 
 Uso:  python build_all.py
 """
