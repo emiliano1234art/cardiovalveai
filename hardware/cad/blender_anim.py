@@ -134,7 +134,7 @@ def camera_for(seg):
         return c + np.array([95, -100, 45]), c + np.array([-20, 15, -20]), 38
     if seg == 'hall':
         h = A.ring_local(0, *C.HALL_XYZ)
-        return np.array(h) + np.array([-20, -75, 45]), np.array(h) + np.array([-3, 0, -2]), 50
+        return np.array(h) + np.array([45, 85, 55]), np.array(h) + np.array([-4, -8, -4]), 45
     if seg == 'cables':
         return np.array([VX + 150, VY - 260, ZR + 190]), np.array([VX + 35, VY - 10, 15]), 34
     return np.array([VX + 185, VY - 175, ZR + 25]), np.array([VX, VY, ZR - 28]), 40
