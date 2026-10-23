@@ -19,7 +19,7 @@ import config as C          # noqa: E402
 import kinematics as K      # noqa: E402
 import assembly as A        # noqa: E402
 import blender_anim as BA   # noqa: E402
-import make_docs_v2 as D    # noqa: E402
+import make_docs_v3 as D    # noqa: E402
 import parts as P           # noqa: E402
 
 OUT = os.path.join(BA.OUT, 'Vistas')
@@ -81,7 +81,7 @@ def main():
     sc, objs, cam = BA.build_scene()
     sc.render.resolution_x, sc.render.resolution_y = 1600, 1000
     sc.display.render_aa = '8'
-    co = D.sensor_coords()
+    co = {r['id']: {'global': tuple(r['xyz'])} for r in D.sensor_coords()}
     lab = lambda k, off: (f"{k}  {D.P3(co[k]['global'])}", co[k]['global'], off)
     VX, VY, ZR = A.VX, A.VY, A.Z_RING
     hide_gauge = ('Calib_Gauge_40', 'Link_1_LostMotion', 'Link_1_LostMotion_IC', 'Stop_1_60')
@@ -101,22 +101,21 @@ def main():
             th = K.pose(beta, 'NORMAL')['leaves'][i]['theta']
             magw = A.pose_transforms(beta, 'NORMAL')[f'Leaflet_{i+1}'] @ np.array([mx, C.TAIL_Y[0] + 1.0, mz, 1.0])
             render(sc, f'Vista_Hall_Iman_Valva{i+1}_{tag}.png',
-                   [lab(f'H{i+1}', (60, -90)), (f'imán Ø{C.MAG_LEAF[0]:.0f}×{C.MAG_LEAF[1]:.0f} (θ = {th:.0f}°)  {D.P3(magw[:3])}', tuple(magw[:3]), (-560, 90))],
+                   [lab(f'H{i+1}', (60, -90)), (f'imán Ø{C.MAG_LEAF[0]:.0f}×{C.MAG_LEAF[1]:.0f} (θ = {int(round(th))}°)  {D.P3(magw[:3])}', tuple(magw[:3]), (-560, 90))],
                    f'Valva {i+1} · pareja Hall–imán · válvula {tag} (transparencia) · sensor fijo en el portasensor, imán en la cola', xray=True, hide=hide_gauge)
     pose(objs, K.SWEEP)
     tf = A.pose_transforms(K.SWEEP, 'NORMAL')
-    for i in range(3):
-        objs[f'Hall_Carrier_{i+1}'].matrix_world = Matrix((A.T(0, 0, 28) @ tf[f'Hall_Carrier_{i+1}']).tolist())
-        objs[f'Hall_{i+1}'].matrix_world = Matrix((A.T(0, 0, 28) @ tf[f'Hall_{i+1}']).tolist())
+    for name in ('Hall_Carrier_2', 'Hall_2'):          # solo el de la valva 2 (en cuadro); los otros son iguales
+        objs[name].matrix_world = Matrix((A.T(0, 0, 22) @ tf[name]).tolist())
     h = np.array(A.ring_local(1, *C.HALL_XYZ))
-    camera(cam, h + np.array([-70, -95, 80]), h + np.array([0, 0, 12]), lens=45)
+    camera(cam, h + np.array([-85, -110, 95]), h + np.array([0, 0, 14]), lens=42)
     render(sc, 'Vista_Portasensor_Retirado.png', [lab('H2', (60, -60))], 'Portasensor Hall retirado hacia arriba (sin desarmar el mecanismo) · bolsillo con ventana al interior', hide=hide_gauge)
     pose(objs, K.servo_from_zp(K.zp_rigid(40.0, C.LINK_L)))
     objs['Calib_Gauge_40'].matrix_world = Matrix((A.RING @ A.Rz(K.leaf_dir(0))).tolist())
     g = np.array(A.ring_local(0, 22.0, 0.0, 18.0))
-    camera(cam, g + np.array([-120, 15, 45]), g, lens=40)
+    camera(cam, g + np.array([115, 35, 70]), g + np.array([0, 0, -2]), lens=38)
     render(sc, 'Vista_Galga_Calibracion_40.png', [], 'Galga de calibración de 40° sobre la valva 1: la cara superior de la valva la toca exactamente a 40°',
-           hide=('Link_1_LostMotion', 'Link_1_LostMotion_IC', 'Stop_1_60'))
+           hide=('Link_1_LostMotion', 'Link_1_LostMotion_IC', 'Stop_1_60', 'Angle_Scale'))
     pose(objs, K.SWEEP)
     camera(cam, (VX + 250, VY - 300, ZR + 230), (VX + 30, VY - 5, 20), lens=32)
     cab = A.cable_routes()
