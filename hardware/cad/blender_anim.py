@@ -39,9 +39,11 @@ COLORS = {
     # v2
     'Magnet': (0.75, 0.1, 0.12), 'Tail_Pin': (0.82, 0.66, 0.28), 'Hall_Carrier': (0.95, 0.55, 0.1), 'Hall_': (0.05, 0.05, 0.05),
     'Calib_Gauge': (0.55, 0.2, 0.75), 'Cable_Clip': (0.3, 0.32, 0.38),
-    'MEMS_Stand': (0.45, 0.47, 0.55), 'Electronics_Tray': (0.6, 0.65, 0.72), 'Tray_Clamp': (0.45, 0.47, 0.55),
+    'MEMS_Stand': (0.45, 0.47, 0.55), 'Electronics_Tray': (0.6, 0.65, 0.72),
     'Perfboard_ESP32_Reference': (0.1, 0.42, 0.2), 'Cable_Routes_Reference': (0.98, 0.78, 0.1),
-    'Plate_Fasteners_Reference': (0.5, 0.52, 0.56), 'Ring_Fasteners_Reference': (0.82, 0.66, 0.28),
+    'Plate_Fasteners_Reference': (0.82, 0.66, 0.28), 'Ring_Fasteners_Reference': (0.82, 0.66, 0.28),
+    # v3.1: fijaciones impresas (PETG) en verde azulado
+    'Turn_Button': (0.1, 0.55, 0.55), 'Base_Fasteners_Reference': (0.1, 0.55, 0.55), 'Stand_Fasteners_Reference': (0.1, 0.55, 0.55),
 }
 COLORS['Pin'] = (0.82, 0.66, 0.28)      # v2: ejes de latón
 

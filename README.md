@@ -16,13 +16,13 @@ Una misma aplicación con **dos modos conectados** (menú superior **Presentaci�
 
 ---
 
-## Banco experimental para impresión 3D (revisión v3)
+## Banco experimental para impresión 3D (revisión v3.1)
 
 Banco con **un solo servo → plato actuador → 3 bielas → 3 valvas**, sin fluido, con **un par sensor Hall–imán por valva** (posición real de cada valva), micrófono INMP441
 como señal complementaria y ESP32 DevKit V1. Incluye STL individuales, STEP, ensamblaje, escena de Blender 4.5 LTS con animación, galgas de calibración angular, firmware de
 adquisición (compila; **no probado en hardware**), herramientas para Mac, esquemas, guías y plan de ensayos en
-**`entrega/CardioValveAI_v3_Modelo_y_Adquisicion.zip`**. Código fuente en [`hardware/`](hardware/README.md).
-Las entregas anteriores se conservan sin cambios (`entrega/CardioValAI_Modelo_Final_STL.zip`, `entrega/CardioValAI_v2_Modelo_y_Adquisicion.zip`).
+**`entrega/CardioValveAI_v3.1_Modelo_y_Adquisicion.zip`** (v3.1: todas las fijaciones impresas o de latón, sin tornillería metálica comprada). Código fuente en [`hardware/`](hardware/README.md).
+Las entregas anteriores se conservan sin cambios (`entrega/CardioValAI_Modelo_Final_STL.zip`, `entrega/CardioValAI_v2_Modelo_y_Adquisicion.zip`, `entrega/CardioValveAI_v3_Modelo_y_Adquisicion.zip`).
 
 > La presentación y el laboratorio web conservan contenidos de etapas anteriores (piezoeléctrico, ECG simulado) que **no** forman parte del banco v3; el ECG queda para una
 > etapa separada.

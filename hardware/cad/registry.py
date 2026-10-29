@@ -7,6 +7,7 @@ import config as C
 import kinematics as K
 import parts as P
 import assembly as A
+import fasteners as FA
 
 def Rx(deg):
     c, s = math.cos(math.radians(deg)), math.sin(math.radians(deg))
@@ -46,8 +47,8 @@ ITEMS: list[Item] = [
     Item('Actuator_Plate', P.actuator_plate, 1, True, np.eye(4), 'Plato actuador (corredera) con bujes, orejetas y horquilla', '40 %', 4, 0.2,
          'Repasar los bujes Ø8,6 con lija y lubricar con grasa de PTFE.', ('Actuator_Plate',)),
     Item('Pushrod', P.pushrod, 1, True, Rx(90), 'Empujador servo → plato', '100 %', 3, 0.2, 'Plano.', ('Pushrod',)),
-    Item('Column', lambda: P.column(A.COLUMN_H), 3, True, np.eye(4), 'Columna guía y soporte del anillo (insertos M3 en ambos extremos)', '40 %', 4, 0.2,
-         'Vertical. Lijar la superficie de deslizamiento (grano 400) y lubricar.', ('Column_1', 'Column_2', 'Column_3')),
+    Item('Column', lambda: P.column(A.COLUMN_H), 3, True, A.T(0, 0, C.BASE_T), 'Columna guía con espárragos M6 impresos: abajo se enrosca en la base, arriba recibe la tuerca moleteada del anillo', '100 %', 4, 0.12,
+         'Vertical, espárrago inferior en la cama (el cono de 45° no lleva soporte). Capa 0,12 mm por las roscas. Lijar la superficie de deslizamiento (grano 400) y lubricar.', ('Column_1', 'Column_2', 'Column_3')),
     Item('Cable_Clip', P.cable_clip, 3, True, np.eye(4), 'Pinza de cables a presión en cada columna (bajo el recorrido del plato)', '100 %', 3, 0.2, '', ('Cable_Clip_1', 'Cable_Clip_2', 'Cable_Clip_3')),
     Item('MEMS_Stand', P.mems_stand, 1, True, np.eye(4), 'Soporte independiente del micrófono M1 (configuración inicial recomendada): ranura radial ±8 mm y pivote de inclinación',
          '40 %', 4, 0.2, 'Pie en la cama.', ('MEMS_Stand',)),
@@ -57,14 +58,25 @@ ITEMS: list[Item] = [
          'Fijar a la base sobre arandelas de goma (antivibración).', ('Servo_Mount',)),
     Item('Electronics_Tray', P.electronics_tray, 1, True, np.eye(4), 'Bandeja de la placa perforada 70×90 (ESP32 en zócalos hembra, antena libre, USB accesible)', '30 %', 3, 0.2,
          'Insertos M3 en los 4 postes.', ('Electronics_Tray',)),
-    Item('Tray_Clamp', P.tray_clamp, 2, True, Rx(180), 'Barra de sujeción de la placa perforada (sin perforar ni flexionar)',
-         '100 %', 3, 0.2, 'Cara superior en la cama.', ('Tray_Clamp_L', 'Tray_Clamp_R')),
+    Item('Turn_Button', FA.turn_button, 5, True, A.T(0, 0, FA.TURN_T) @ Rx(180), 'Pestillo giratorio que sujeta la placa perforada (4 + 1 de repuesto): reemplaza barras y tornillos',
+         '100 %', 3, 0.12, 'Cara superior en la cama, espiga hacia arriba.', ('Turn_Button_1', 'Turn_Button_2', 'Turn_Button_3', 'Turn_Button_4')),
     Item('Angle_Scale', lambda: P.angle_scale(A.Z_RING + C.Z_HINGE - C.BASE_T), 1, True, A.T(0, 0, 0) @ np.array([[0, 0, -1, 0], [0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1]], float),
          'Transportador 0–90° para medir la valva 1 con cámara lateral', '30 %', 3, 0.2, 'Plano; marcas hacia arriba.', ('Angle_Scale',)),
     Item('Base', lambda: P.base([A.column_xy(i) for i in range(3)], A.servo_mount_holes(), A.TRAY_XY, A.SCALE_XY, A.stand_insert_xy(), A.zip_points(), A.base_labels()), 1, True, np.eye(4),
-         'Base modular 200 × 180 mm con insertos M3 y ranuras para bridas', '20 %', 4, 0.2, 'Cabe en camas ≥ 220 × 220 mm. Usar borde (brim) de 5 mm para evitar alabeo.', ('Base',)),
-    Item('Tolerance_Coupon', P.tolerance_coupon, 1, True, np.eye(4), 'Probeta: ejes libres y a presión, pilotos, insertos e imán Ø4', '100 %', 3, 0.2,
-         'Imprimir primero: elegir los diámetros reales que ajustan con los ejes, insertos e imanes comprados.'),
+         'Base modular 200 × 180 mm con roscas M6 impresas y ranuras para bridas', '20 %', 4, 0.2, 'Cabe en camas ≥ 220 × 220 mm. Usar borde (brim) de 5 mm para evitar alabeo.', ('Base',)),
+    Item('Tolerance_Coupon', P.tolerance_coupon, 1, True, np.eye(4), 'Probeta: ejes de latón libres y a presión (también para cabezas y tuercas a presión), pilotos, paso M6, espiga del pestillo e imán Ø4', '100 %', 3, 0.2,
+         'Imprimir primero: elegir los diámetros reales que ajustan con la varilla de latón, los imanes y las piezas impresas.'),
+    # fijaciones impresas (v3.1): nada de tornillería metálica comprada
+    Item('Thread_Coupon', FA.thread_coupon, 1, True, np.eye(4), 'Probeta de roscas M6 impresas (compensación 0,10 / 0,20 / 0,30 mm): se prueba con un perno M6×8',
+         '100 %', 4, 0.12, 'Imprimir junto con un Bolt_M6x8 ANTES que el resto de las fijaciones.'),
+    Item('Bolt_M6x8', FA.bolt, 9, True, A.T(0, 0, C.BOLT_HEAD[1]) @ Rx(180), 'Perno M6×8 impreso, cabeza moleteada: soporte del servo (4), bandeja (2), soporte del micrófono (2) + 1 de repuesto',
+         '100 %', 4, 0.12, 'Vertical, cabeza en la cama. Apretar SOLO con los dedos (la rosca de plástico se barre con herramientas).'),
+    Item('Knurled_Nut_M6', FA.knurled_nut, 4, True, np.eye(4), 'Tuerca M6 moleteada impresa: fija el anillo sobre el espárrago de cada columna (3 + 1)',
+         '100 %', 4, 0.12, 'Plana en la cama. Apretar con los dedos.'),
+    Item('Pin_Head', FA.pin_head, 10, True, np.eye(4), 'Cabeza impresa del pasador de latón Ø2 (8 + 2): topes, bielas, horquilla y pivote del micrófono',
+         '100 %', 2, 0.12, 'Agujero hacia la cama. Se coloca a presión y se fija con una gota de cianoacrilato.'),
+    Item('Push_Nut', FA.push_nut, 10, True, np.eye(4), 'Tuerca hexagonal impresa A PRESIÓN sobre el latón Ø2 (8 + 2): reemplaza las tuercas M2',
+         '100 %', 2, 0.12, 'Plana. Se empuja con un alicate hasta apretar; se saca haciendo palanca.'),
     # referencias (NO imprimir)
     Item('Servo_MG90S_Reference', lambda: P.ref_servo(A.ZS), 1, False, instances=('Servo_MG90S_Reference',), role='Modelo dimensional de referencia del MG90S (VERIFICAR con el servo comprado)'),
     Item('Servo_Horn_Reference', P.ref_horn, 1, False, instances=('Servo_Horn_Reference',), role='Horn de un brazo (referencia; se usa el original del servo)'),
@@ -74,8 +86,10 @@ ITEMS: list[Item] = [
     Item('Tail_Pin_Reference', P.ref_tail_pin, 3, False, instances=('Tail_Pin_1', 'Tail_Pin_2', 'Tail_Pin_3'), role='Pasador de latón Ø2 × 9 cola–biela (a presión en la cola)'),
     Item('Magnet_Leaf_Reference', P.ref_magnet_leaf, 3, False, instances=('Magnet_1', 'Magnet_2', 'Magnet_3'), role='Imán N42 Ø4×2 axial (cola de cada valva)'),
     Item('Hall_Sensor_Reference', P.ref_hall_ring, 3, False, instances=('Hall_1', 'Hall_2', 'Hall_3'), role='Sensor Hall lineal TO-92 (modelo por confirmar; recomendado DRV5055A1QLPG)'),
-    Item('Plate_Fasteners_Reference', P.ref_plate_fasteners, 1, False, instances=('Plate_Fasteners_Reference',), role='Tornillería que se mueve con el plato (M2 + tuercas)'),
-    Item('Ring_Fasteners_Reference', P.ref_ring_fasteners, 1, False, instances=('Ring_Fasteners_Reference',), role='Tornillos de los topes (latón) y de las comisuras'),
+    Item('Plate_Fasteners_Reference', P.ref_plate_fasteners, 1, False, instances=('Plate_Fasteners_Reference',), role='Pasadores de latón Ø2 + cabezas y tuercas impresas que se mueven con el plato'),
+    Item('Ring_Fasteners_Reference', P.ref_ring_fasteners, 1, False, instances=('Ring_Fasteners_Reference',), role='Pasadores de los topes y tuercas moleteadas M6 de las comisuras'),
+    Item('Base_Fasteners_Reference', lambda: P.ref_base_fasteners(A.servo_mount_holes(), A.TRAY_XY), 1, False, instances=('Base_Fasteners_Reference',), role='Pernos M6×8 impresos del servo y de la bandeja'),
+    Item('Stand_Fasteners_Reference', P.ref_stand_fasteners, 1, False, instances=('Stand_Fasteners_Reference',), role='Pernos M6×8 y pasador del pivote del soporte del micrófono'),
     Item('Cable_Routes_Reference', lambda: P.ref_cable_all(), 1, False, instances=('Cable_Routes_Reference',), role='Recorridos de cables (haces Ø3): señales por el sur, servo por el norte'),
 ]
 

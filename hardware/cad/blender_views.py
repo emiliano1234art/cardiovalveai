@@ -1,6 +1,6 @@
 """
 Vistas de ubicación de sensores y recorrido de cables (Blender Workbench + rótulos con Pillow).
-Uso: /opt/bpy45/bin/python blender_views.py   →   out_v2/Vistas/*.png
+Uso: /opt/bpy45/bin/python blender_views.py   →   out_<REVISION>/Vistas/*.png
 Las etiquetas se ubican proyectando la posición 3D real de cada sensor (assembly.py) sobre la imagen.
 """
 from __future__ import annotations
@@ -129,6 +129,48 @@ def main():
     render(sc, 'Vista_M1_Soporte.png', [lab('M1', (50, -70))], 'M1: INMP441 en soporte independiente (ranura radial ±8 mm, pivote) · puerto acústico libre', hide=hide_gauge)
     camera(cam, (C.TRAY_XY[0] + 40, C.TRAY_XY[1] - 140, 190), (C.TRAY_XY[0] + 40, C.TRAY_XY[1] + 50, 10), lens=40)
     render(sc, 'Vista_Bandeja_Electronica.png', [], 'Bandeja: placa perforada 70×90, ESP32 en zócalos (antena hacia −y, USB hacia +y) · NO DEFINITIVA', hide=hide_gauge)
+
+    fastener_views(sc, objs, cam, hide_gauge)
+
+
+def fastener_views(sc, objs, cam, hide_gauge):
+    """v3.1: fijaciones impresas montadas y sueltas."""
+    VX, VY, ZR = A.VX, A.VY, A.Z_RING
+    pose(objs, K.SWEEP)
+    a = (K.leaf_dir(0) + 60) * math.pi / 180
+    nut = np.array([VX + C.COLUMN_R * math.cos(a), VY + C.COLUMN_R * math.sin(a), ZR + C.RING_H + C.POST_H + C.KNURL_NUT[1]])
+    head = np.array(A.ring_local(0, *P.STOP_SCREW, C.RING_H))
+    camera(cam, np.array([VX, VY, ZR]) + np.array([95, -110, 120]), np.array([VX, VY, ZR + 16]), lens=50)
+    render(sc, 'Vista_Fijaciones_Anillo.png', [(f'tuerca moleteada M6 impresa', tuple(nut), (40, -80)), ('cabeza impresa del pasador del tope', tuple(head), (-420, -90))],
+           'Anillo: tuercas M6 moleteadas impresas sobre los espárragos de las columnas · pasadores de latón con cabeza impresa en los topes', hide=hide_gauge)
+    sh = A.servo_mount_holes()
+    camera(cam, (sh[0][0] - 60, sh[0][1] - 120, 140), (sh[0][0] + 20, sh[0][1] + 15, C.BASE_T + 4), lens=45)
+    render(sc, 'Vista_Fijaciones_Servo.png', [(f'perno M6×8 impreso {k+1}', (x, y, C.BASE_T + 3 + C.BOLT_HEAD[1]), (30, -40 - 26 * k)) for k, (x, y) in enumerate(sh)],
+           'Soporte del servo: 4 pernos M6×8 impresos (cabeza moleteada, se aprietan con los dedos) fuera de la huella del servo', hide=hide_gauge)
+    # fijaciones sueltas (STL imprimibles en su marco canónico), en fila, lejos del banco
+    items = [('Bolt_M6x8', 'Perno M6×8 · 9'), ('Knurled_Nut_M6', 'Tuerca moleteada M6 · 4'), ('Pin_Head', 'Cabeza de pasador · 10'),
+             ('Push_Nut', 'Tuerca a presión · 10'), ('Turn_Button', 'Pestillo · 5'), ('Thread_Coupon', 'Probeta de roscas · 1')]
+    x0, y0 = -400.0, -400.0
+    labels, xs = [], x0
+    for name, txt in items:
+        o = bpy.data.objects.new(f'Suelta_{name}', BA.mesh_from_stl(name))
+        o.color = (0.1, 0.55, 0.55, 1.0)
+        sc.collection.objects.link(o)
+        bb = np.array(o.bound_box)
+        w = bb[:, 0].max() - bb[:, 0].min()
+        o.location = (xs - bb[:, 0].min(), y0, 0.0)
+        labels.append((txt, (xs + w / 2, y0, bb[:, 2].min()), (-60, 70)))
+        xs += w + 9.0
+    pin = bpy.data.objects.new('Suelta_Pasador', bpy.data.meshes.new('pasador'))
+    import bmesh
+    bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=True, segments=24, radius1=1.0, radius2=1.0, depth=18.0); bm.to_mesh(pin.data); bm.free()
+    pin.color = (0.82, 0.66, 0.28, 1.0); sc.collection.objects.link(pin)
+    pin.location = (xs + 2, y0, 9.0)
+    labels.append(('Pasador de latón Ø2 (varilla cortada)', (xs + 2, y0, 0.0), (-160, 110)))
+    xm = (x0 + xs) / 2
+    camera(cam, (xm, y0 - 150, 110), (xm, y0, 2), lens=55)
+    only = tuple(o.name for o in sc.objects if o.type == 'MESH' and not o.name.startswith('Suelta_'))
+    render(sc, 'Vista_Fijaciones_Impresas.png', labels, f'Fijaciones impresas en PETG (v3.1) + pasador de latón · rosca M6 con compensación {C.THREAD_COMP:.2f} mm por lado'.replace('.', ','), hide=only)
 
 
 if __name__ == '__main__':

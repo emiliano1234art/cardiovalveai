@@ -11,9 +11,11 @@ plano dimensional no fue confirmado: medir la pieza comprada y ajustar.
 from dataclasses import dataclass, field
 
 PROJECT = "CardioValveAI"       # nombre definitivo (sin espacios)
-REVISION = "v3"                 # revisiones anteriores archivadas sin cambios en entrega/ (v1 commit 519c9ac, v2 commit 2b3999f)
+REVISION = "v3.1"               # v3.1 = v3 con TODAS las fijaciones impresas o de latón (sin tornillería metálica comprada).
+                                # Anteriores archivadas sin cambios en entrega/ (v1 commit 519c9ac, v2 commit 2b3999f, v3 commit 344e2bb)
 PREFIX = f"CardioValveAI_{REVISION}"   # prefijo de archivos de entrega (identifica la revisión)
-OUT_DIR = f"out_{REVISION}"     # carpeta de salida (hardware/out_v2); la salida v1 queda en hardware/out
+OUT_DIR = f"out_{REVISION}"     # carpeta de salida (hardware/out_v3.1)
+FIRMWARE = "CardioValveAI_v3_Adquisicion"   # el firmware no cambia en v3.1
 
 # ───────────────────────────── impresión / tolerancias ─────────────────────────────
 CLR_MOVE = 0.40      # holgura general entre piezas móviles (rango pedido 0,35–0,50)
@@ -24,14 +26,26 @@ M3_CLEAR = 3.4       # agujero de paso M3
 M3_PILOT = 2.6       # agujero piloto M3 autorroscante en PETG
 M3_HEAD_D = 6.0      # alojamiento cabeza M3 (allen DIN 912 ≈ 5,5)
 M3_HEAD_H = 3.4
-# v2: insertos roscados de latón termofijados (uniones que se desarman a menudo)
-M3_INSERT_D = 4.0    # agujero para inserto M3 (largo 5,7, Ø ext. 4,6): VERIFICAR con la probeta (4,0–4,2)
-M3_INSERT_L = 5.7
-M2_INSERT_D = 3.2    # agujero para inserto M2 (largo 3,0–4,0, Ø ext. 3,5): VERIFICAR (3,1–3,3)
-M2_INSERT_L = 4.0
-M2_NUT_AF = 4.0      # tuerca M2 (entre caras)
+M2_NUT_AF = 4.0      # alojamiento hexagonal de la tuerca a presión impresa (entre caras)
 M2_NUT_T = 1.6
 NUT_CLR = 0.25       # holgura de la trampa de tuerca
+
+# ───────────────────────────── fijaciones impresas (v3.1) ─────────────────────────────
+# Las roscas M2/M3 no se pueden imprimir con una boquilla de 0,4 mm (paso 0,4–0,5 mm). Por eso:
+#  · uniones estructurales grandes → rosca M6 IMPRESA (paso 1,0 mm, mínimo que imprime bien una FDM común);
+#  · uniones chicas (topes, bielas, horquilla, pivote) → pasador de LATÓN Ø2 (misma varilla de los ejes)
+#    con cabeza impresa (pegada) y tuerca impresa A PRESIÓN (se quita con alicate).
+THREAD_D = 6.0           # rosca métrica impresa
+THREAD_P = 1.0
+THREAD_COMP = 0.15       # compensación radial por lado (macho hacia adentro, hembra hacia afuera): VERIFICAR con Thread_Coupon
+M6_CLEAR = 6.6           # agujero de paso del perno M6 impreso
+BOLT_L = 8.0             # único largo de perno impreso (M6×8): servo, bandeja y soporte del micrófono
+BOLT_HEAD = (10.0, 4.0)  # cabeza moleteada Ø × alto (se aprieta con los dedos; ranura para moneda o destornillador plano)
+KNURL_NUT = (9.0, 6.0)   # tuerca moleteada de las columnas Ø × alto (no sobresale del ancho de la comisura)
+BRASS_PIN_D = 2.0        # varilla de latón Ø2
+PIN_PRESS_HOLE = 1.95    # agujero a presión de cabezas y tuercas impresas sobre latón Ø2: VERIFICAR con la fila 2 de la probeta
+PIN_HEAD = (3.8, 1.6)    # cabeza impresa del pasador Ø × alto
+TURN_PEG_D = 3.9         # espiga del pestillo giratorio de la bandeja (agujero de 4,0 en el poste: giro con fricción)
 
 # ───────────────────────────── anillo valvular ─────────────────────────────
 RING_OD = 70.0

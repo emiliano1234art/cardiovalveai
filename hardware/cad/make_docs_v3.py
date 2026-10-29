@@ -1,6 +1,6 @@
 """
-Documentación de CardioValveAI v3 (generada a partir de los resultados reales de verify.py y sensing.py).
-Uso: python make_docs_v3.py   →   out_v3/Documentacion/*.md, *.csv
+Documentación de CardioValveAI v3 / v3.1 (generada a partir de los resultados reales de verify.py y sensing.py).
+Uso: python make_docs_v3.py   →   out_<REVISION>/Documentacion/*.md, *.csv
 Clasificación usada en todos los documentos:
   [CÁLCULO] cálculo · [GEOM] inspección geométrica · [SIM] simulación (barrido cinemático / booleano) ·
   [COMPILACIÓN] compilación · [SW] prueba de software · [FÍSICO] pendiente de ensayo físico
@@ -22,7 +22,8 @@ import sensing as S
 OUT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', C.OUT_DIR))
 DOC = os.path.join(OUT, 'Documentacion')
 CANON = os.path.join(OUT, '_canon')
-FW = f'{C.PROJECT}_{C.REVISION}_Adquisicion'
+FW = C.FIRMWARE
+RV = C.REVISION
 TAGS = ('**[CÁLCULO]** cálculo · **[GEOM]** inspección geométrica · **[SIM]** simulación · **[COMPILACIÓN]** compilación · '
         '**[SW]** prueba de software · **[FÍSICO]** pendiente de ensayo físico')
 HEAD = (f'> {C.PROJECT} · revisión **{C.REVISION}** · prototipo académico de banco **sin fluido**. No es un dispositivo médico ni de diagnóstico; '
@@ -81,6 +82,10 @@ def sensor_coords():
 def doc_auditoria(V, SD):
     nfail = [c for c in V['assembly'] if not c['ok']]
     g_ok = sum(g['ok'] for g in V['gauges'])
+    V31 = ('''## 0. Revisión v3.1: fijaciones impresas
+La v3.1 es la v3 sin tornillería metálica comprada: roscas M6 impresas, pasadores de latón Ø2 con cabeza y tuerca impresas, y pestillos giratorios en la
+bandeja (doc 11). El mecanismo, los sensores, el firmware y la medición no cambian. La v3 se conserva en `entrega/CardioValveAI_v3_Modelo_y_Adquisicion.zip`.
+''' if C.REVISION != 'v3' else '')
     t = f"""# 01 · Auditoría de la entrega v2 y cambios de la v3
 
 {HEAD}
@@ -89,6 +94,7 @@ herramientas para Mac, esquemas y documentación. **Las entregas v1 y v2 se cons
 `entrega/CardioValAI_v2_Modelo_y_Adquisicion.zip`); sus fuentes se archivaron en `hardware/legado/`. Todo lo nuevo se llama **{C.PROJECT}**, lleva el prefijo
 `{C.PREFIX}` y sale en `hardware/{C.OUT_DIR}/`.
 
+{V31}
 ## 1. Cambios de configuración pedidos (aplicados)
 
 | Cambio | Qué se hizo | Comprobación |
@@ -113,7 +119,7 @@ herramientas para Mac, esquemas y documentación. **Las entregas v1 y v2 se cons
 | 6 | Umbrales de anomalía fijos en el código. | `cvai_analyze.py` v2 | Umbrales calculados con `--crear-umbrales` a partir de sesiones **normales reales** repetidas (rechaza sintéticas y no calibradas) | [SW] |
 | 7 | Detección de atasco con el Hall del plato (H0). | Firmware v2 | «Falta de movimiento»: ninguna valva cambia su lectura cruda ≥ `stall_min_delta` durante un movimiento ordenado → parada controlada | [COMPILACIÓN]; [SW] |
 | 8 | Muestreo de 8 canales a 64 kS/s para piezo + Hall. | Firmware v2 | Patrón de 3 canales H1 H2 H3 a 24 kS/s → 1 kS/s por valva (suma de 8); desfase entre valvas 41,7 µs (informado en INFO) | [COMPILACIÓN] |
-| 9 | Vistas sin ampliación del par Hall–imán ni coordenadas desde un origen común. | Carpeta `Vistas` v2 | Vistas ampliadas por valva (cerrada/abierta), portasensor retirado y galga; tabla de coordenadas (doc 03, `Coordenadas_Sensores_v3.csv`) | [GEOM] |
+| 9 | Vistas sin ampliación del par Hall–imán ni coordenadas desde un origen común. | Carpeta `Vistas` v2 | Vistas ampliadas por valva (cerrada/abierta), portasensor retirado y galga; tabla de coordenadas (doc 03, `Coordenadas_Sensores_{RV}.csv`) | [GEOM] |
 | 10 | El servo figuraba como MG90S confirmado. | BOM v2 | Modelo y medidas del servo **por confirmar** (doc 02); el MG90S queda como referencia dimensional | — |
 
 ## 3. Riesgos que quedan sin resolver sin ensayo físico
@@ -149,7 +155,7 @@ Mientras falten, las piezas afectadas quedan **paramétricas y NO definitivas** 
 | 1 | **Sensores Hall:** modelo exacto impreso en el cuerpo y fabricante (foto nítida de la cara plana); si es **componente suelto (TO-92 de 3 patas) o módulo** (placa con LED, potenciómetro o comparador); en módulos, foto de ambas caras | Elegir alimentación (3,3 V directo o 5 V + divisor), sensibilidad, saturación y portasensor. Un módulo con comparador entrega salida digital | `Hall_Carrier_*`, `config.TO92_BODY`, Hoja 2 (opción A o B), `--sensor` al registrar |
 | 2 | **Imanes:** diámetro, espesor, dirección de magnetización (axial o diametral) y grado si se conoce (N35/N42/N52) | Alojamiento en la cola, campo esperado, saturación, variante de portasensor | `config.MAG_LEAF`, `sensing.py`, `Leaflet_*` |
 | 3 | **Servo:** marca y modelo; largo, ancho y alto del cuerpo; distancia entre agujeros de las orejas y altura de su cara inferior; posición del eje; **horn** que se usará y radio del agujero elegido (mm) | Soporte, altura del eje, barrido, par y velocidad | `config.SERVO`, `Servo_Mount`, `kinematics.py` |
-| 4 | **ESP32 DevKit V1:** largo y ancho de la placa; cantidad de pines (30 o 38); separación entre hileras (centro a centro); posición del USB y de EN/BOOT; chip USB (CP2102 o CH340) | Zócalos, bandeja, acceso USB, velocidad del puerto | `Electronics_Tray`, `Tray_Clamp`, `config.ESP32_*`, firmware `CVAI_BAUD` |
+| 4 | **ESP32 DevKit V1:** largo y ancho de la placa; cantidad de pines (30 o 38); separación entre hileras (centro a centro); posición del USB y de EN/BOOT; chip USB (CP2102 o CH340) | Zócalos, bandeja, acceso USB, velocidad del puerto | `Electronics_Tray`, `Turn_Button`, `config.ESP32_*`, firmware `CVAI_BAUD` |
 | 5 | **INMP441:** forma y medidas de la placa; espesor; en qué cara está el **puerto acústico**; orden de los pines | Portaplaca con el puerto libre y orientación | `MEMS_Stand_Holder`, `config.MEMS_BOARD` |
 
 ### Sobre los sensores Hall (dato 1)
@@ -163,7 +169,7 @@ las hojas de datos de TI y Diodes no se pudieron descargar desde este entorno (b
 mismo portasensor.
 
 ### Partes que todavía NO conviene imprimir como definitivas
-`Hall_Carrier_*` (encapsulado del sensor), `Servo_Mount` (servo), `Electronics_Tray`, `Tray_Clamp` y `Base` (ESP32 y servo), `MEMS_Stand_Holder` (INMP441). Se pueden imprimir
+`Hall_Carrier_*` (encapsulado del sensor), `Servo_Mount` (servo), `Electronics_Tray`, `Turn_Button` y `Base` (ESP32 y servo), `MEMS_Stand_Holder` (INMP441). Se pueden imprimir
 como prueba. La probeta, el anillo, las valvas, las bielas, los topes, las galgas y las columnas no dependen de estos datos (sí de la probeta: diámetros de agujeros e imanes).
 """
     w('02_Datos_Bloqueantes.md', t)
@@ -173,7 +179,7 @@ como prueba. La probeta, el anillo, las valvas, las bielas, los topes, las galga
 
 def doc_hall(V, SD):
     co = sensor_coords()
-    with open(os.path.join(DOC, 'Coordenadas_Sensores_v3.csv'), 'w', newline='', encoding='utf-8') as f:
+    with open(os.path.join(DOC, f'Coordenadas_Sensores_{RV}.csv'), 'w', newline='', encoding='utf-8') as f:
         cw = csv.writer(f); cw.writerow(['id', 'descripcion', 'x_mm', 'y_mm', 'z_mm', 'nota'])
         for r in co:
             cw.writerow([r['id'], r['que'], *[f'{v:.2f}' for v in r['xyz']], r['nota']])
@@ -201,7 +207,7 @@ El ángulo ordenado al servo **no** es la posición: la posición sale de este p
 
 ## 2. Coordenadas desde un origen común [GEOM]
 Origen: esquina inferior de la base (x a lo largo de 200 mm, y a lo largo de 180 mm, z hacia arriba). Centro de la válvula ({F(A.VX)}; {F(A.VY)}) mm; cara inferior del anillo
-z = {F(A.Z_RING, 2)} mm; valvas hacia 90°, 210° y 330° (1, 2, 3). Archivo: `Coordenadas_Sensores_v3.csv`. Vistas ampliadas: `Vistas/Vista_Hall_Iman_Valva*_{{cerrada,abierta}}.png`.
+z = {F(A.Z_RING, 2)} mm; valvas hacia 90°, 210° y 330° (1, 2, 3). Archivo: `Coordenadas_Sensores_{RV}.csv`. Vistas ampliadas: `Vistas/Vista_Hall_Iman_Valva*_{{cerrada,abierta}}.png`.
 
 | Punto | Descripción | (x; y; z) mm | Nota |
 |---|---|---|---|
@@ -315,23 +321,29 @@ software, no del prototipo). **Objetivos propuestos:** resolución ≤ 1°, repe
 
 # ───────────────────────────── 05 Mecanismo ─────────────────────────────
 
-FASTENERS = [
-    ('Eje de bisagra (×3)', 'Varilla de LATÓN Ø2 × 56', 'Ajuste en el anillo (Ø2,1) + gota de cianoacrilato SOLO en los extremos; libre en la valva', 'No magnético'),
-    ('Cola–biela (×3)', 'Pasador de LATÓN Ø2 × 9', 'A presión en la cola, libre en la biela', 'No magnético'),
-    ('Biela–orejeta del plato (×3)', 'M2×10 inox A2 o latón + tuerca M2', 'Métrico con tuerca', 'Llave de tubo 4 mm'),
-    ('Horquilla–empujador', 'M2×14 + tuerca M2', 'Métrico con tuerca', ''),
-    ('Empujador–horn', 'Tornillo del horn', 'Rosca en el horn', ''),
-    ('Topes (×3)', 'M2×20 de LATÓN + tuerca M2 atrapada', 'Métrico; tuerca en la brida', 'Cerca del Hall: no usar acero'),
-    ('Columnas → base (×3)', 'M3×10', 'Inserto M3 en la columna', ''),
-    ('Anillo → columnas (×3)', 'M3×30', 'Inserto M3 en la columna', ''),
-    ('Orejas del servo (×2)', 'Tornillos del servo', 'Autorroscante en piloto Ø1,8', 'Medidas del servo por confirmar'),
-    ('Soporte del servo → base (×4)', 'M3×12 + arandelas de goma + casquillo', 'Inserto M3 en la base', 'No apretar la goma a fondo'),
-    ('Bandeja → base (×4)', 'M3×6', 'Insertos en la base', ''),
-    ('Barras de sujeción (×4)', 'M3×8', 'Insertos en la bandeja', ''),
-    ('Soporte M1 → base (×2)', 'M3×10 + arandela', 'Insertos en la base, por las ranuras', 'Ajuste radial ±8 mm'),
-    ('Pivote de M1', 'M3×16 + tuerca autoblocante', 'Fricción regulable', ''),
-    ('Portasensores Hall (×3)', '—', 'Encastre desde arriba + gota de silicona en la pestaña', 'Extraíble con gancho'),
-]
+def _pl():
+    return P.pin_lengths()
+
+
+def fasteners_table():
+    pl = _pl()
+    return [
+        ('Eje de bisagra (×3)', f'Varilla de LATÓN Ø2 × 56', 'Ajuste en el anillo (Ø2,1) + gota de cianoacrilato SOLO en los extremos; libre en la valva', 'No magnético'),
+        ('Cola–biela (×3)', 'Pasador de LATÓN Ø2 × 9', 'A presión en la cola, libre en la biela', 'No magnético'),
+        ('Biela–orejeta del plato (×3)', f'Pasador de latón Ø2 × {F(pl["biela_plato"])} + `Pin_Head` + `Push_Nut`', 'Cabeza impresa pegada; tuerca impresa a presión', 'Se saca con alicate para cambiar de módulo'),
+        ('Horquilla–empujador', f'Pasador de latón Ø2 × {F(pl["horquilla"])} + `Pin_Head` + `Push_Nut`', 'Igual', ''),
+        ('Empujador–horn', 'Tornillo chico que trae el servo', 'Rosca en el horn', 'Único tornillo metálico (viene con el servo)'),
+        ('Topes (×3)', f'Pasador de latón Ø2 × {F(pl["tope"])} + `Pin_Head` + `Push_Nut`', 'Cabeza en el rebaje superior; tuerca a presión en la trampa de la brida', 'No magnético (junto a los Hall)'),
+        ('Columnas → base (×3)', 'Espárrago M6 impreso en la columna', 'Rosca hembra M6 impresa en la base + asiento cónico 45°', 'Se enrosca a mano'),
+        ('Anillo → columnas (×3)', 'Espárrago M6 de la columna + `Knurled_Nut_M6`', 'Tuerca moleteada sobre la comisura', 'Con los dedos'),
+        ('Orejas del servo (×2)', 'Tornillos que trae el servo', 'Autorroscante en piloto Ø1,8', 'Vienen con el servo'),
+        ('Soporte del servo → base (×4)', '`Bolt_M6x8` impreso', 'Rosca hembra M6 impresa en la base', 'Fuera de la huella del servo'),
+        ('Bandeja → base (×2)', '`Bolt_M6x8` impreso', 'Rosca M6 en la base (2 en diagonal; hay 4 agujeros)', 'Antes de colocar la placa'),
+        ('Placa perforada (×4)', '`Turn_Button` impreso', 'Espiga en el poste, gira con fricción sobre el borde de la placa', 'Sin tornillos'),
+        ('Soporte M1 → base (×2)', '`Bolt_M6x8` impreso', 'Rosca M6 en la base, por las ranuras', 'Ajuste radial ±8 mm'),
+        ('Pivote de M1', f'Pasador de latón Ø2 × {F(pl["pivote_M1"])} + `Pin_Head` + `Push_Nut`', 'La presión de la tuerca regula la fricción', ''),
+        ('Portasensores Hall (×3)', '—', 'Encastre desde arriba + gota de silicona en la pestaña', 'Extraíble con gancho'),
+    ]
 
 
 def doc_mecanismo(V):
@@ -342,7 +354,7 @@ def doc_mecanismo(V):
         modes.append(f"| {mode} | {', '.join(K.MODES[mode])} | " + ' · '.join(f'v{i+1}: {F(th[:, i].min(), 0)}→{F(th[:, i].max(), 0)}°' for i in range(3)) + ' |')
     horn = '\n'.join(f"| {F(h['horn_r_mm'], 0)} | " + (f"±{F(h['barrido_deg'])}° | {F(h['comando_deg'][0])}–{F(h['comando_deg'][1])}° | {F(h['columna_mm'], 2)} | {F(h['par_kgcm'], 3)} |"
                      if h['valido'] else f"— | — | — | {h['motivo']} |") for h in V['horn_table'])
-    fast = '\n'.join(f'| {a} | {b} | {c} | {d} |' for a, b, c, d in FASTENERS)
+    fast = '\n'.join(f'| {a} | {b} | {c} | {d} |' for a, b, c, d in fasteners_table())
     sv = V['servo']; dr = V['drive']
     vel = '\n'.join(f"| {r['t_apertura_ms']} | {F(r['vel_pico_deg_s'], 0)} | ×{F(r['margen_x'])} |" for r in dr['velocidades'])
     clr = sorted(V['clearance'].items(), key=lambda kv: kv[1]['min_mm'])
@@ -399,7 +411,7 @@ Medir el agujero elegido, escribirlo en `config.SERVO.horn_r` y regenerar (`buil
 |---|---|---|---|
 {fast}
 
-Acceso comprobado [SIM]: {sum(c['ok'] for c in V['assembly'])} de {len(V['assembly'])} comprobaciones (ejes, destornilladores, llave de tubo, extracción de portasensores, USB).
+Acceso comprobado [SIM]: {sum(c['ok'] for c in V['assembly'])} de {len(V['assembly'])} comprobaciones (ejes, pasadores, acceso con los dedos a pernos y tuercas M6, pestillos, extracción de portasensores, USB).
 Fricción: grasa PTFE en bujes y columnas. Rigidez de PETG y juego real de bisagras: se miden con la galga (histéresis) en el ensayo 3. [FÍSICO]
 
 ## 8. Cables
@@ -610,8 +622,8 @@ El campo `fuente` de `session.json` viene de la trama INFO del firmware; el emul
 # ───────────────────────────── 09 Ensayos · 10 Pendientes ─────────────────────────────
 
 TESTS = [
-    ('1. Probeta', 'Imprimir `Tolerance_Coupon`: ejes de latón libres y a presión, pilotos, insertos, imanes Ø4.',
-     'Eje libre gira sin juego visible; a presión no sale con la mano; insertos a ras; imán entra con presión leve. Anotar diámetros y actualizar `config.py`.'),
+    ('1. Probetas', 'Imprimir `Tolerance_Coupon`, `Thread_Coupon`, un `Bolt_M6x8`, una `Pin_Head` y una `Push_Nut`: latón libre y a presión, paso M6, espiga del pestillo, imanes Ø4, roscas M6.',
+     'Eje libre gira sin juego visible; a presión no sale con la mano; perno M6 entra a mano en una de las 3 roscas sin juego visible; la tuerca a presión resiste un tirón firme con los dedos; imán entra con presión leve. Anotar diámetros y actualizar `config.py`.'),
     ('2. Una valva con Hall e imán, a mano', 'Anillo + valva 1 + portasensor; mover la valva a mano 0–80°; registrar con `--ciclos 0`.',
      'Lectura monótona sin saturar (cuentas lejos de 0 y 4095); variación cerrada→abierta ≥ 10 veces el ruido estático.'),
     ('3. Calibración y video', 'Galgas 0–80°, apertura y cierre, 3 repeticiones; video con `Angle_Scale`.',
@@ -653,7 +665,7 @@ def doc_pendientes():
 
 {HEAD}
 - Datos de la lista única (doc 02): Hall, imanes, servo, ESP32, INMP441 → regenerar piezas afectadas.
-- Diámetros reales de agujeros, ajustes a presión, insertos e imanes (probeta).
+- Diámetros reales de agujeros, ajustes a presión e imanes (probeta); ajuste y resistencia de las roscas M6 impresas y retención de las tuercas a presión (probetas, ensayo 1).
 - Respuesta real de cada par Hall–imán; saturación; monotonía; ruido real del ADC.
 - Calibración real: resolución, repetibilidad, histéresis, exactitud frente al video; repetición tras remontaje.
 - Influencia real de las valvas vecinas y del servo sobre cada Hall.
@@ -668,10 +680,12 @@ def doc_pendientes():
 
 # ───────────────────────────── guías, BOM, informe, LEEME ─────────────────────────────
 
-NOT_FINAL = {'Electronics_Tray', 'Tray_Clamp', 'Servo_Mount', 'MEMS_Stand_Holder', 'Base', 'Hall_Carrier_000', 'Hall_Carrier_025', 'Hall_Carrier_050'}
+NOT_FINAL = {'Electronics_Tray', 'Turn_Button', 'Servo_Mount', 'MEMS_Stand_Holder', 'Base', 'Hall_Carrier_000', 'Hall_Carrier_025', 'Hall_Carrier_050'}
 CRITICAL = {'Valve_Ring': 'paredes del bolsillo Hall y agujeros de bisagra', 'Leaflet_1': 'alojamiento del imán y barril', 'Leaflet_2': 'alojamiento del imán y barril',
             'Leaflet_3': 'alojamiento del imán y barril', 'Actuator_Plate': 'bujes', 'Column': 'superficie de deslizamiento',
-            'Hall_Carrier_000': 'lomo y pestaña', 'Hall_Carrier_025': 'lomo y pestaña', 'Hall_Carrier_050': 'lomo y pestaña'}
+            'Hall_Carrier_000': 'lomo y pestaña', 'Hall_Carrier_025': 'lomo y pestaña', 'Hall_Carrier_050': 'lomo y pestaña',
+            'Base': 'roscas M6 (5 perímetros alrededor)', 'Bolt_M6x8': 'rosca', 'Knurled_Nut_M6': 'rosca', 'Thread_Coupon': 'roscas',
+            'Pin_Head': 'agujero a presión', 'Push_Nut': 'agujero a presión', 'Turn_Button': 'espiga'}
 
 
 def doc_impresion(V):
@@ -685,14 +699,18 @@ def doc_impresion(V):
         crit = CRITICAL.get(it.name, 'cara de contacto' if it.name.startswith('Calib_Gauge') else '')
         rows.append(f"| `{C.PREFIX}_{it.name}.stl`{nf} | {it.qty} | {' × '.join(F(v, 1) for v in r['size_mm'])} | {F(r['mass_g_petg'], 1)} | {it.layer} mm · {it.infill} · {it.walls} perím. | "
                     f"{'sí' if r['needs_support'] else 'no'} | {crit} | {it.notes} |")
-    t = f"""# Guía de impresión v3
+    t = f"""# Guía de impresión {RV}
 
 {HEAD}
 **Supuestos sobre la impresora (VERIFICAR):** FDM con boquilla 0,4 mm, cama ≥ 220 × 220 mm, PETG a 230–245 °C, cama 70–80 °C, flujo calibrado. Unidades de los STL:
 **milímetros**; ya están orientados para la cama. Las tolerancias del diseño suponen ±0,1–0,2 mm: **la probeta decide** los diámetros finales.
 
-**Primero imprimir `{C.PREFIX}_Tolerance_Coupon.stl`** (5 filas): 1 eje Ø2 libre · 2 eje Ø2 a presión · 3 pilotos M2/M3 · 4 insertos M2/M3 · 5 imanes Ø4 (4,05–4,30).
-Actualizar `config.py` (`PIN_HOLE_LEAF`, `TAIL_PIN_HOLE`, `LINK_HOLE`, `M2_INSERT_D`, `M3_INSERT_D`, `MAG_POCKET_CLR`) y regenerar:
+**Primero imprimir las probetas:**
+- `{C.PREFIX}_Tolerance_Coupon.stl` (5 filas): 1 eje Ø2 libre · 2 eje Ø2 a presión (también decide `PIN_PRESS_HOLE` de cabezas y tuercas a presión) ·
+  3 pilotos M2/M3 · 4 paso M6 (6,4 / 6,6 / 6,8) y espiga del pestillo (3,9 / 4,0 / 4,1) · 5 imanes Ø4 (4,05–4,30).
+- `{C.PREFIX}_Thread_Coupon.stl` + un `{C.PREFIX}_Bolt_M6x8.stl`: elegir la rosca (1, 2 o 3 muescas = compensación 0,10 / 0,20 / 0,30 mm) en la que el perno entra **a mano**
+  sin juego visible. `THREAD_COMP` = (0,15 del perno + la del agujero elegido) / 2 → 1 muesca: 0,125 · 2 muescas: 0,175 · 3 muescas: 0,225.
+Actualizar `config.py` (`PIN_HOLE_LEAF`, `TAIL_PIN_HOLE`, `LINK_HOLE`, `PIN_PRESS_HOLE`, `M6_CLEAR`, `TURN_PEG_D`, `THREAD_COMP`, `MAG_POCKET_CLR`) y regenerar:
 `python build_all.py && python verify.py && python make_docs_v3.py`.
 
 Las piezas **NO DEFINITIVA** dependen de datos pendientes (doc 02). Ninguna pieza se imprimió ni se probó todavía: **no se declara «listo para imprimir»**; las mallas
@@ -702,55 +720,63 @@ pasaron las comprobaciones geométricas del informe de validación.
 |---|---|---|---|---|---|---|---|
 {chr(10).join(rows)}
 
-Insertos termofijados: soldador a ≈ 220–230 °C, presionar recto hasta quedar a ras, dejar enfriar sin mover.
+**Fijaciones impresas** (pernos, tuercas, cabezas, tuercas a presión, pestillos, columnas): 100 % de relleno, capa 0,12 mm, ≥ 4 perímetros, sin «ironing».
+Pernos verticales con la cabeza en la cama; columnas verticales empezando por el espárrago inferior. La base lleva 5 perímetros para que las roscas queden en material macizo.
+Ver `11_Fijaciones_Impresas.md`.
 """
-    w('Guia_de_Impresion_v3.md', t)
+    w(f'Guia_de_Impresion_{RV}.md', t)
 
 
 def doc_ensamblaje():
-    t = f"""# Guía de ensamblaje v3
+    pl = P.pin_lengths()
+    t = f"""# Guía de ensamblaje {RV}
 
 {HEAD}
-Herramientas: soldador para insertos, allen 1,5 y 2,5 mm, llave de tubo 4 mm, alicate de punta, calibre, gancho fino, cianoacrilato, silicona neutra, grasa PTFE, bridas finas.
+Herramientas: alicate de punta, calibre, gancho fino, sierra o alicate de corte para latón, lima, cianoacrilato, silicona neutra, grasa PTFE, bridas finas.
+**No hace falta soldador de insertos ni llaves:** todas las uniones roscadas son M6 impresas y se aprietan **con los dedos** (una herramienta barre la rosca de plástico).
 
-1. **Probeta** y ajuste de diámetros (guía de impresión).
-2. **Insertos:** M3 en las columnas (ambos extremos), en la base (servo, bandeja, soporte M1) y en los postes de la bandeja.
-3. **Imanes:** uno por valva en el alojamiento de la cara −y de la cola, con cianoacrilato y **la misma cara hacia afuera en las tres** (marcar la polaridad).
-4. **Columnas → base:** M3×10 desde abajo.
-5. **Servo:** centrarlo (90°) antes de colocar el horn; al `Servo_Mount` con sus tornillos; el soporte a la base con M3×12, arandelas de goma y casquillo.
-6. **Plato:** grasa PTFE en los bujes; deslizar sobre las columnas. Empujador al horn y a la horquilla (M2×14 + tuerca).
-7. **Valvas + bielas:** pasador de latón Ø2×9 a presión en la cola, biela en el pasador.
-8. **Valvas en el anillo:** número de valva = número de sector; eje de latón Ø2×56 desde afuera; cianoacrilato solo en los extremos. Girar a mano 0–90° sin roce.
-9. **Topes:** `Opening_Stop_84` desde abajo; tuerca M2 en la brida; tornillo M2×20 de latón desde arriba.
-10. **Hall:** soldar 3 hilos finos a cada sensor (patas hacia arriba), pegar el sensor al lomo del portasensor `000` con una gota de silicona (cara plana hacia la valva);
-    insertar el portasensor desde arriba hasta que la pestaña apoye; cable por el canal y la bajada exterior.
-11. **Anillo sobre las columnas:** servo en posición abierta (plato abajo); unir cada biela a su orejeta (M2×10 + tuerca); fijar el anillo con M3×30.
-12. **Comprobar a mano** (ensayo 5) con el empujador desconectado y luego conectado.
-13. **Micrófono:** placa en `MEMS_Stand_Holder` (puerto libre), pivote M3×16 + autoblocante, soporte a la base por las ranuras.
-14. **Cables:** pinzas en las columnas (bajo el recorrido del plato); señales por el sur, servo/5 V por el norte; mover el servo a mano y comprobar que nada roce.
-15. **Electrónica:** placa perforada en la bandeja, ESP32 en zócalos hembra; comprobar 3V3_A y la salida de cada Hall con multímetro **antes** de conectar el ESP32.
-16. **Cambio de sensor:** retirar el portasensor tirando de la pestaña; no hace falta desmontar nada más. **Cambio de módulo:** posición abierta → retirar tornillo biela–plato →
-    sacar el eje → cambiar biela/tope/elástico → volver a montar. Recalibrar siempre que se toque un imán o un portasensor.
+1. **Probetas:** `Tolerance_Coupon` (latón, imanes, paso M6, espiga del pestillo) y `Thread_Coupon` + un `Bolt_M6x8` (rosca). Ajustar `config.py` y regenerar si hace falta.
+2. **Cortar la varilla de latón Ø2:** 3 × 56 mm (ejes), 3 × 9 mm (cola–biela), 3 × {F(pl['tope'])} mm (topes), 3 × {F(pl['biela_plato'])} mm (bielas),
+   1 × {F(pl['horquilla'])} mm (horquilla), 1 × {F(pl['pivote_M1'])} mm (pivote del micrófono). Limar las puntas.
+3. **Cabezas de pasador:** a presión una `Pin_Head` en un extremo de cada pasador de topes, bielas, horquilla y pivote, con una gota de cianoacrilato. Dejar secar.
+4. **Imanes:** uno por valva en la cola, con cianoacrilato y **la misma cara hacia afuera en las tres**.
+5. **Columnas → base:** enroscar cada columna a mano en su rosca de la base hasta que el cono asiente. Sin herramientas.
+6. **Servo:** centrarlo (90°) antes de colocar el horn; al `Servo_Mount` con sus tornillos; soporte a la base con 4 `Bolt_M6x8` apretados con los dedos.
+7. **Plato:** grasa PTFE en los bujes; deslizar sobre las columnas. Empujador a la horquilla: pasador con cabeza desde −y y `Push_Nut` empujada con alicate.
+8. **Valvas + bielas:** pasador Ø2×9 a presión en la cola, biela en el pasador.
+9. **Valvas en el anillo:** eje de latón Ø2×56 desde afuera; cianoacrilato solo en los extremos. Girar a mano 0–90° sin roce.
+10. **Topes:** `Opening_Stop_84` desde abajo; pasador con cabeza desde arriba por el agujero del anillo; `Push_Nut` en la trampa hexagonal de la brida, empujada hasta que el tope quede firme.
+11. **Hall:** sensor pegado al lomo del portasensor `000` con una gota de silicona; insertar desde arriba hasta que apoye la pestaña.
+12. **Anillo sobre las columnas:** servo en posición abierta (plato abajo); unir cada biela a su orejeta (pasador con cabeza + `Push_Nut`); bajar el anillo por los
+    espárragos y colocar las 3 `Knurled_Nut_M6`, apretadas con los dedos.
+13. **Comprobar a mano** (ensayo 5) con el empujador desconectado y luego conectado.
+14. **Micrófono:** placa en `MEMS_Stand_Holder`; pivote con pasador + `Push_Nut` (más presión = más fricción); soporte a la base con 2 `Bolt_M6x8` por las ranuras.
+15. **Electrónica:** bandeja a la base con 2 `Bolt_M6x8` (en diagonal) ANTES de la placa; placa perforada sobre los rieles; los 4 `Turn_Button` en sus postes, girados hacia
+    la placa. Comprobar 3V3_A y la salida de cada Hall con multímetro **antes** de conectar el ESP32.
+16. **Cables:** pinzas en las columnas; señales por el sur, servo/5 V por el norte; mover el servo a mano y comprobar que nada roce.
+17. **Desarme:** las `Push_Nut` se sacan haciendo palanca con el alicate (si quedan flojas, usar una nueva: hay 2 de repuesto). Revisar las roscas M6 después de 24 h
+    (el PETG se asienta): volver a apretar con los dedos si hace falta.
 """
-    w('Guia_de_Ensamblaje_v3.md', t)
+    w(f'Guia_de_Ensamblaje_{RV}.md', t)
 
 
-BUY = [
-    ('ESP32 DevKit V1 (ESP32-WROOM-32)', 1, 'Medidas por confirmar (doc 02)'), ('Servo (modelo por confirmar) + horns', 1, 'Medidas por confirmar'),
-    ('Fuente 5 V ≥ 2 A (3 A recom.)', 1, 'según el servo real'), ('Imán neodimio Ø4×2 mm axial (N42)', 3 + 2, '+2 de repuesto; medidas por confirmar'),
-    ('Sensor Hall lineal TI DRV5055A1QLPG (TO-92)', 3 + 1, 'recomendado; verificar modelo (doc 02)'),
-    ('INMP441 (placa de módulo)', 1, 'medidas por confirmar'), ('Microchip MCP1700-3302 (TO-92) + 2 × 1 µF', 1, '3V3_A de los Hall'),
-    ('AO3401A + 10 kΩ', 1, 'polaridad invertida'), ('PTC 2,5 A', 1, ''), ('TVS SMBJ5.0A', 1, ''), ('Capacitor 1000 µF 10 V bajo ESR', 1, ''),
-    ('Capacitores 100 nF cerámicos', 8, 'desacoplo y RC Hall'), ('Resistencias 1 kΩ (×3), 220 Ω, 10 kΩ, 330 Ω, 33 Ω', 1, 'surtido'),
-    ('Resistencias 20 kΩ y 30 kΩ (×3 c/u)', 1, 'solo opción B (sensor de 5 V)'),
-    ('Placa perforada 7×9 cm', 1, ''), ('Tiras de zócalo hembra 2,54 mm', 2, 'según pines del ESP32'), ('Conector con traba 2 vías (J1) / bornera', 2, '5 V servo'),
-    ('Parada de emergencia (NC + NA)', 1, ''), ('LED + 330 Ω', 1, 'sincronización'), ('Cable de 3 hilos fino', 3, 'Hall, ≈ 30 cm'), ('Cable plano 6 hilos', 1, 'micrófono ≤ 20 cm'),
-    ('Varilla de LATÓN Ø2 mm', 1, '3 × 56 mm + 3 × 9 mm'), ('Tornillo M2×20 de LATÓN + tuerca M2', 3, 'topes'), ('Tornillo M2×10 inox + tuerca', 3, 'biela–plato'),
-    ('Tornillo M2×14 + tuerca', 1, 'horquilla'), ('Tornillo M3×10', 3 + 2, 'columnas, soporte M1'), ('Tornillo M3×30', 3, 'anillo'),
-    ('Tornillo M3×12 + casquillo + 2 arandelas de goma', 4, 'soporte del servo'), ('Tornillo M3×6', 4, 'bandeja'), ('Tornillo M3×8', 4, 'barras'),
-    ('Tornillo M3×16 + tuerca autoblocante', 1, 'pivote M1'), ('Inserto termofijado M3', 6 + 4 + 4 + 2 + 4, 'columnas, base, bandeja'),
-    ('Grasa PTFE, cianoacrilato, silicona neutra, bridas', 1, ''),
-]
+def buy_list():
+    pl = P.pin_lengths()
+    brass = 3 * 56 + 3 * 9 + 3 * pl['tope'] + 3 * pl['biela_plato'] + pl['horquilla'] + pl['pivote_M1']
+    return [
+        ('ESP32 DevKit V1 (ESP32-WROOM-32)', 1, 'Medidas por confirmar (doc 02)'), ('Servo (modelo por confirmar) + horns + sus tornillos', 1, 'Los tornillos del servo son los únicos metálicos'),
+        ('Fuente 5 V ≥ 2 A (3 A recom.)', 1, 'según el servo real'), ('Imán neodimio Ø4×2 mm axial (N42)', 3 + 2, '+2 de repuesto; medidas por confirmar'),
+        ('Sensor Hall lineal TI DRV5055A1QLPG (TO-92)', 3 + 1, 'recomendado; verificar modelo (doc 02)'),
+        ('INMP441 (placa de módulo)', 1, 'medidas por confirmar'), ('Microchip MCP1700-3302 (TO-92) + 2 × 1 µF', 1, '3V3_A de los Hall'),
+        ('AO3401A + 10 kΩ', 1, 'polaridad invertida'), ('PTC 2,5 A', 1, ''), ('TVS SMBJ5.0A', 1, ''), ('Capacitor 1000 µF 10 V bajo ESR', 1, ''),
+        ('Capacitores 100 nF cerámicos', 8, 'desacoplo y RC Hall'), ('Resistencias 1 kΩ (×3), 220 Ω, 10 kΩ (×2), 330 Ω, 33 Ω', 1, 'surtido'),
+        ('Resistencias 20 kΩ y 30 kΩ (×3 c/u)', 1, 'solo opción B (sensor de 5 V)'),
+        ('Placa perforada 7×9 cm', 1, ''), ('Tiras de zócalo hembra 2,54 mm', 2, 'según pines del ESP32'), ('Conector con traba 2 vías (J1) / bornera', 2, '5 V servo'),
+        ('Parada de emergencia (NC + NA)', 1, ''), ('LED + 330 Ω', 1, 'sincronización'), ('Cable de 3 hilos fino', 3, 'Hall, ≈ 30 cm'), ('Cable plano 6 hilos', 1, 'micrófono ≤ 20 cm'),
+        (f'Varilla de LATÓN Ø2 mm (≥ {int(math.ceil(brass / 50.0) * 50)} mm en total; p. ej. 2 × 300 mm)', 1, f'ejes, pasadores y fijaciones: {F(brass, 0)} mm + corte'),
+        ('Filamento PETG 1,75 mm', 1, '1 kg: piezas + todas las fijaciones impresas'),
+        ('Grasa PTFE, cianoacrilato, silicona neutra, bridas, patas de goma adhesivas', 1, ''),
+    ]
 
 
 def doc_bom(V):
@@ -762,17 +788,17 @@ def doc_bom(V):
             nf = 'NO DEFINITIVA' if it.name in NOT_FINAL else ''
             rows.append(f"| {it.name} | {it.qty} | impresa (PETG) | {' × '.join(F(v, 1) for v in r['size_mm'])} mm · {F(r['mass_g_petg'], 1)} g | {it.role} {nf} |")
             csvrows.append([it.name, it.qty, 'impresa PETG', ' x '.join(f'{v:.1f}' for v in r['size_mm']), it.role + (' ' + nf if nf else '')])
-    for a, q, n in BUY:
+    for a, q, n in buy_list():
         rows.append(f'| {a} | {q} | comprada | | {n} |'); csvrows.append([a, q, 'comprada', '', n])
-    t = f"""# Lista de materiales v3 (mínima)
+    t = f"""# Lista de materiales {RV} (mínima)
 
 {HEAD}
 | Elemento | Cant. | Tipo | Medidas | Función / nota |
 |---|---|---|---|---|
 {chr(10).join(rows)}
 """
-    w('Lista_de_Materiales_v3.md', t)
-    with open(os.path.join(DOC, 'Lista_de_Materiales_v3.csv'), 'w', newline='', encoding='utf-8') as f:
+    w(f'Lista_de_Materiales_{RV}.md', t)
+    with open(os.path.join(DOC, f'Lista_de_Materiales_{RV}.csv'), 'w', newline='', encoding='utf-8') as f:
         cw = csv.writer(f); cw.writerow(['elemento', 'cantidad', 'tipo', 'medidas_mm', 'nota']); cw.writerows(csvrows)
 
 
@@ -782,7 +808,7 @@ def doc_informe(V):
     clr = '\n'.join(f"| {k} | {F(v['min_mm'], 2)} | {v['mode']} |" for k, v in sorted(V['clearance'].items(), key=lambda kv: kv[1]['min_mm']))
     asm = '\n'.join(f"| {c['check']} | {'✔' if c['ok'] else '✘ ' + ', '.join(c['hits'])} |" for c in V['assembly'])
     gl = '\n'.join(f"| {g['angulo']}° | {'✔' if g['ok'] else '✘'} |" for g in V['gauges'])
-    t = f"""# Informe de validación digital v3
+    t = f"""# Informe de validación digital {RV}
 
 {HEAD}
 Generado: {V['generated']}. Todo lo de este informe se ejecutó sobre los archivos entregados ([SIM], [GEOM], [SW]). **No reemplaza ningún ensayo físico.**
@@ -809,16 +835,90 @@ Contactos de diseño: {', '.join(sorted(V['sweep']['contacts'])) or 'ninguno'}.
 |---|---|
 {gl}
 
+## Piezas fijas y fijaciones impresas (choques estáticos) [SIM]
+| Pieza | Resultado |
+|---|---|
+{chr(10).join(f"| {c['pieza']} | {'✔' if c['ok'] else '✘ ' + ', '.join(f'{k} ({v} mm³)' for k, v in c['choques'].items())} |" for c in V.get('static', []))}
+
 ## Cálculos [CÁLCULO]
 Servo: {json.dumps(V['servo'], ensure_ascii=False)}. Accionamiento: {json.dumps(V['drive'], ensure_ascii=False)}. Efecto cajón: {V['plate_binding']['lectura']}
 """
-    w('Informe_de_Validacion_v3.md', t)
-    with open(os.path.join(DOC, 'Tabla_Cinematica_v3.csv'), 'w', newline='', encoding='utf-8') as f:
+    w(f'Informe_de_Validacion_{RV}.md', t)
+    with open(os.path.join(DOC, f'Tabla_Cinematica_{RV}.csv'), 'w', newline='', encoding='utf-8') as f:
         cw = csv.writer(f)
         cw.writerow(['modo', 'comando_servo_deg', 'plato_mm', 'theta1', 'theta2', 'theta3', 'tope1', 'tope2', 'tope3'])
         for mode, rows in V['kinematics'].items():
             for r in rows:
                 cw.writerow([mode, r['servo_cmd_deg'], r['plate_mm'], *r['theta'], *r['on_stop']])
+
+
+def doc_fijaciones(V):
+    pl = P.pin_lengths()
+    hd, hh = C.BOLT_HEAD
+    st = {c['pieza']: c for c in V.get('static', [])}
+    bad = [c['pieza'] for c in V.get('static', []) if not c['ok']]
+    # cálculos de orden de magnitud (PETG impreso, valores conservadores entre capas)
+    tau, sig = 10.0, 10.0                                     # MPa: corte y tracción ENTRE CAPAS (supuestos conservadores, VERIFICAR)
+    d1 = C.THREAD_D - 1.0825 * C.THREAD_P                     # diámetro menor ISO de la rosca hembra
+    a_strip = 0.5 * math.pi * C.THREAD_D * 5.0                # área de barrido aprox. con 5 mm de rosca
+    f_strip = a_strip * tau
+    a_stud = math.pi * (C.THREAD_D - 1.2269 * C.THREAD_P) ** 2 / 4
+    f_stud = a_stud * sig
+    f_pin = math.pi * (C.BRASS_PIN_D / 2) ** 2 * 200.0       # corte del latón (≈ 200 MPa)
+    servo_reac = 0.18 / 0.03                                 # N: par de bloqueo 0,18 N·m (no verificado) sobre ≈ 30 mm entre pernos
+    rows = '\n'.join(f'| {a} | {b} | {c} | {d} |' for a, b, c, d in fasteners_table())
+    t = f"""# 11 · Fijaciones impresas (v3.1): sin tornillería metálica comprada
+
+{HEAD}
+## 1. Por qué no se imprimen tornillos M2 ni M3
+La rosca M2 avanza 0,4 mm por vuelta y la M3, 0,5 mm: lo mismo que el ancho de línea de una boquilla de 0,4 mm. Impresas salen deformes y se barren al apretar.
+Por eso cada unión se resolvió con lo que **sí** funciona impreso, sin cambiar el mecanismo ni la medición:
+- **Rosca M6 impresa** (paso {F(C.THREAD_P)} mm, perfil ISO) donde hay lugar: columnas, anillo, soporte del servo, bandeja y soporte del micrófono.
+- **Pasador de latón Ø2** (la misma varilla de los ejes) con **cabeza impresa pegada** y **tuerca impresa a presión** donde no hay lugar para M6: topes, bielas, horquilla y
+  pivote del micrófono. Funciona como un tornillo con tuerca: se arma, aprieta y desarma (la tuerca se saca con alicate).
+- **Pestillos giratorios** en lugar de las barras y tornillos de la placa perforada.
+Ventaja adicional: **no queda acero cerca de los sensores Hall** (todo es PETG o latón, no magnéticos).
+Los **únicos tornillos metálicos** son los que vienen con el servo (orejas y horn).
+
+## 2. Qué va en cada unión
+| Unión | Elemento | Retención | Nota |
+|---|---|---|---|
+{rows}
+
+## 3. Piezas a imprimir
+| Archivo | Cant. (incluye repuestos) | Uso |
+|---|---|---|
+| `{C.PREFIX}_Bolt_M6x8.stl` | 9 | 4 servo, 2 bandeja, 2 soporte M1, 1 repuesto. Cabeza moleteada Ø{F(hd, 0)} × {F(hh, 0)} con ranura |
+| `{C.PREFIX}_Knurled_Nut_M6.stl` | 4 | 3 comisuras + 1. Ø{F(C.KNURL_NUT[0], 0)} × {F(C.KNURL_NUT[1], 0)} (no sobresale de la comisura) |
+| `{C.PREFIX}_Pin_Head.stl` | 10 | 8 pasadores + 2 |
+| `{C.PREFIX}_Push_Nut.stl` | 10 | 8 pasadores + 2 (son de un solo uso si quedan flojas) |
+| `{C.PREFIX}_Turn_Button.stl` | 5 | 4 pestillos + 1 |
+| `{C.PREFIX}_Thread_Coupon.stl` | 1 | Probeta de roscas (imprimir primero) |
+| `{C.PREFIX}_Column.stl` | 3 | Ahora con espárragos M6 en ambos extremos |
+
+Pasadores de latón Ø2 a cortar: 3 × {F(pl['tope'])} (topes), 3 × {F(pl['biela_plato'])} (bielas), 1 × {F(pl['horquilla'])} (horquilla), 1 × {F(pl['pivote_M1'])} (pivote),
+además de los 3 ejes de 56 mm y los 3 pasadores de 9 mm de siempre.
+
+## 4. Resistencia: orden de magnitud [CÁLCULO, con supuestos]
+Supuesto conservador para PETG impreso **entre capas**: corte ≈ {F(tau, 0)} MPa y tracción ≈ {F(sig, 0)} MPa (el material macizo resiste más; VERIFICAR con la probeta).
+| Caso | Capacidad estimada | Carga del banco | Margen |
+|---|---|---|---|
+| Barrido de la rosca M6 en la base (5 mm de rosca) | ≈ {F(f_strip, 0)} N | ≈ {F(servo_reac, 0)} N por perno (reacción al par de bloqueo del servo, no verificado) | ≈ ×{F(f_strip / servo_reac, 0)} |
+| Tracción del espárrago de la columna (Ø de fondo {F(C.THREAD_D - 1.2269 * C.THREAD_P, 2)} mm) | ≈ {F(f_stud, 0)} N | < 2 N (el plato empuja el anillo hacia arriba al cerrar) | > ×{F(f_stud / 2, 0)} |
+| Corte del pasador de latón Ø2 | ≈ {F(f_pin, 0)} N | < 2 N | > ×{F(f_pin / 2, 0)} |
+
+Las cargas del banco son muy chicas (fuerza en el empujador ≈ {F(V['servo']['force_N'], 1)} N). **El riesgo real no es la rotura en uso sino apretar de más:** una llave o
+un destornillador pueden barrer la rosca de plástico. Por eso las cabezas son moleteadas y se aprietan **solo con los dedos**. El PETG se asienta con el tiempo: revisar el
+apriete después de 24 h. La retención de las tuercas a presión depende del agujero real: se fija con la fila 2 de la probeta y se comprueba en el ensayo 1. [FÍSICO]
+
+## 5. Comprobaciones digitales [SIM]
+- Perno y tuerca M6 impresos: con la compensación de {F(C.THREAD_COMP, 2)} mm por lado, las roscas encajan sin interferencia en un tercio de vuelta (juego axial ≈ 0,3 mm,
+  normal en roscas impresas) — comprobado con el sólido booleano del perno y la tuerca.
+- Piezas fijas modificadas y fijaciones contra todo el ensamblaje: {'sin choques' if not bad else 'con choques en ' + ', '.join(bad)} (informe de validación).
+- Barrido de {V['sweep']['poses_checked']} poses con pasadores, cabezas y tuercas del plato: {len(V['sweep']['interferences'])} interferencias.
+- Accesos: tuercas moleteadas y pernos con espacio para los dedos; pasadores biela–plato con acceso por ambos lados (informe de validación).
+"""
+    w('11_Fijaciones_Impresas.md', t)
 
 
 def doc_leeme():
@@ -829,19 +929,20 @@ Banco universitario de válvula aórtica trivalva movida por un servo, **sin flu
 detectar apertura o cierre incompletos, asimetrías, retrasos o variaciones y atascos. El micrófono INMP441 es una señal complementaria. El ángulo ordenado al servo no es la
 posición de las valvas, y la animación no es una prueba.
 
-Las entregas anteriores se conservan sin cambios: `entrega/CardioValAI_Modelo_Final_STL.zip` (v1) y `entrega/CardioValAI_v2_Modelo_y_Adquisicion.zip` (v2).
+Las entregas anteriores se conservan sin cambios: `entrega/CardioValAI_Modelo_Final_STL.zip` (v1), `entrega/CardioValAI_v2_Modelo_y_Adquisicion.zip` (v2) y
+`entrega/CardioValveAI_v3_Modelo_y_Adquisicion.zip` (v3, con tornillería metálica). **v3.1 = v3 con todas las fijaciones impresas o de latón** (doc 11).
 Todos los archivos de este paquete se generaron desde el mismo código (ver `REVISION.json`).
 
 | Carpeta / archivo | Contenido |
 |---|---|
-| `Documentacion/01…10` | Auditoría, datos bloqueantes, Hall–imán, calibración, mecanismo, electrónica, firmware, herramientas, ensayos, pendientes |
-| `Documentacion/Guia_de_Impresion_v3.md`, `Guia_de_Ensamblaje_v3.md`, `Lista_de_Materiales_v3.*`, `Informe_de_Validacion_v3.md` | Fabricación y verificación |
+| `Documentacion/01…11` | Auditoría, datos bloqueantes, Hall–imán, calibración, mecanismo, electrónica, firmware, herramientas, ensayos, pendientes, fijaciones impresas |
+| `Documentacion/Guia_de_Impresion_{RV}.md`, `Guia_de_Ensamblaje_{RV}.md`, `Lista_de_Materiales_{RV}.*`, `Informe_de_Validacion_{RV}.md` | Fabricación y verificación |
 | `{C.PREFIX}_STL/` | Piezas imprimibles individuales (mm, orientadas) |
 | `{C.PREFIX}_STEP/`, `{C.PREFIX}_Assembly_Cerrada.step` | Sólidos editables y ensamblaje |
-| `Referencia_NO_IMPRIMIR/` | Servo, ESP32 + placa, sensores, imanes, tornillería, cables |
+| `Referencia_NO_IMPRIMIR/` | Servo, ESP32 + placa, sensores, imanes, pasadores y fijaciones montadas, cables |
 | `{C.PREFIX}_Final.blend` | Ensamblaje animado (Blender 4.5 LTS) |
 | `{C.PREFIX}_Animacion.mp4` | Animación cinemática (no es prueba de funcionamiento) |
-| `Vistas/` | Par Hall–imán ampliado por valva, portasensor, galga, cables, micrófono, electrónica |
+| `Vistas/` | Par Hall–imán ampliado por valva, portasensor, galga, cables, micrófono, electrónica, fijaciones impresas |
 | `Electronica/` | Esquemas (SVG/PNG) |
 | `CAD_parametrico/`, `Firmware/`, `Herramientas_Mac/`, `Electronica_fuente/` | Código fuente reproducible |
 """
@@ -851,7 +952,7 @@ Todos los archivos de este paquete se generaron desde el mismo código (ver `REV
 def main():
     V, SD = load()
     doc_auditoria(V, SD); doc_datos(); doc_hall(V, SD); doc_calibracion(V); doc_mecanismo(V); doc_electronica(); doc_firmware()
-    doc_herramientas(); doc_ensayos(); doc_pendientes(); doc_impresion(V); doc_ensamblaje(); doc_bom(V); doc_informe(V); doc_leeme()
+    doc_herramientas(); doc_ensayos(); doc_pendientes(); doc_impresion(V); doc_ensamblaje(); doc_bom(V); doc_informe(V); doc_fijaciones(V); doc_leeme()
     print('Documentos en', DOC, sorted(os.listdir(DOC)))
 
 

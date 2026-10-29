@@ -8,7 +8,7 @@ ensamblaje en `assembly.py`). La orientación de impresión se define en
 from __future__ import annotations
 import math
 import numpy as np
-from build123d import Align, Box, Cylinder, Part, Polygon, Pos, Rot, Text, extrude
+from build123d import Align, Box, Cone, Cylinder, Part, Polygon, Pos, Rot, Text, extrude
 from shapely.geometry import Point, Polygon as SPoly
 from shapely.ops import unary_union
 
@@ -147,12 +147,11 @@ def valve_ring() -> Part:
         r -= leaf_frame(box(C.SLOT_X[0], C.SLOT_X[1], C.SLOT_Y[0], C.SLOT_Y[1], -1, 40), i)
         # eje de bisagra (pasante: se introduce desde el exterior)
         r -= leaf_frame(cyl_y(C.PIN_HOLE_RING / 2, -50, 50, C.HINGE_D, C.Z_HINGE), i)
-        # columna (M3 pasante + alojamiento de cabeza en la comisura)
+        # columna: paso del espárrago M6 impreso de la columna; la tuerca moleteada apoya en la cara superior de la comisura
         a = (K.leaf_dir(i) + 60) * D2R
         cx, cy = C.COLUMN_R * math.cos(a), C.COLUMN_R * math.sin(a)
-        r -= cyl_z(C.M3_CLEAR / 2, -1, 40, cx, cy)
-        r -= cyl_z(C.M3_HEAD_D / 2, C.RING_H + C.POST_H - C.M3_HEAD_H - 0.6, 40, cx, cy)
-        # tope: tornillo M2 de latón pasante desde la cara superior (tuerca atrapada en la brida del tope)
+        r -= cyl_z(C.M6_CLEAR / 2, -1, 40, cx, cy)
+        # tope: pasador de latón Ø2 desde la cara superior (cabeza impresa en el rebaje; tuerca a presión en la brida del tope)
         r -= leaf_frame(cyl_z(C.M2_CLEAR / 2, -1, 40, *STOP_SCREW), i)
         r -= leaf_frame(cyl_z(2.1, C.RING_H - 1.6, 40, *STOP_SCREW), i)
         # bolsillo del portasensor Hall (posición calculada en sensing.py), abierto arriba y con VENTANA hacia el diámetro
@@ -310,11 +309,19 @@ def pushrod() -> Part:
 
 # ───────────────────────────── columnas ─────────────────────────────
 
+COLUMN_STUD_TOP = C.RING_H + C.POST_H + C.KNURL_NUT[1] - 0.5   # largo del espárrago superior (sobre la cara superior de la columna)
+
 def column(height: float) -> Part:
-    """insertos M3 termofijados en ambos extremos (agujero más largo que el inserto para la punta del tornillo)."""
+    """Columna con espárragos M6 IMPRESOS en ambos extremos (marco: z = 0 en la cara superior de la base).
+    Abajo: se enrosca en la base (rosca hembra impresa) y asienta en un avellanado de 45°. Arriba: atraviesa la comisura del
+    anillo y recibe la tuerca moleteada. Se imprime vertical, empezando por el espárrago inferior (el cono de 45° no necesita soporte)."""
+    import fasteners as FA
     p = cyl_z(C.COLUMN_D / 2, 0, height, 0, 0)
-    p -= cyl_z(C.M3_INSERT_D / 2, -1, 9.5, 0, 0)
-    p -= cyl_z(C.M3_INSERT_D / 2, height - 10.5, height + 1, 0, 0)
+    p += Pos(0, 0, -1.0) * Cone(C.THREAD_D / 2, C.COLUMN_D / 2, 1.0, align=(Align.CENTER, Align.CENTER, Align.MIN))
+    p += FA.male_thread(-C.BASE_T, -1.0, tip='fade', root='chamfer')
+    zt = height + COLUMN_STUD_TOP
+    p += cyl_z(2.55, height - 0.01, height + C.RING_H + C.POST_H - 4.0 + 0.01, 0, 0)   # caña lisa Ø5,1 (≥ fondo de la rosca)
+    p += Pos(0, 0, height + C.RING_H + C.POST_H - 4.0) * FA.male_thread(0, zt - (height + C.RING_H + C.POST_H - 4.0), root='fade', tip='chamfer')
     return p
 
 # ───────────────────────────── servo: soporte ─────────────────────────────
@@ -342,16 +349,28 @@ def servo_mount(zs: float) -> Part:
     plate -= box(xc - S.L / 2 - 0.3, xc + S.L / 2 + 0.3, y_face - 1, y_back + 1, zs - S.W / 2 - 0.3, zs + S.W / 2 + 0.3)
     for s in (-1, 1):
         plate -= cyl_y(C.M2_PILOT / 2, y_face - 1, y_back + 1, xc + s * S.tab_hole_spacing / 2, zs)
-    foot = box(xc - half, xc + half, y_face - 8, y_back + 19.0, zb, zb + 3.0)
+    bolts = servo_bolt_xy(L)
+    bx = [x for x, _ in bolts]; by = [y for _, y in bolts]
+    foot = box(min(xc - half, min(bx) - 5.7), max(xc + half, max(bx) + 5.7), min(y_face - 8, min(by) - 5.7), max(y_back + 19.0, max(by) + 5.7), zb, zb + 3.0)
     p = plate + foot
     for s in (-1, 1):
         gx = xc + s * (half - 2.5)
         p += prism_yz(SPoly([(y_back, zb + 3), (y_back + 14, zb + 3), (y_back, zb + 3 + 12)]), gx - 1.5, gx + 1.5)
-    # agujeros M3 al piso (con arandelas de goma: antivibración)
-    for s in (-1, 1):
-        p -= cyl_z(C.M3_CLEAR / 2 + 0.6, zb - 1, zb + 5, xc + s * (half - 6), y_back + 14)
-        p -= cyl_z(C.M3_CLEAR / 2 + 0.6, zb - 1, zb + 5, xc + s * (half - 6), y_face - 4.5)
+    # 4 pernos M6 impresos a la base, FUERA de la huella del servo (el cuerpo queda a 1 mm del pie) y lejos de las cartelas
+    for x, y in bolts:
+        p -= cyl_z(C.M6_CLEAR / 2, zb - 1, zb + 5, x, y)
     return p
+
+def servo_bolt_xy(L=None):
+    """Posición (x, y relativa al centro de la válvula) de los 4 pernos del soporte del servo."""
+    import assembly as A
+    L = L or servo_layout(A.ZS)
+    yh = L['y_of_h']; xc = L['body_cx']
+    y_face = yh(S.tab_h)
+    m = C.BOLT_HEAD[0] / 2 + 0.6                         # radio de la cabeza + margen
+    y_front = y_face - m                                  # delante de la placa vertical
+    y_rear = max(yh(0), yh(S.H)) + m                      # detrás del cuerpo del servo
+    return [(xc - S.L / 2 - m, y_front), (xc + S.L / 2 + m, y_front), (xc - 8.0, y_rear), (xc + 8.0, y_rear)]
 
 def prism_yz(geom, x0, x1):
     """Perfil en el plano y–z extruido entre x0 y x1."""
@@ -394,10 +413,10 @@ def electronics_tray() -> Part:
     for y0, y1 in ((0, by - 0.3), (by + py + 0.3, Lg)):                          # postes de los extremos
         for x0, x1 in ((0, TRAY_RAIL), (W - TRAY_RAIL, W)):
             p += box(x0, x1, y0, y1, zb, zb + pt)
-    for x, y in tray_post_xy():
-        p -= cyl_z(C.M3_INSERT_D / 2, zb + pt - C.M3_INSERT_L - 1.0, zb + pt + 1, x, y)
-    for x, y in tray_base_holes():                                               # fijación a la base (insertos en la base)
-        p -= cyl_z(C.M3_CLEAR / 2, -1, TRAY_FLOOR + 1, x, y)
+    for x, y in tray_post_xy():                                                  # espiga del pestillo giratorio (gira con fricción)
+        p -= cyl_z(TURN_HOLE_D / 2, zb + pt - 6.0, zb + pt + 1, x, y)
+    for x, y in tray_base_holes():                                               # pernos M6 impresos a la base (antes de colocar la placa)
+        p -= cyl_z(C.M6_CLEAR / 2, -1, TRAY_FLOOR + 1, x, y)
     # puentes para bridas (alivio de tensión) en los extremos, fuera del área de la placa y lejos de la antena
     for x, y in ((14.0, 3.3), (W - 14.0, 3.3), (24.0, Lg - 3.3), (W - 24.0, Lg - 3.3)):
         p += box(x - 4, x + 4, y - 2.5, y + 2.5, TRAY_FLOOR, TRAY_FLOOR + 4.0)
@@ -406,24 +425,20 @@ def electronics_tray() -> Part:
     p -= engrave_text('USB', 3.0, W / 2, Lg - 2.2, TRAY_FLOOR, 0.4)
     return p
 
-def tray_clamp() -> Part:
-    """Barra de sujeción de un borde largo de la placa (aprieta sobre el riel; la placa no se flexiona)."""
-    W, Lg, zb, (bx, by) = tray_dims()
-    pt = C.PERFBOARD[2]
-    z0 = zb + pt
-    p = box(0, TRAY_RAIL, 0, Lg, z0, z0 + 3.0)
-    p -= box(-1, bx - 0.3, -1, Lg + 1, z0 - 1, z0 + 0.3)      # alivio de 0,3 mm: la barra solo apoya sobre la placa
-    for x, y in tray_post_xy()[::2]:
-        p -= cyl_z(C.M3_CLEAR / 2, z0 - 1, z0 + 5, x, y)
-    p -= engrave_text(f'{C.PROJECT} {C.REVISION}', 2.6, TRAY_RAIL / 2, Lg / 2, z0 + 3.0, 0.4, 90)
-    return p
+TURN_HOLE_D = 4.0    # agujero de la espiga del pestillo en cada poste
+
+def turn_button_poses():
+    """(x, y, ángulo) de cada pestillo en el marco de la bandeja, CERRADO (brazo hacia la placa: ±y)."""
+    return [(x, y, 0.0 if y < 50 else 180.0) for x, y in tray_post_xy()]
 
 # ───────────────────────────── soporte independiente del micrófono (MEMS_Stand) ─────────────────────────────
 # marco: origen en la base (z = 0 en la cara superior), +x hacia el eje de la válvula. El micrófono queda en x = 0.
 STAND_POST = 12.0
 STAND_PIVOT_X = 0.0              # el pivote queda bajo el micrófono (la inclinación no cambia la distancia horizontal)
 STAND_PIVOT_DZ = (C.MEMS_BOARD[1] + 4.4) / 2 + 6.5   # centro del micrófono sobre el pivote
-STAND_INSERTS = ((-12.0, -11.0), (-12.0, 11.0))   # insertos M3 en la base (x, y local), a los costados del poste
+STAND_INSERTS = ((-12.0, -12.0), (-12.0, 12.0))   # pernos M6 impresos a la base (x, y local), a los costados del poste
+STAND_FOOT_Y = 17.5
+PIVOT_HOLE = 2.2                 # pasador de latón Ø2 libre en la horquilla y en la lengüeta
 
 def stand_heights():
     """Altura del pivote y del centro del micrófono (global), apuntando al plano de las bisagras."""
@@ -435,19 +450,19 @@ def stand_heights():
 
 def mems_stand() -> Part:
     zpiv, _ = stand_heights()
-    p = box(-34.0, 10.0, -16.0, 16.0, 0, 4.0)
-    for x, y in STAND_INSERTS:                                     # ranuras radiales a los costados del poste (±8 mm)
-        p -= box(x - 8.0, x + 8.0, y - C.M3_CLEAR / 2, y + C.M3_CLEAR / 2, -1, 5)
-        p -= cyl_z(C.M3_CLEAR / 2, -1, 5, x - 8.0, y) + cyl_z(C.M3_CLEAR / 2, -1, 5, x + 8.0, y)
+    p = box(-34.0, 10.0, -STAND_FOOT_Y, STAND_FOOT_Y, 0, 4.0)
+    for x, y in STAND_INSERTS:                                     # ranuras radiales a los costados del poste (±8 mm) para pernos M6
+        p -= box(x - 8.0, x + 8.0, y - C.M6_CLEAR / 2, y + C.M6_CLEAR / 2, -1, 5)
+        p -= cyl_z(C.M6_CLEAR / 2, -1, 5, x - 8.0, y) + cyl_z(C.M6_CLEAR / 2, -1, 5, x + 8.0, y)
     px0 = STAND_PIVOT_X - 6.0 - STAND_POST
     p += box(px0, px0 + STAND_POST, -STAND_POST / 2, STAND_POST / 2, 1.0, zpiv - 3.5)
     # cartelas (rigidez del poste; ver frecuencia estimada en la documentación)
     p += prism_xz(SPoly([(px0 - 12, 3.5), (px0 + 1.0, 3.5), (px0 + 1.0, 27), (px0, 27)]), -1.5, 1.5)
     p += prism_xz(SPoly([(px0 + STAND_POST - 1.0, 3.5), (px0 + STAND_POST + 9, 3.5), (px0 + STAND_POST, 22), (px0 + STAND_POST - 1.0, 22)]), -1.5, 1.5)
-    # horquilla del pivote (M3 horizontal + tuerca autoblocante: fricción regulable)
+    # horquilla del pivote: pasador de latón Ø2 + cabeza y tuerca a presión impresas (la presión de la tuerca regula la fricción)
     for y0, y1 in ((2.6, 5.6), (-5.6, -2.6)):
         p += box(px0 + 1.0, STAND_PIVOT_X + 3.7, y0, y1, zpiv - 4.0, zpiv + 3.5)
-    p -= cyl_y(C.M3_CLEAR / 2, -10, 10, STAND_PIVOT_X, zpiv)
+    p -= cyl_y(PIVOT_HOLE / 2, -10, 10, STAND_PIVOT_X, zpiv)
     p -= engrave_text('M1', 4.0, 4.0, 0, 4.0, 0.4, 90)
     return p
 
@@ -461,7 +476,7 @@ def stand_holder() -> Part:
     holder -= box(-ft, ft, -3.0, 3.0, (bh - 3.0) / 2 - 0.1, fh)
     zp = -STAND_PIVOT_DZ
     tongue = box(-2.0, 2.0, -2.4, 2.4, zp, -fh / 2 + 1.0) + cyl_y(3.5, -2.4, 2.4, 0, zp)
-    tongue -= cyl_y(C.M3_CLEAR / 2, -5, 5, 0, zp)
+    tongue -= cyl_y(PIVOT_HOLE / 2, -5, 5, 0, zp)
     return holder + tongue
 
 # ───────────────────────────── pinza de cables para columna ─────────────────────────────
@@ -501,15 +516,15 @@ def angle_scale(center_h: float) -> Part:
 # ───────────────────────────── base ─────────────────────────────
 
 def base(col_xy, servo_holes, tray_xy, scale_xy, stand_pts, zip_pts, labels) -> Part:
-    """insertos M3 para servo, bandeja y soporte del micrófono; ranuras para bridas a lo largo de los cables."""
+    """Roscas hembra M6 IMPRESAS (pasantes) para columnas, servo, bandeja y soporte del micrófono; ranuras para bridas."""
+    import fasteners as FA
     T = C.BASE_T
     p = box(0, C.BASE_X, 0, C.BASE_Y, 0, T)
-    for x, y in col_xy:
-        p -= cyl_z(C.M3_CLEAR / 2, -1, T + 1, x, y)
-        p -= cyl_z(C.M3_HEAD_D / 2, -1, C.M3_HEAD_H, x, y)
+    for x, y in col_xy:                                                           # columna: rosca + avellanado de 45° (asiento)
+        p = FA.threaded_hole(p, x, y, 0.0, T - 1.0)
+        p -= Pos(x, y, T - 1.0) * Cone(C.THREAD_D / 2 + 0.2, C.COLUMN_D / 2 + 0.2, 1.01, align=(Align.CENTER, Align.CENTER, Align.MIN))
     for x, y in list(servo_holes) + list(stand_pts) + [(tray_xy[0] + hx, tray_xy[1] + hy) for hx, hy in tray_base_holes()]:
-        p -= cyl_z(C.M3_INSERT_D / 2, T - C.M3_INSERT_L - 0.3, T + 1, x, y)     # inserto desde arriba
-        p -= cyl_z(C.M3_CLEAR / 2 + 0.2, -1, T, x, y)                             # salida de la punta del tornillo
+        p = FA.threaded_hole(p, x, y, 0.0, T)
     sx, sy = scale_xy
     p -= box(sx - 0.15, sx + 2.15, sy - 35.3, sy + 35.3, 0.4, T + 1)                 # ranura del transportador
     for x, y in ((12, 12), (C.BASE_X - 12, 12), (12, C.BASE_Y - 12), (C.BASE_X - 12, C.BASE_Y - 12)):
@@ -533,7 +548,7 @@ COUPON_ROWS = [
     ('Eje Ø2 libre', (2.0, 2.1, 2.2, 2.3, 2.4, 2.5), None),
     ('Eje Ø2 a presión', (1.80, 1.85, 1.90, 1.95, 2.00, 2.05), None),
     ('Pilotos M2/M3', (1.6, 1.7, 1.8, 1.9, 2.4, 2.6), 5.0),
-    ('Insertos M2 / M3', (3.1, 3.2, 3.3, 4.0, 4.1, 4.2), 6.0),
+    ('Paso M6 y espiga del pestillo', (6.4, 6.6, 6.8, 3.9, 4.0, 4.1), None),
     ('Imán Ø4×2 (alojamiento)', (4.05, 4.10, 4.15, 4.20, 4.25, 4.30), 2.2),
 ]
 
@@ -617,30 +632,74 @@ def _screw_y(x, z, y_head, y_tip, nut_y0=None, d=2.0, head_d=3.8, head_h=2.0, af
         p += prism_xz(hexp, min(nut_y0, nut_y0 + sgn * nut_t), max(nut_y0, nut_y0 + sgn * nut_t))
     return p
 
+def _pin_y(x, z, y_head, y_nut, head=True) -> Part:
+    """Pasador de latón Ø2 a lo largo de y: cabeza impresa del lado de y_head (por fuera) y tuerca a presión desde y_nut hacia afuera."""
+    hd, hh = C.PIN_HEAD
+    sgn = 1 if y_nut > y_head else -1
+    y_in = y_head - sgn * (hh - 0.4)                    # el latón entra 1,2 mm en la cabeza
+    y_out = y_nut + sgn * C.M2_NUT_T                    # al ras de la cara exterior de la tuerca
+    p = cyl_y(C.BRASS_PIN_D / 2 * 0.98, min(y_in, y_out), max(y_in, y_out), x, z)
+    if head:
+        p += cyl_y(hd / 2, min(y_head, y_head - sgn * hh), max(y_head, y_head - sgn * hh), x, z)
+    p += prism_xz(hexagon((x, z), C.M2_NUT_AF / math.sqrt(3)), min(y_nut, y_out), max(y_nut, y_out))
+    return p
+
+def pin_lengths():
+    """Largo de cada pasador de latón Ø2 (mm), para cortar de la varilla."""
+    hh = C.PIN_HEAD[1] - 0.4
+    return {'tope': round((C.RING_H - C.PIN_HEAD[1] + hh) + 2.5, 1),
+            'biela_plato': round((C.LINK_Y[1] + C.M2_NUT_T) - (C.TAB_Y[0] - hh), 1),
+            'horquilla': round((4.4 + C.M2_NUT_T) - (-4.4 - hh), 1),
+            'pivote_M1': round((5.6 + C.M2_NUT_T) - (-5.6 - hh), 1)}
+
 def ref_plate_fasteners() -> Part:
-    """M2×10 + tuerca en cada orejeta (biela–plato) y M2×14 + tuerca en la horquilla (marco del plato)."""
+    """Pasadores de latón Ø2 con cabeza impresa y tuerca a presión: biela–orejeta (×3) y horquilla–empujador (marco del plato)."""
     out = None
     for i in range(C.N_LEAF):
-        s_ = _screw_y(C.LINK_PIN_X, C.PLATE_TAB_PIN_Z, C.TAB_Y[0], C.TAB_Y[0] + 10.0, C.LINK_Y[1])
-        s_ = leaf_frame(s_, i)
+        s_ = leaf_frame(_pin_y(C.LINK_PIN_X, C.PLATE_TAB_PIN_Z, C.TAB_Y[0], C.LINK_Y[1]), i)
         out = s_ if out is None else out + s_
-    out += _screw_y(0.0, C.CLEVIS_PIN_Z, -4.4, -4.4 + 14.0, 4.4)
+    out += _pin_y(0.0, C.CLEVIS_PIN_Z, -4.4, 4.4)
     return out
 
 def ref_ring_fasteners() -> Part:
-    """Tornillos de latón M2×20 de los topes + tuercas atrapadas; M3×30 de las comisuras (marco del anillo)."""
+    """Topes: pasador de latón Ø2 + cabeza impresa en el rebaje + tuerca a presión en la brida. Comisuras: tuerca moleteada M6
+    sobre el espárrago de la columna (representada como anillo liso: la rosca real está en el STL imprimible). Marco del anillo."""
     out = None
     sx, sy = STOP_SCREW
-    z_head = C.RING_H - 1.6
+    hd, hh = C.PIN_HEAD
+    z_head = C.RING_H - hh
     for i in range(C.N_LEAF):
-        st = cyl_z(0.92, z_head - 20.0, z_head, sx, sy) + cyl_z(1.9, z_head, z_head + 1.6, sx, sy)
+        st = cyl_z(C.BRASS_PIN_D / 2 * 0.98, -2.5, z_head + hh - 0.4, sx, sy) + cyl_z(hd / 2, z_head, z_head + hh, sx, sy)
         st += prism_xy(hexagon(STOP_SCREW, C.M2_NUT_AF / math.sqrt(3)), -2.5, -2.5 + C.M2_NUT_T)
         st = leaf_frame(st, i)
         a = (K.leaf_dir(i) + 60) * D2R
         cx, cy = C.COLUMN_R * math.cos(a), C.COLUMN_R * math.sin(a)
-        ztop = C.RING_H + C.POST_H - C.M3_HEAD_H - 0.6
-        st += cyl_z(1.38, ztop - 30.0, ztop, cx, cy) + cyl_z(2.75, ztop, ztop + 3.0, cx, cy)
+        z0 = C.RING_H + C.POST_H
+        st += cyl_z(C.KNURL_NUT[0] / 2, z0, z0 + C.KNURL_NUT[1], cx, cy) - cyl_z(C.THREAD_D / 2 + 0.1, z0 - 1, z0 + C.KNURL_NUT[1] + 1, cx, cy)
         out = st if out is None else out + st
+    return out
+
+def _bolt_ref(x, y, z_face) -> Part:
+    """Perno M6×8 impreso (referencia lisa: caña al diámetro de fondo de la rosca, sin choque con la rosca hembra)."""
+    hd, hh = C.BOLT_HEAD
+    return cyl_z(hd / 2, z_face, z_face + hh, x, y) + cyl_z(2.4, z_face - C.BOLT_L, z_face + 0.01, x, y)
+
+def ref_base_fasteners(servo_holes, tray_xy) -> Part:
+    """Pernos M6×8 impresos del soporte del servo (×4) y de la bandeja (×2) — marco global."""
+    out = None
+    for x, y in servo_holes:
+        b = _bolt_ref(x, y, C.BASE_T + 3.0)
+        out = b if out is None else out + b
+    for hx, hy in tray_base_holes()[::3]:                 # 2 pernos en diagonal (alcanza para una bandeja liviana)
+        out += _bolt_ref(tray_xy[0] + hx, tray_xy[1] + hy, C.BASE_T + TRAY_FLOOR)
+    return out
+
+def ref_stand_fasteners() -> Part:
+    """Soporte del micrófono: 2 pernos M6×8 por las ranuras y el pasador del pivote (marco del soporte)."""
+    zpiv, _ = stand_heights()
+    out = _pin_y(STAND_PIVOT_X, zpiv, -5.6, 5.6)
+    for x, y in STAND_INSERTS:
+        out += _bolt_ref(x, y, 4.0)
     return out
 
 def ref_perfboard() -> Part:

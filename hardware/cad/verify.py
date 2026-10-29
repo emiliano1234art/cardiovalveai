@@ -92,7 +92,7 @@ MOVING = {'Leaflet_1', 'Leaflet_2', 'Leaflet_3', 'Link_1', 'Link_2', 'Link_3', '
           'Magnet_1', 'Magnet_2', 'Magnet_3', 'Tail_Pin_1', 'Tail_Pin_2', 'Tail_Pin_3', 'Plate_Fasteners_Reference',
           'Cable_Routes_Reference'}   # los cables se comparan contra TODO (salvo las piezas por las que pasan a propósito)
 _CABLE_HOSTS = ['Valve_Ring', 'Hall_1', 'Hall_2', 'Hall_3', 'Hall_Carrier_1', 'Hall_Carrier_2', 'Hall_Carrier_3', 'Cable_Clip_1', 'Cable_Clip_2', 'Cable_Clip_3',
-                'MEMS_Stand_Holder', 'MEMS_Board_Reference', 'Base', 'Electronics_Tray', 'Tray_Clamp_L', 'Tray_Clamp_R', 'Perfboard_ESP32_Reference',
+                'MEMS_Stand_Holder', 'MEMS_Board_Reference', 'Base', 'Electronics_Tray', 'Perfboard_ESP32_Reference',
                 'Servo_MG90S_Reference']
 IGNORE = {frozenset(p) for p in [('Servo_Horn_Reference', 'Servo_MG90S_Reference')]   # horn encajado en el eje (intencional)
           + [(f'Tail_Pin_{i}', f'Leaflet_{i}') for i in (1, 2, 3)]                       # pasador a presión en la cola (intencional)
@@ -239,14 +239,15 @@ def assembly_checks(cache_mesh):
     for i in range(3):
         # eje de bisagra: el eje Ø2 entra desde el exterior y recorre todo el agujero
         test(f'Eje Ø2 de la valva {i+1}: inserción desde el exterior (camino libre)', cyl(1.0, ring_pt(i, C.HINGE_D, -60, C.Z_HINGE), ring_pt(i, C.HINGE_D, 60, C.Z_HINGE)), allowed=(f'Pin_{i+1}',))
-        # tornillo de columna: cabeza M3 + llave allen desde arriba
+        # tuerca moleteada M6 de la columna: se enrosca con los dedos desde arriba (cilindro de Ø 9 + 6 mm para los dedos)
         a = (K.leaf_dir(i) + 60) * math.pi / 180
         cx, cy = A.VX + C.COLUMN_R * math.cos(a), A.VY + C.COLUMN_R * math.sin(a)
         top = A.Z_RING + C.RING_H + C.POST_H
-        test(f'Tornillo M3 de la columna {i+1}: acceso vertical desde arriba', cyl(1.4, (cx, cy, top - 25), (cx, cy, top + 60)), allowed=(f'Column_{i+1}', 'Ring_Fasteners_Reference'))
-        # tornillo del tope: M2 desde arriba, tuerca atrapada en la brida
+        test(f'Tuerca moleteada M6 de la columna {i+1}: acceso con los dedos desde arriba', cyl(C.KNURL_NUT[0] / 2 + 3.0, (cx, cy, top + 0.05), (cx, cy, top + 60)),
+             allowed=(f'Column_{i+1}', 'Ring_Fasteners_Reference'))
+        # pasador del tope: latón Ø2 desde arriba, tuerca a presión en la brida
         sx, sy = __import__('parts').STOP_SCREW
-        test(f'Tornillo M2 de latón del tope {i+1}: acceso vertical desde arriba', cyl(0.9, ring_pt(i, sx, sy, -2.0), ring_pt(i, sx, sy, 80)), allowed=(f'Stop_{i+1}', 'Ring_Fasteners_Reference'))
+        test(f'Pasador de latón del tope {i+1}: inserción vertical desde arriba', cyl(0.9, ring_pt(i, sx, sy, -2.0), ring_pt(i, sx, sy, 80)), allowed=(f'Stop_{i+1}', 'Ring_Fasteners_Reference'))
         # portasensor Hall: se retira y se vuelve a colocar verticalmente sin desarmar
         hx, hy, hz = C.HALL_XYZ
         test(f'Portasensor H{i+1}: extracción vertical sin desarmar (cuerpo del sensor)', cyl(0.7, ring_pt(i, hx, hy, hz), ring_pt(i, hx, hy, 90)),
@@ -257,8 +258,8 @@ def assembly_checks(cache_mesh):
         tx, tz = K.tail_end(0.0)
         test(f'Pasador Ø2 cola–biela de la valva {i+1}: agujeros alineados', cyl(0.8, ring_pt(i, tx, C.TAIL_Y[0] + 0.5, tz), ring_pt(i, tx, C.LINK_Y[1] + 0.2, tz)), allowed=(f'Tail_Pin_{i+1}',))
         zp = K.zp_from_servo(K.SWEEP)
-        test(f'Tornillo M2 biela–plato de la valva {i+1}: agujeros alineados', cyl(0.8, ring_pt(i, C.LINK_PIN_X, C.TAB_Y[0] - 0.5, zp), ring_pt(i, C.LINK_PIN_X, C.LINK_Y[1] + 0.5, zp)), allowed=('Plate_Fasteners_Reference',))
-    # acceso al tornillo biela–plato con el plato abajo (servo 50°): destornillador por la cabeza (−y) y llave de tubo 4 mm por la tuerca (+y)
+        test(f'Pasador biela–plato de la valva {i+1}: agujeros alineados', cyl(0.8, ring_pt(i, C.LINK_PIN_X, C.TAB_Y[0] - 0.5, zp), ring_pt(i, C.LINK_PIN_X, C.LINK_Y[1] + 0.5, zp)), allowed=('Plate_Fasteners_Reference',))
+    # acceso al pasador biela–plato con el plato abajo (servo 50°): se empuja por la cabeza (−y) y se coloca o se saca la tuerca a presión con alicate (+y)
     tf_open = A.pose_transforms(-K.SWEEP, 'NORMAL')
     world_open = {}
     for inst, nm in names.items():
@@ -270,13 +271,13 @@ def assembly_checks(cache_mesh):
     for i in range(3):
         M = ring @ A.Rz(K.leaf_dir(i))
         P = lambda y: (M @ np.array([C.LINK_PIN_X, y, zpo, 1]))[:3]
-        tool_test(f'Tornillo M2 biela–plato de la valva {i+1}: destornillador por la cabeza (−y), plato abajo, transportador retirado',
+        tool_test(f'Pasador biela–plato de la valva {i+1}: empujador por la cabeza (−y), plato abajo, transportador retirado',
                   cyl(1.5, P(C.TAB_Y[0] - 2.2), P(C.TAB_Y[0] - 70)), allowed=('Angle_Scale', 'Cable_Routes_Reference'))
-        tool_test(f'Tornillo M2 biela–plato de la valva {i+1}: llave de tubo 4 mm por la tuerca (+y), plato abajo, transportador retirado',
+        tool_test(f'Pasador biela–plato de la valva {i+1}: alicate sobre la tuerca a presión (+y), plato abajo, transportador retirado',
                   cyl(3.2, P(C.LINK_Y[1] + C.M2_NUT_T + 0.1), P(C.LINK_Y[1] + 70)), allowed=('Angle_Scale', 'Cable_Routes_Reference', 'Plate_Fasteners_Reference'))   # el tubo es hueco: la punta del tornillo entra
     zp = K.zp_from_servo(K.SWEEP)
     kz = A.Z_RING + zp - C.PLATE_TAB_PIN_Z + C.CLEVIS_PIN_Z
-    test('Tornillo M2 horquilla–empujador: agujeros alineados', cyl(0.8, (A.VX, A.VY - 5, kz), (A.VX, A.VY + 5, kz)), allowed=('Plate_Fasteners_Reference',))
+    test('Pasador horquilla–empujador: agujeros alineados', cyl(0.8, (A.VX, A.VY - 5, kz), (A.VX, A.VY + 5, kz)), allowed=('Plate_Fasteners_Reference',))
     # tornillos de las orejas del servo: acceso desde el lado del horn (−y)
     import parts as P
     L = P.servo_layout(A.ZS)
@@ -284,18 +285,22 @@ def assembly_checks(cache_mesh):
         x = A.VX + L['body_cx'] + s * C.SERVO.tab_hole_spacing / 2
         y = A.VY + L['y_of_h'](C.SERVO.tab_h + C.SERVO.tab_t)
         test(f'Tornillo M2 oreja {"izq der".split()[s > 0]} del servo: acceso con destornillador', cyl(1.2, (x, y + 0.5, A.ZS), (x, y - 60, A.ZS)), allowed=('Servo_MG90S_Reference', 'Servo_Mount'))
-    # soporte del micrófono: tornillos M3 verticales por la ranura
+    # pernos M6×8 impresos (cabeza moleteada Ø10): acceso con los dedos desde arriba (cilindro Ø16 sobre la cabeza)
+    hd, hh = C.BOLT_HEAD
     for k, (x, y) in enumerate(A.stand_insert_xy()):
-        test(f'Tornillo M3 {k+1} del soporte M1: acceso vertical', cyl(1.4, (x, y, C.BASE_T - C.M3_INSERT_L), (x, y, C.BASE_T + 80)), allowed=('MEMS_Stand', 'Base'))
-    # bandeja: tornillos M3 a la base (antes de colocar la placa) y de las barras de sujeción
-    for hx, hy in P.tray_base_holes():
+        test(f'Perno M6 {k+1} del soporte M1: acceso con los dedos', cyl(hd / 2 + 1.0, (x, y, C.BASE_T + 4.0 + hh + 0.05), (x, y, C.BASE_T + 80)), allowed=())
+    for k, (x, y) in enumerate(A.servo_mount_holes()):
+        test(f'Perno M6 {k+1} del soporte del servo: acceso con los dedos', cyl(hd / 2 + 1.0, (x, y, C.BASE_T + 3.0 + hh + 0.05), (x, y, C.BASE_T + 80)), allowed=())
+    for hx, hy in P.tray_base_holes()[::3]:
         x, y = A.TRAY_XY[0] + hx, A.TRAY_XY[1] + hy
-        test(f'Tornillo M3 bandeja→base ({hx:.0f},{hy:.0f}): acceso vertical sin la placa', cyl(1.4, (x, y, C.BASE_T - 2), (x, y, C.BASE_T + 80)),
-             allowed=('Electronics_Tray', 'Base', 'Perfboard_ESP32_Reference'))
-    for hx, hy in P.tray_post_xy():
-        x, y = A.TRAY_XY[0] + hx, A.TRAY_XY[1] + hy
-        test(f'Tornillo M3 barra de sujeción ({hx:.0f},{hy:.0f}): acceso vertical', cyl(1.4, (x, y, C.BASE_T + 4), (x, y, C.BASE_T + 80)),
-             allowed=('Electronics_Tray', 'Tray_Clamp_L', 'Tray_Clamp_R'))
+        test(f'Perno M6 bandeja→base ({hx:.0f},{hy:.0f}): acceso vertical sin la placa', cyl(hd / 2 + 1.0, (x, y, C.BASE_T + 2.0 + hh + 0.05), (x, y, C.BASE_T + 80)),
+             allowed=('Perfboard_ESP32_Reference',))
+    # pestillos de la bandeja: abiertos (girados 90° hacia afuera) dejan sacar la placa
+    W, Lg, zb, _ = P.tray_dims()
+    for k, (bx_, by_, ang) in enumerate(P.turn_button_poses()):
+        x, y = A.TRAY_XY[0] + bx_, A.TRAY_XY[1] + by_
+        test(f'Pestillo {k+1} de la bandeja: gira sobre su espiga (agujero libre en el poste)', cyl(C.TURN_PEG_D / 2, (x, y, C.BASE_T + zb + C.PERFBOARD[2] - 5.0), (x, y, C.BASE_T + zb + C.PERFBOARD[2] - 0.05)),
+             allowed=(f'Turn_Button_{k+1}',))
     # USB, EN y BOOT del ESP32: deben quedar descubiertos desde arriba (verificación con la referencia NO definitiva)
     W, Lg, zb, (bx, by) = P.tray_dims()
     bl = C.ESP32_BOARD[0]
@@ -304,6 +309,35 @@ def assembly_checks(cache_mesh):
     test('Conector USB del ESP32: enchufable desde +y sin obstáculos (referencia)', cyl(4.0, (A.TRAY_XY[0] + W / 2, ey_usb + 1.0, zt + 1.5), (A.TRAY_XY[0] + W / 2, ey_usb + 40, zt + 1.5)),
          allowed=('Perfboard_ESP32_Reference', 'Cable_Routes_Reference'))
     return checks
+
+STATIC_TARGETS = ['Ring_Fasteners_Reference', 'Base_Fasteners_Reference', 'Stand_Fasteners_Reference', 'Turn_Button_1', 'Turn_Button_2',
+                  'Turn_Button_3', 'Turn_Button_4', 'Servo_Mount', 'MEMS_Stand', 'Electronics_Tray', 'Column_1', 'Column_2', 'Column_3', 'Base']
+
+def static_checks(cache_mesh):
+    """Piezas FIJAS que cambiaron en v3.1 (fijaciones impresas, pie del servo, soporte del micrófono, bandeja, columnas, base) contra
+    todas las demás, con la válvula cerrada. Las roscas de las columnas en la base se enroscan a propósito (se excluyen)."""
+    tf = A.pose_transforms(K.SWEEP, 'NORMAL')
+    names = instance_meshes('NORMAL')
+    world = {}
+    for inst, nm in names.items():
+        m = (cache_mesh.get(nm) or load(nm)).copy(); m.apply_transform(tf[inst]); world[inst] = to_manifold(m)
+    allowed = set(IGNORE) | {frozenset((f'Column_{i}', 'Base')) for i in (1, 2, 3)}
+    out, done = [], set()
+    for t in STATIC_TARGETS:
+        hits = {}
+        bt = world[t].bounding_box()
+        for o, man in world.items():
+            if o == t or frozenset((t, o)) in allowed or frozenset((t, o)) in done:
+                continue
+            bo = man.bounding_box()
+            if any(bt[k + 3] < bo[k] - 1e-6 or bo[k + 3] < bt[k] - 1e-6 for k in range(3)):
+                continue
+            v = (world[t] ^ man).volume()
+            if v > CONTACT_TOL:
+                hits[o] = round(v, 3)
+            done.add(frozenset((t, o)))
+        out.append({'pieza': t, 'ok': not hits, 'choques': hits})
+    return out
 
 # ───────────────────────────── 5. carga del servo ─────────────────────────────
 
@@ -417,6 +451,7 @@ def main():
     res['horn_table'] = horn_table(res['servo']['force_N'])
     res['plate_binding'] = plate_binding()
     print('· galgas de calibración'); res['gauges'] = gauge_checks(cache)
+    print('· piezas fijas y fijaciones impresas'); res['static'] = static_checks(cache)
     res['drive'] = drive_checks()
     # cinemática tabulada
     kin = {}
@@ -439,6 +474,7 @@ def main():
     print('montaje fallido:', [c for c in res['assembly'] if not c['ok']])
     print('holgura mínima:', min(v['min_mm'] for v in res['clearance'].values()))
     print('servo:', res['servo'])
+    print('fijas con choques:', [(c['pieza'], c['choques']) for c in res['static'] if not c['ok']])
     print('galgas:', [(g['angulo'], g['ok'], list(g['debajo']), list(g['encima'])) for g in res['gauges']])
     print('accionamiento:', res['drive'])
     print(f'Total {time.time() - t0:.0f} s')

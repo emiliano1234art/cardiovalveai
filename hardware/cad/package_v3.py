@@ -1,6 +1,6 @@
 """
-Empaqueta la revisión v3 en entrega/CardioValveAI_v3_Modelo_y_Adquisicion.zip con un manifiesto REVISION.json
-(commit de git, fecha, SHA-256 de cada archivo). Las entregas anteriores (v1 y v2) no se tocan.
+Empaqueta la revisión actual (config.REVISION) en entrega/<PREFIX>_Modelo_y_Adquisicion.zip con un manifiesto REVISION.json
+(commit de git, fecha, SHA-256 de cada archivo). Las entregas anteriores (v1, v2, v3) no se tocan.
 Uso: python package_v3.py [--video]      (--video arma el MP4 rotulado a partir de out_v3/anim_frames)
 """
 from __future__ import annotations
@@ -22,8 +22,9 @@ REPO = os.path.abspath(os.path.join(HW, '..'))
 OUT = os.path.join(HW, C.OUT_DIR)
 ZIP = os.path.join(REPO, 'entrega', f'{C.PREFIX}_Modelo_y_Adquisicion.zip')
 ROOT = f'{C.PREFIX}_Entrega'
-FW = f'{C.PROJECT}_{C.REVISION}_Adquisicion'
-PREVIOUS = ['entrega/CardioValAI_Modelo_Final_STL.zip', 'entrega/CardioValAI_v2_Modelo_y_Adquisicion.zip']
+FW = C.FIRMWARE
+PREVIOUS = ['entrega/CardioValAI_Modelo_Final_STL.zip', 'entrega/CardioValAI_v2_Modelo_y_Adquisicion.zip',
+            'entrega/CardioValveAI_v3_Modelo_y_Adquisicion.zip']
 FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 FONT_B = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
 

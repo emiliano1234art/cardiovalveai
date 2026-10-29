@@ -38,13 +38,8 @@ def column_xy(i):
     return VX + C.COLUMN_R * math.cos(a), VY + C.COLUMN_R * math.sin(a)
 
 def servo_mount_holes():
-    L = P.servo_layout(ZS)
-    xc = L['body_cx']; half = C.SERVO.tab_span / 2 + 4
-    y_face = L['y_of_h'](C.SERVO.tab_h); y_back = y_face + 4.0
-    pts = []
-    for s in (-1, 1):
-        pts += [(VX + xc + s * (half - 6), VY + y_back + 14), (VX + xc + s * (half - 6), VY + y_face - 4.5)]
-    return pts
+    """Pernos M6 impresos del soporte del servo (global)."""
+    return [(VX + x, VY + y) for x, y in P.servo_bolt_xy(P.servo_layout(ZS))]
 
 def column_angle(i):
     return K.leaf_dir(i) + 60
@@ -175,9 +170,11 @@ def pose_transforms(beta: float, mode: str = 'NORMAL', explode: float = 0.0, man
     out['MEMS_Stand_Holder'] = T(0, 0, 10 * ex) @ stand_holder_frame()
     out['MEMS_Board_Reference'] = out['MEMS_Stand_Holder']
     out['Electronics_Tray'] = tray_frame()
-    out['Tray_Clamp_L'] = T(0, 0, 14 * ex) @ tray_frame()
-    W, Lg, _, _ = P.tray_dims()
-    out['Tray_Clamp_R'] = T(0, 0, 14 * ex) @ tray_frame() @ T(W, Lg, 0) @ Rz(180)
+    _, _, zb, _ = P.tray_dims()
+    for k, (bx, by, ang) in enumerate(P.turn_button_poses()):
+        out[f'Turn_Button_{k+1}'] = T(0, 0, 14 * ex) @ tray_frame() @ T(bx, by, zb + C.PERFBOARD[2]) @ Rz(ang)
+    out['Base_Fasteners_Reference'] = T(0, 0, 14 * ex)
+    out['Stand_Fasteners_Reference'] = stand_frame()
     out['Perfboard_ESP32_Reference'] = T(0, 0, 8 * ex) @ tray_frame()
     out['Cable_Routes_Reference'] = np.eye(4)
     out['Angle_Scale'] = T(-20 * ex, 0, 0) @ T(SCALE_XY[0], SCALE_XY[1], C.BASE_T)
