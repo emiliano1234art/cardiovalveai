@@ -350,8 +350,9 @@ def servo_mount(zs: float) -> Part:
     for s in (-1, 1):
         plate -= cyl_y(C.M2_PILOT / 2, y_face - 1, y_back + 1, xc + s * S.tab_hole_spacing / 2, zs)
     bolts = servo_bolt_xy(L)
-    bx = [x for x, _ in bolts]; by = [y for _, y in bolts]
-    foot = box(min(xc - half, min(bx) - 5.7), max(xc + half, max(bx) + 5.7), min(y_face - 8, min(by) - 5.7), max(y_back + 19.0, max(by) + 5.7), zb, zb + 3.0)
+    foot = box(xc - half, xc + half, y_face - 8, y_back + 19.0, zb, zb + 3.0)
+    for x, y in bolts:                                  # apoyo redondo alrededor de cada perno M6
+        foot += cyl_z(C.M6_CLEAR / 2 + 2.4, zb, zb + 3.0, x, y)
     p = plate + foot
     for s in (-1, 1):
         gx = xc + s * (half - 2.5)
@@ -359,6 +360,11 @@ def servo_mount(zs: float) -> Part:
     # 4 pernos M6 impresos a la base, FUERA de la huella del servo (el cuerpo queda a 1 mm del pie) y lejos de las cartelas
     for x, y in bolts:
         p -= cyl_z(C.M6_CLEAR / 2, zb - 1, zb + 5, x, y)
+    # rebaje alrededor de las columnas y sus pinzas de cable (la placa vertical tocaba la pinza de la columna 1)
+    import assembly as A
+    for i in range(C.N_LEAF):
+        cx, cy = A.column_xy(i)
+        p -= cyl_z(C.COLUMN_D / 2 + 1.9 + 0.6, zb - 1, 80, cx - A.VX, cy - A.VY)
     return p
 
 def servo_bolt_xy(L=None):
@@ -368,7 +374,7 @@ def servo_bolt_xy(L=None):
     yh = L['y_of_h']; xc = L['body_cx']
     y_face = yh(S.tab_h)
     m = C.BOLT_HEAD[0] / 2 + 0.6                         # radio de la cabeza + margen
-    y_front = y_face - m                                  # delante de la placa vertical
+    y_front = yh(S.tab_h + S.tab_t) - m - 2.0             # delante de las orejas del servo y lejos de la columna 1 (pared ≥ 2 mm)
     y_rear = max(yh(0), yh(S.H)) + m                      # detrás del cuerpo del servo
     return [(xc - S.L / 2 - m, y_front), (xc + S.L / 2 + m, y_front), (xc - 8.0, y_rear), (xc + 8.0, y_rear)]
 

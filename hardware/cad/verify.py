@@ -289,8 +289,11 @@ def assembly_checks(cache_mesh):
     hd, hh = C.BOLT_HEAD
     for k, (x, y) in enumerate(A.stand_insert_xy()):
         test(f'Perno M6 {k+1} del soporte M1: acceso con los dedos', cyl(hd / 2 + 1.0, (x, y, C.BASE_T + 4.0 + hh + 0.05), (x, y, C.BASE_T + 80)), allowed=())
+    # el soporte del servo se atornilla a la base ANTES de colocar el servo, las columnas, el plato y el anillo (queda debajo de la válvula):
+    # solo puede estorbar el propio soporte
     for k, (x, y) in enumerate(A.servo_mount_holes()):
-        test(f'Perno M6 {k+1} del soporte del servo: acceso con los dedos', cyl(hd / 2 + 1.0, (x, y, C.BASE_T + 3.0 + hh + 0.05), (x, y, C.BASE_T + 80)), allowed=())
+        test(f'Perno M6 {k+1} del soporte del servo: acceso con los dedos (antes de montar servo y válvula)', cyl(hd / 2 + 1.0, (x, y, C.BASE_T + 3.0 + hh + 0.05), (x, y, C.BASE_T + 80)),
+             allowed=tuple(n for n in world if n != 'Servo_Mount'))
     for hx, hy in P.tray_base_holes()[::3]:
         x, y = A.TRAY_XY[0] + hx, A.TRAY_XY[1] + hy
         test(f'Perno M6 bandeja→base ({hx:.0f},{hy:.0f}): acceso vertical sin la placa', cyl(hd / 2 + 1.0, (x, y, C.BASE_T + 2.0 + hh + 0.05), (x, y, C.BASE_T + 80)),
