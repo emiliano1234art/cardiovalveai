@@ -912,8 +912,8 @@ un destornillador pueden barrer la rosca de plástico. Por eso las cabezas son m
 apriete después de 24 h. La retención de las tuercas a presión depende del agujero real: se fija con la fila 2 de la probeta y se comprueba en el ensayo 1. [FÍSICO]
 
 ## 5. Comprobaciones digitales [SIM]
-- Perno y tuerca M6 impresos: con la compensación de {F(C.THREAD_COMP, 2)} mm por lado, las roscas encajan sin interferencia en un tercio de vuelta (juego axial ≈ 0,3 mm,
-  normal en roscas impresas) — comprobado con el sólido booleano del perno y la tuerca.
+- Perno y tuerca M6 impresos: con la compensación de {F(C.THREAD_COMP, 2)} mm por lado, las roscas encajan sin interferencia, con un juego axial
+  de ≈ 0,3 mm (normal en roscas impresas). Se comprobó intersecando el sólido del perno con el de una tuerca en distintos ángulos de giro.
 - Piezas fijas modificadas y fijaciones contra todo el ensamblaje: {'sin choques' if not bad else 'con choques en ' + ', '.join(bad)} (informe de validación).
 - Barrido de {V['sweep']['poses_checked']} poses con pasadores, cabezas y tuercas del plato: {len(V['sweep']['interferences'])} interferencias.
 - Accesos: tuercas moleteadas y pernos con espacio para los dedos; pasadores biela–plato con acceso por ambos lados (informe de validación).

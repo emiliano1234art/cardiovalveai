@@ -1,5 +1,6 @@
 """
-CardioValveAI v3 — esquemas eléctricos (schemdraw). Genera SVG y PNG en hardware/out_v3/Electronica/.
+CardioValveAI v3 / v3.1 — esquemas eléctricos (schemdraw). Genera SVG y PNG en hardware/<OUT_DIR de cad/config.py>/Electronica/.
+La electrónica es la misma en v3 y v3.1.
 
 Hojas:
   1. Alimentación, masa en estrella, servo (5 V externos), parada de emergencia y LED de sincronización.
@@ -10,7 +11,10 @@ import os
 import schemdraw
 import schemdraw.elements as elm
 
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'out_v3', 'Electronica')
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'cad'))
+import config as CFG   # noqa: E402
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', CFG.OUT_DIR, 'Electronica')
 os.makedirs(OUT, exist_ok=True)
 
 

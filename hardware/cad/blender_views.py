@@ -159,18 +159,18 @@ def fastener_views(sc, objs, cam, hide_gauge):
         bb = np.array(o.bound_box)
         w = bb[:, 0].max() - bb[:, 0].min()
         o.location = (xs - bb[:, 0].min(), y0, 0.0)
-        labels.append((txt, (xs + w / 2, y0, bb[:, 2].min()), (-60, 70)))
+        labels.append((txt, (xs + w / 2, y0, bb[:, 2].min() if len(labels) % 2 == 0 else bb[:, 2].max()), (-70, 90) if len(labels) % 2 == 0 else (-70, -120)))
         xs += w + 9.0
     pin = bpy.data.objects.new('Suelta_Pasador', bpy.data.meshes.new('pasador'))
     import bmesh
     bm = bmesh.new(); bmesh.ops.create_cone(bm, cap_ends=True, segments=24, radius1=1.0, radius2=1.0, depth=18.0); bm.to_mesh(pin.data); bm.free()
     pin.color = (0.82, 0.66, 0.28, 1.0); sc.collection.objects.link(pin)
     pin.location = (xs + 2, y0, 9.0)
-    labels.append(('Pasador de latón Ø2 (varilla cortada)', (xs + 2, y0, 0.0), (-160, 110)))
+    labels.append(('Pasador de latón Ø2 (varilla cortada)', (xs + 2, y0, 18.0), (-200, -120)))
     xm = (x0 + xs) / 2
-    camera(cam, (xm, y0 - 150, 110), (xm, y0, 2), lens=55)
+    camera(cam, (xm, y0 - 210, 150), (xm, y0, 3), lens=48)
     only = tuple(o.name for o in sc.objects if o.type == 'MESH' and not o.name.startswith('Suelta_'))
-    render(sc, 'Vista_Fijaciones_Impresas.png', labels, f'Fijaciones impresas en PETG (v3.1) + pasador de latón · rosca M6 con compensación {C.THREAD_COMP:.2f} mm por lado'.replace('.', ','), hide=only)
+    render(sc, 'Vista_Fijaciones_Impresas.png', labels, 'Fijaciones impresas en PETG (v3.1) + pasador de latón · rosca M6 con compensación ' + f'{C.THREAD_COMP:.2f}'.replace('.', ',') + ' mm por lado', hide=only)
 
 
 if __name__ == '__main__':
