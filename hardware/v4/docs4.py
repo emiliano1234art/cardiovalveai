@@ -86,6 +86,7 @@ Herramientas: sierra chica o alicate de corte, lima o lija, alicate, destornilla
 ## 5 · Otros archivos
 - `CAD/` sólidos STEP editables (cada pieza y el conjunto) + `CAD/fuente/`, el código Python paramétrico que los genera: `config4.py` tiene TODAS las medidas;
   `python build4.py && python verify4.py && python plates4.py` regenera STL, comprobación y placas (requiere build123d, trimesh, manifold3d, shapely).
+- `CardioValveAI_v4_Animacion.mp4` (26 s): armado desde el despiece, apertura y cierre por fuera, el mecanismo por dentro y la vista superior.
 - `Blender/CardioValveAI_v4.blend` conjunto con animación de apertura y cierre.
 - `Electronica/Esquema_v4.png` alimentación y conexiones.
 - `Firmware/` el firmware del ESP32 (el de la v3: mismos pines) y `Herramientas_Mac/` los programas de registro, calibración y `cvai_montaje.py` (posición de montaje del servo).

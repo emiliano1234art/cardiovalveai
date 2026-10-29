@@ -18,7 +18,7 @@ El ángulo ordenado al servo no es la posición de las valvas, y la animación n
 
 | Carpeta / archivo | Qué contiene |
 |---|---|
-| `v4/` | **v4**: `config4.py` (todas las medidas) · `parts4.py` · `registry4.py` · `build4.py` (STL/STEP) · `verify4.py` · `plates4.py` (3MF) · `esquema4.py` · `blender4.py` · `docs4.py` · `package4.py` |
+| `v4/` | **v4**: `config4.py` (todas las medidas) · `parts4.py` · `registry4.py` · `build4.py` (STL/STEP) · `verify4.py` · `plates4.py` (3MF) · `esquema4.py` · `blender4.py` · `anim4.py` (MP4) · `docs4.py` · `package4.py` |
 | `cad/config.py` | Todos los parámetros: medidas, holguras, imanes, posición del Hall y datos a verificar. `PROJECT`, `REVISION`, `PREFIX` y `OUT_DIR` identifican la versión |
 | `cad/fasteners.py` | Fijaciones impresas: roscas M6 (perfil ISO con compensación), pernos, tuercas moleteadas, cabezas y tuercas a presión para pasadores de latón, pestillos y probeta de roscas |
 | `cad/kinematics.py` | Cinemática servo → plato → bielas → valvas |

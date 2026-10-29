@@ -1,7 +1,7 @@
 """
 Empaqueta CardioValveAI v4 en entrega/CardioValveAI_v4_Imprimir_y_Armar.zip con un manifiesto REVISION.json
 (commit de git, fecha, SHA-256 de cada archivo). Las entregas anteriores no se tocan.
-Uso: python package4.py   (después de build4, verify4, plates4, esquema4, blender4 y docs4)
+Uso: python package4.py   (después de build4, verify4, plates4, esquema4, blender4, anim4 y docs4)
 """
 from __future__ import annotations
 import glob
@@ -38,6 +38,7 @@ def files():
         add(f, f'CAD/fuente/{os.path.basename(f)}')
     add(os.path.join(OUT, '_canon', 'verify.json'), 'Documentacion/verify.json')
     add(os.path.join(OUT, f'{C.PREFIX}.blend'), f'Blender/{C.PREFIX}.blend')
+    add(os.path.join(OUT, f'{C.PREFIX}_Animacion.mp4'), f'{C.PREFIX}_Animacion.mp4')
     fw = os.path.join(HW, 'firmware', FW)
     for f in sorted(glob.glob(os.path.join(fw, '**', '*'), recursive=True)):
         rel = os.path.relpath(f, fw)
