@@ -1,10 +1,14 @@
-# CardioValveAI — banco experimental (revisión v3.1)
+# CardioValveAI — banco experimental (revisión v4)
 
 Prototipo universitario de válvula aórtica trivalva movida por un servo, **sin circulación de líquido**. Objetivo: comparar el movimiento REAL de las 3 valvas, con un
 par sensor Hall–imán por valva, y detectar apertura o cierre incompletos, asimetrías, retrasos o variaciones y atascos. El micrófono INMP441 es una señal complementaria.
 El ángulo ordenado al servo no es la posición de las valvas, y la animación no es una prueba. Prototipo académico: no es un dispositivo médico ni implantable, y no diagnostica.
 
-- **v3.1 (actual):** `entrega/CardioValveAI_v3.1_Modelo_y_Adquisicion.zip`. Igual que la v3 pero **sin tornillería metálica comprada**: roscas M6 impresas,
+- **v4 (actual, simplificada):** `entrega/CardioValveAI_v4_Imprimir_y_Armar.zip`, fuente en [`v4/`](v4/). Ø 90 mm, 3 valvas, UN servo MG90S acostado →
+  manivela → yugo escocés → pistón → correderas en las colas. 7 piezas a imprimir (13 copias) + probeta, sin soportes; **única fijación comprada: varilla de latón Ø3**
+  (8 pasadores) + los tornillos que trae el servo. Solo 3 Hall + 3 imanes (sin micrófono ni piezos), Hall en el eje de la bisagra en portasensores que se sacan desde afuera.
+  Placas 3MF, STEP, `.blend`, despiece numerado, guía, materiales y esquema. Mismo firmware y pines que la v3. Verificada **solo en CAD** (`v4/verify4.py`).
+- **v3.1:** `entrega/CardioValveAI_v3.1_Modelo_y_Adquisicion.zip`. Igual que la v3 pero **sin tornillería metálica comprada**: roscas M6 impresas,
   pasadores de latón Ø2 con cabeza y tuerca impresas, y pestillos giratorios en la bandeja (`cad/fasteners.py`, doc 11).
 - **v3:** `entrega/CardioValveAI_v3_Modelo_y_Adquisicion.zip` (con tornillos y tuercas metálicos; se conserva sin cambios).
 - **Común a v3 y v3.1:** tres sensores Hall (uno por valva) en portasensores extraíbles, galgas de calibración angular, firmware con calibración guardada en el ESP32,
@@ -14,6 +18,7 @@ El ángulo ordenado al servo no es la posición de las valvas, y la animación n
 
 | Carpeta / archivo | Qué contiene |
 |---|---|
+| `v4/` | **v4**: `config4.py` (todas las medidas) · `parts4.py` · `registry4.py` · `build4.py` (STL/STEP) · `verify4.py` · `plates4.py` (3MF) · `esquema4.py` · `blender4.py` · `docs4.py` · `package4.py` |
 | `cad/config.py` | Todos los parámetros: medidas, holguras, imanes, posición del Hall y datos a verificar. `PROJECT`, `REVISION`, `PREFIX` y `OUT_DIR` identifican la versión |
 | `cad/fasteners.py` | Fijaciones impresas: roscas M6 (perfil ISO con compensación), pernos, tuercas moleteadas, cabezas y tuercas a presión para pasadores de latón, pestillos y probeta de roscas |
 | `cad/kinematics.py` | Cinemática servo → plato → bielas → valvas |
@@ -26,6 +31,7 @@ El ángulo ordenado al servo no es la posición de las valvas, y la animación n
 | `cad/package_v3.py` | ZIP de la revisión actual con el manifiesto `REVISION.json` (commit y SHA-256 de cada archivo) |
 | `electronica/esquema.py` | Esquemas eléctricos (schemdraw) |
 | `firmware/CardioValveAI_v3_Adquisicion/` | Firmware ESP-IDF v5.4: ADC continuo (3 Hall), I2S (INMP441), servo no bloqueante, calibración en NVS, protocolo binario. **Compila; no se probó en hardware** |
+| `host/cvai_montaje.py` | v4: deja el servo en 180° sin pulsos para calzar el horn (posición de montaje) |
 | `host/` | Registro y vista en vivo, análisis por ciclo, calibración con galgas, emulador de datos **sintéticos** y prueba de extremo a extremo |
 
 ```bash

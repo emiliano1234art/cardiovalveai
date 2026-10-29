@@ -76,8 +76,9 @@ def gauges(a):
     rows = []
     try:
         for rep in range(1, a.repeticiones + 1):
-            for g in GAUGES:
-                input(f'[rep {rep}] Galga {g}° sobre la valva {a.valva}: subir el plato a mano hasta tocarla, sostener y pulsar Enter… ')
+            for g in (a.galgas or GAUGES):
+                input(f'[rep {rep}] Galga {g}° sobre la valva {a.valva}: mover la valva a mano (v3: subir el plato; v4: empujar el yugo por la ventana) '
+                      'hasta tocarla, sostener y pulsar Enter… ')
                 m, sd = _capture(rec)
                 th = ['', '', '']; th[a.valva - 1] = g
                 rows.append(dict(metodo='galga', valva=a.valva, direccion='abrir', repeticion=rep, theta1=th[0], theta2=th[1], theta3=th[2],
@@ -206,6 +207,8 @@ def main(argv=None):
         g.add_argument('--salida', required=True); g.add_argument('--repeticiones', type=int, default=3); g.add_argument('--agregar', action='store_true')
         if name == 'galgas':
             g.add_argument('--valva', type=int, choices=(1, 2, 3), required=True)
+            g.add_argument('--galgas', type=lambda t: [int(x) for x in t.split(',')],
+                           help='ángulos de las galgas impresas, p. ej. 0,20,40,60,80 en la v4 (por omisión, las 11 de la v3)')
         else:
             g.add_argument('--espera', type=float, default=2.0)
     f = sub.add_parser('ajustar'); f.add_argument('puntos', nargs='+'); f.add_argument('--salida', default='calib_hall.json')
