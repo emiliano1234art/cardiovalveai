@@ -19,7 +19,7 @@ Una misma aplicación con **dos modos conectados** (menú superior **Presentaci�
 ## Banco experimental para impresión 3D (revisión v4, simplificada)
 
 **`entrega/CardioValveAI_v4_Imprimir_y_Armar.zip`**: válvula trivalva Ø 90 mm con un servo MG90S, 3 sensores Hall + 3 imanes y ESP32. 7 piezas PETG sin soportes
-(13 copias), placas 3MF listas, única fijación comprada: varilla de latón Ø3. Incluye STEP, Blender, despiece numerado, guía de armado, materiales, esquema y la lista
+(6 piezas distintas, 10 copias, + probeta), placas 3MF listas, única fijación comprada: varilla de latón Ø3. Incluye STEP, Blender, despiece numerado, guía de armado, materiales, esquema y la lista
 de datos a confirmar antes de imprimir. Verificada solo en CAD. Fuente en [`hardware/v4/`](hardware/v4/).
 
 ### Revisión anterior (v3.1)

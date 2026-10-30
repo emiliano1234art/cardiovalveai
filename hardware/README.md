@@ -5,7 +5,7 @@ par sensor Hall–imán por valva, y detectar apertura o cierre incompletos, asi
 El ángulo ordenado al servo no es la posición de las valvas, y la animación no es una prueba. Prototipo académico: no es un dispositivo médico ni implantable, y no diagnostica.
 
 - **v4 (actual, simplificada):** `entrega/CardioValveAI_v4_Imprimir_y_Armar.zip`, fuente en [`v4/`](v4/). Ø 90 mm, 3 valvas, UN servo MG90S acostado →
-  manivela → yugo escocés → pistón → correderas en las colas. 7 piezas a imprimir (13 copias) + probeta, sin soportes; **única fijación comprada: varilla de latón Ø3**
+  manivela → yugo escocés → pistón → correderas en las colas. 6 piezas distintas a imprimir (10 copias) + probeta, sin soportes; **única fijación comprada: varilla de latón Ø3**
   (8 pasadores) + los tornillos que trae el servo. Solo 3 Hall + 3 imanes (sin micrófono ni piezos), Hall en el eje de la bisagra en portasensores que se sacan desde afuera.
   Placas 3MF, STEP, `.blend`, despiece numerado, guía, materiales y esquema. Mismo firmware y pines que la v3. Verificada **solo en CAD** (`v4/verify4.py`).
 - **v3.1:** `entrega/CardioValveAI_v3.1_Modelo_y_Adquisicion.zip`. Igual que la v3 pero **sin tornillería metálica comprada**: roscas M6 impresas,
