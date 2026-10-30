@@ -38,6 +38,7 @@ def files():
         add(f, f'CAD/fuente/{os.path.basename(f)}')
     add(os.path.join(OUT, '_canon', 'verify.json'), 'Documentacion/verify.json')
     add(os.path.join(OUT, f'{C.PREFIX}.blend'), f'Blender/{C.PREFIX}.blend')
+    add(os.path.join(OUT, 'Guia', f'{C.PREFIX}_Donde_va_cada_pieza.pdf'), f'{C.PREFIX}_Donde_va_cada_pieza.pdf')
     add(os.path.join(OUT, f'{C.PREFIX}_Animacion.mp4'), f'{C.PREFIX}_Animacion.mp4')
     fw = os.path.join(HW, 'firmware', FW)
     for f in sorted(glob.glob(os.path.join(fw, '**', '*'), recursive=True)):

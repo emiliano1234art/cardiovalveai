@@ -213,11 +213,13 @@ def body() -> Part:
         tun = box(CARRIER_U[0] - c, CARRIER_U[1] + c, C.V_WALL_IN - 4, C.V_WALL_OUT + 2, CARRIER_Z[0] - c, CARRIER_Z[1] + c)
         tun += box(KEY[0] - c, KEY[1] + c, C.V_WALL_IN - 4, C.V_WALL_OUT + 2, CARRIER_Z[1], CARRIER_Z[1] + KEY[2] + c)
         p -= rz(tun, a)
-        # muesca índice para las galgas de calibración y número de valva en la cara superior
+        # muesca índice para las galgas de calibración en la cara superior
         p -= rz(box(C.RI + 2.0, C.RI + 5.0, -1.6, 1.6, C.TOP_Z - 0.8, C.TOP_Z + 1), a)
         ang = a * D2R
-        p -= engrave_text(str(i + 1), 5.0, (C.RI + 4.5) * math.cos(ang + 0.30), (C.RI + 4.5) * math.sin(ang + 0.30), C.TOP_Z, 0.6, a - 90)
-    p -= engrave_text('CardioValveAI v4', 4.0, 0, -(C.RI + 4.5), C.TOP_Z, 0.5, 0)
+        # número de valva: 1, 2 o 3 puntos (sin texto grabado)
+        for k in range(i + 1):
+            t = ang + 0.22 + 0.075 * k
+            p -= cyl_z(0.9, C.TOP_Z - 0.5, C.TOP_Z + 1, (C.RI + 4.5) * math.cos(t), (C.RI + 4.5) * math.sin(t))
     return p
 
 
@@ -244,7 +246,6 @@ def piston() -> Part:
         p -= rz(box(LUG_UV[0] - 0.5, C.DISC_R + 1, -LUG_UV[1], LUG_UV[1], z0 - 1, z1 + 1), a)
     # mortaja pasante para la espiga del yugo
     p -= box(-TENON[0] - 0.2, TENON[0] + 0.2, Y_WEB0 - 0.2, Y_WEB1 + 0.2, z0 - 1, z1 + 1)
-    p -= engrave_text('v4', 3.0, 0, -12.0, z1, 0.4)
     return p
 
 

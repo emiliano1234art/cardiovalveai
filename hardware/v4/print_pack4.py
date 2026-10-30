@@ -24,7 +24,7 @@ Material: PETG. Sin soportes. Las piezas ya vienen orientadas: no girarlas ni es
 Todas las copias ya están incluidas (las valvas y los portasensores vienen de a 3 en su archivo).
 Total: 11 piezas (10 + la probeta de ajustes), unos 200 g.
 
-Opción rápida: abrir Todo_en_una_placa.3mf (todas las piezas ya distribuidas en una cama de {C.BED[0]:.0f} x {C.BED[1]:.0f} mm).
+Dónde va cada pieza (con imágenes): Donde_va_cada_pieza.pdf\nOpción rápida: abrir Todo_en_una_placa.3mf (todas las piezas ya distribuidas en una cama de {C.BED[0]:.0f} x {C.BED[1]:.0f} mm).
 """
 
 
@@ -65,6 +65,8 @@ def main():
         PL.preview(pv, f'Todas las piezas ({total}) en una placa', [(n, m, t) for (n, m), t in zip(singles, moves)])
         z.write(pv, f'{ROOT}/Todo_en_una_placa_vista.png')
         z.writestr(f'{ROOT}/LEEME.txt', LEEME)
+        guia = os.path.join(PL.OUT, 'Guia', f'{C.PREFIX}_Donde_va_cada_pieza.pdf')
+        z.write(guia, f'{ROOT}/Donde_va_cada_pieza.pdf')
     print(f'{ZIP}: {total} piezas, {os.path.getsize(ZIP) / 1e6:.1f} MB')
 
 

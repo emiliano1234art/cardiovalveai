@@ -220,7 +220,7 @@ def guia():
 # Guía de armado
 
 Mira `Vistas/Despiece_numerado.png`: los números (01–06) son los de las piezas impresas y R1–R9 los de las compradas.
-Cada valva tiene su número grabado en la cara superior del cuerpo, junto a una muesca índice: valva 1 ↔ Hall 1 ↔ GPIO36, etc.
+Cada valva se identifica en la cara superior del cuerpo con 1, 2 o 3 puntos, junto a una muesca índice: valva 1 ↔ Hall 1 ↔ GPIO36, etc.
 
 Convención: el **lado del pasador** de cada bisagra es por donde entra el latón; el **lado del sensor** es el extremo opuesto del mismo eje, donde entra el portasensor.
 
@@ -251,7 +251,7 @@ El yugo queda colgando bajo el pistón con su ranura horizontal.
 
 ### Paso 6 · Subconjunto en el cuerpo (01)
 Abre las tres valvas al máximo y baja el subconjunto desde arriba: las zapatas de los 3 brazos entran en las 3 ranuras guía del cuerpo (en las comisuras) y el yugo baja hacia el faldón.
-Gíralo hasta que cada valva quede frente a su número. Baja hasta que el agujero de cada barril quede alineado con el agujero de la pared.
+Gíralo hasta que cada valva quede frente a su marca de puntos (1, 2 o 3). Baja hasta que el agujero de cada barril quede alineado con el agujero de la pared.
 
 ### Paso 7 · Pasadores de bisagra (R1)
 Desde AFUERA, por el rebaje plano del lado del pasador, mete cada R1 ({f1(R.HINGE_L)} mm): atraviesa la pared, el resalte de empuje y el barril,
