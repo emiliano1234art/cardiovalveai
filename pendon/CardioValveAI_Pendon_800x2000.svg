@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="820.0mm" height="2020.0mm" viewBox="-10.0 -10.0 820.0 2020.0">
+<title>CardioValveAI · Pendón 800 × 2000 mm</title>
+<rect id="fondo" x="-10.0" y="-10.0" width="820.0" height="2020.0" fill="#FBFAF7"/>
+<g id="A_encabezado">
+<rect x="45.00" y="52.00" width="225.52" height="16.00" rx="8" fill="#DDF0F0" stroke="none" stroke-width="0" />
+<text x="56.00" y="63.20" font-family="Inter SemiBold" font-weight="400" font-size="8.467" fill="#0E8F95" text-anchor="start" letter-spacing="0.000" ><tspan x="56.00" dy="0.00">Prototipo de banco · válvula aórtica de tres valvas</tspan></text>
+<text x="43.50" y="155.83" font-family="Inter Display ExtraBold" font-size="104.782" letter-spacing="-2.620" fill="#0B2545">CardioValve<tspan fill="#0E8F95">AI</tspan></text>
+<text x="45.00" y="219.83" font-family="Inter" font-weight="700" font-size="23.285" fill="#0B2545" text-anchor="start" letter-spacing="-0.279" ><tspan x="45.00" dy="0.00">Convertimos el movimiento de una válvula en datos medibles.</tspan></text>
+<text x="45.00" y="259.83" font-family="Inter Medium" font-weight="400" font-size="14.112" fill="#E2553B" text-anchor="start" letter-spacing="0.000" ><tspan x="45.00" dy="0.00">¿Qué puede contarnos el movimiento de una válvula?</tspan></text>
+</g>
+<g id="B_protagonista">
+<defs><radialGradient id="halo" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#DDF0F0" stop-opacity="1"/><stop offset="1" stop-color="#FBFAF7" stop-opacity="0"/></radialGradient></defs>
+<ellipse cx="287.0" cy="601.4" rx="322.4" ry="299.8" fill="url(#halo)"/>
+<image id="img_protagonista" x="27.00" y="301.59" width="520.00" height="545.17" href="imagenes/pendon_protagonista.png" preserveAspectRatio="xMidYMid meet"/>
+<circle cx="424.44" cy="417.18" r="3.20" fill="#0E8F95" stroke="white" stroke-width="1.2" />
+<path d="M424.4,417.2 L567.0,344.6 L585.0,344.6" fill="none" stroke="#0E8F95" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
+<text x="593.00" y="351.59" font-family="Inter SemiBold" font-weight="400" font-size="10.584" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="593.00" dy="0.00">3 valvas móviles</tspan></text>
+<text x="593.00" y="366.09" font-family="Inter Medium" font-weight="400" font-size="8.467" fill="#33475E" text-anchor="start" letter-spacing="0.000" ><tspan x="593.00" dy="0.00">Abren y cierran juntas</tspan></text>
+<circle cx="353.80" cy="582.58" r="15.00" fill="none" stroke="#E2553B" stroke-width="2.4" />
+<circle cx="353.80" cy="582.58" r="2.60" fill="#E2553B" stroke="none" stroke-width="0" />
+<path d="M368.8,582.6 L567.0,464.6 L585.0,464.6" fill="none" stroke="#E2553B" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
+<text x="593.00" y="471.59" font-family="Inter SemiBold" font-weight="400" font-size="10.584" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="593.00" dy="0.00">Sensor Hall + imán</tspan></text>
+<text x="593.00" y="486.09" font-family="Inter Medium" font-weight="400" font-size="8.467" fill="#33475E" text-anchor="start" letter-spacing="0.000" ><tspan x="593.00" dy="0.00">Uno por valva</tspan></text>
+<circle cx="210.62" cy="674.62" r="3.20" fill="#0B2545" stroke="white" stroke-width="1.2" />
+<path d="M210.6,674.6 L567.0,584.6 L585.0,584.6" fill="none" stroke="#0B2545" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
+<text x="593.00" y="591.59" font-family="Inter SemiBold" font-weight="400" font-size="10.584" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="593.00" dy="0.00">Servomotor</tspan></text>
+<text x="593.00" y="606.09" font-family="Inter Medium" font-weight="400" font-size="8.467" fill="#33475E" text-anchor="start" letter-spacing="0.000" ><tspan x="593.00" dy="0.00">Mueve las tres valvas</tspan></text>
+<circle cx="340.88" cy="766.46" r="3.20" fill="#0B2545" stroke="white" stroke-width="1.2" />
+<path d="M340.9,766.5 L567.0,704.6 L585.0,704.6" fill="none" stroke="#0B2545" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
+<text x="593.00" y="711.59" font-family="Inter SemiBold" font-weight="400" font-size="10.584" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="593.00" dy="0.00">Estructura impresa en 3D</tspan></text>
+<text x="593.00" y="726.09" font-family="Inter Medium" font-weight="400" font-size="8.467" fill="#33475E" text-anchor="start" letter-spacing="0.000" ><tspan x="593.00" dy="0.00">Anillo de 90 mm</tspan></text>
+<text x="45.00" y="852.75" font-family="Inter Medium" font-weight="400" font-size="7.056" fill="#33475E" text-anchor="start" letter-spacing="0.000" ><tspan x="45.00" dy="0.00">Imagen generada a partir del modelo 3D del prototipo actual (valvas abiertas).</tspan></text>
+</g>
+<g id="B_insertos">
+<rect x="45.00" y="878.75" width="345.00" height="186.00" rx="10" fill="white" stroke="#C9D6DE" stroke-width="0.8" />
+<text x="61.00" y="900.75" font-family="Inter" font-weight="700" font-size="11.995" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="61.00" dy="0.00">Por dentro</tspan></text>
+<text x="61.00" y="916.75" font-family="Inter Medium" font-weight="400" font-size="8.467" fill="#33475E" text-anchor="start" letter-spacing="0.000" ><tspan x="61.00" dy="0.00">El servomotor sube y baja un pistón que abre y cierra las tres valvas.</tspan></text>
+<image id="img_mecanismo" x="152.57" y="924.75" width="129.86" height="118.00" href="imagenes/pendon_mecanismo.png" preserveAspectRatio="xMidYMid meet"/>
+<text x="61.00" y="1055.75" font-family="Inter Medium" font-weight="400" font-size="7.056" fill="#33475E" text-anchor="start" letter-spacing="0.000" ><tspan x="61.00" dy="0.00">Estructura oculta para ver el mecanismo</tspan></text>
+<rect x="410.00" y="878.75" width="345.00" height="186.00" rx="10" fill="white" stroke="#C9D6DE" stroke-width="0.8" />
+<text x="426.00" y="900.75" font-family="Inter" font-weight="700" font-size="11.995" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="426.00" dy="0.00">Un sensor por valva</tspan></text>
+<text x="426.00" y="916.75" font-family="Inter Medium" font-weight="400" font-size="8.467" fill="#33475E" text-anchor="start" letter-spacing="0.000" ><tspan x="426.00" dy="0.00">El imán gira con la valva. El sensor Hall queda fijo.</tspan></text>
+<image id="img_detalle_hall_iman" x="498.68" y="924.75" width="167.64" height="118.00" href="imagenes/pendon_detalle_hall_iman.png" preserveAspectRatio="xMidYMid meet"/>
+<text x="426.00" y="1055.75" font-family="Inter Medium" font-weight="400" font-size="7.056" fill="#33475E" text-anchor="start" letter-spacing="0.000" ><tspan x="426.00" dy="0.00">Portasensor separado para mostrar el imán</tspan></text>
+<circle cx="577.83" cy="979.83" r="2.40" fill="#E2553B" stroke="white" stroke-width="0.8" />
+<line x1="577.83" y1="979.83" x2="583.83" y2="953.83" stroke="#E2553B" stroke-width="1.1" stroke-linecap="round" />
+<text x="585.83" y="951.83" font-family="Inter SemiBold" font-weight="400" font-size="8.467" fill="#E2553B" text-anchor="start" letter-spacing="0.000" ><tspan x="585.83" dy="0.00">imán</tspan></text>
+<circle cx="543.64" cy="999.96" r="2.40" fill="#0B2545" stroke="white" stroke-width="0.8" />
+<line x1="543.64" y1="999.96" x2="537.64" y2="955.96" stroke="#0B2545" stroke-width="1.1" stroke-linecap="round" />
+<text x="535.64" y="953.96" font-family="Inter SemiBold" font-weight="400" font-size="8.467" fill="#0B2545" text-anchor="end" letter-spacing="0.000" ><tspan x="535.64" dy="0.00">sensor Hall</tspan></text>
+</g>
+<g id="B_componentes">
+<rect x="45.00" y="1086.75" width="111.89" height="15.00" rx="7.5" fill="#EEF3F5" stroke="none" stroke-width="0" />
+<text x="54.00" y="1097.15" font-family="Inter Medium" font-weight="400" font-size="7.762" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="54.00" dy="0.00">Estructura impresa en 3D</tspan></text>
+<rect x="163.89" y="1086.75" width="48.76" height="15.00" rx="7.5" fill="#EEF3F5" stroke="none" stroke-width="0" />
+<text x="172.89" y="1097.15" font-family="Inter Medium" font-weight="400" font-size="7.762" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="172.89" dy="0.00">3 valvas</tspan></text>
+<rect x="219.65" y="1086.75" width="61.53" height="15.00" rx="7.5" fill="#EEF3F5" stroke="none" stroke-width="0" />
+<text x="228.65" y="1097.15" font-family="Inter Medium" font-weight="400" font-size="7.762" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="228.65" dy="0.00">Servomotor</tspan></text>
+<rect x="288.19" y="1086.75" width="74.97" height="15.00" rx="7.5" fill="#EEF3F5" stroke="none" stroke-width="0" />
+<text x="297.19" y="1097.15" font-family="Inter Medium" font-weight="400" font-size="7.762" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="297.19" dy="0.00">3 sensores Hall</tspan></text>
+<rect x="370.16" y="1086.75" width="99.30" height="15.00" rx="7.5" fill="#EEF3F5" stroke="none" stroke-width="0" />
+<text x="379.16" y="1097.15" font-family="Inter Medium" font-weight="400" font-size="7.762" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="379.16" dy="0.00">3 imanes de neodimio</tspan></text>
+<rect x="476.46" y="1086.75" width="42.32" height="15.00" rx="7.5" fill="#EEF3F5" stroke="none" stroke-width="0" />
+<text x="485.46" y="1097.15" font-family="Inter Medium" font-weight="400" font-size="7.762" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="485.46" dy="0.00">ESP32</tspan></text>
+</g>
+<g id="C_necesidad">
+<line x1="45.00" y1="1133.51" x2="755.00" y2="1133.51" stroke="#C9D6DE" stroke-width="0.8" stroke-linecap="round" />
+<text x="45.00" y="1157.51" font-family="Inter" font-weight="700" font-size="16.229" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="45.00" dy="0.00">¿Por qué mirar una válvula?</tspan></text>
+<text x="45.00" y="1183.51" font-family="Inter Medium" font-weight="400" font-size="9.878" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="45.00" dy="0.00">En cada latido, las válvulas del corazón abren y cierran. Cuánto se abren, cuándo y</tspan><tspan x="45.00" dy="13.04">con qué coordinación es parte de cómo funciona el corazón.</tspan></text>
+<text x="45.00" y="1214.55" font-family="Inter Medium" font-weight="400" font-size="9.878" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="45.00" dy="0.00">Queremos saber si ese movimiento puede medirse de forma simple y, más adelante,</tspan><tspan x="45.00" dy="13.04">relacionarse con la respuesta funcional de una persona.</tspan></text>
+<rect x="466.60" y="1173.51" width="288.40" height="61.52" rx="10" fill="white" stroke="#E2553B" stroke-width="1.6" />
+<text x="481.60" y="1189.51" font-family="Inter SemiBold" font-weight="400" font-size="7.762" fill="#E2553B" text-anchor="start" letter-spacing="0.000" ><tspan x="481.60" dy="0.00">Pregunta de investigación</tspan></text>
+<text x="481.60" y="1205.51" font-family="Inter SemiBold" font-weight="400" font-size="10.584" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="481.60" dy="0.00">¿Puede un sistema simple de sensores describir el</tspan><tspan x="481.60" dy="13.76">movimiento valvular con datos comparables?</tspan></text>
+</g>
+<g id="D_funcionamiento">
+<line x1="45.00" y1="1268.79" x2="755.00" y2="1268.79" stroke="#C9D6DE" stroke-width="0.8" stroke-linecap="round" />
+<text x="45.00" y="1292.79" font-family="Inter" font-weight="700" font-size="16.229" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="45.00" dy="0.00">Del movimiento a los datos</tspan></text>
+<circle cx="133.75" cy="1354.79" r="38.00" fill="white" stroke="#C9D6DE" stroke-width="0.8" />
+<circle cx="111.75" cy="1368.79" r="4.20" fill="#0B2545" stroke="none" stroke-width="0" />
+<path d="M111.75,1368.7924878876606 L153.75,1368.7924878876606" fill="none" stroke="#C9D6DE" stroke-width="5.0" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="0.1 0"/>
+<path d="M111.75,1368.7924878876606 L147.75,1344.7924878876606" fill="none" stroke="#0E8F95" stroke-width="6.0" stroke-linecap="round" stroke-linejoin="round" />
+<rect x="103.75" y="1363.29" width="6.00" height="11.00" rx="1" fill="#E2553B" stroke="none" stroke-width="0" />
+<path d="M155.75,1362.7924878876606 A 40 40 0 0 0 149.75,1338.7924878876606" fill="none" stroke="#0B2545" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+<path d="M144.75,1340.7924878876606 L149.75,1338.7924878876606 L151.75,1343.7924878876606" fill="none" stroke="#0B2545" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="102.75" cy="1324.79" r="8.00" fill="#0B2545" stroke="none" stroke-width="0" />
+<text x="102.75" y="1327.99" font-family="Inter" font-weight="700" font-size="9.173" fill="white" text-anchor="middle" letter-spacing="0.000" ><tspan x="102.75" dy="0.00">1</tspan></text>
+<line x1="177.75" y1="1354.79" x2="264.25" y2="1354.79" stroke="#0E8F95" stroke-width="1.6" stroke-linecap="round" />
+<path d="M260.25,1350.2924878876606 L267.25,1354.7924878876606 L260.25,1359.2924878876606" fill="none" stroke="#0E8F95" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+<text x="133.75" y="1412.79" font-family="Inter SemiBold" font-weight="400" font-size="9.878" fill="#0B2545" text-anchor="middle" letter-spacing="0.000" ><tspan x="133.75" dy="0.00">La valva se mueve</tspan></text>
+<text x="133.75" y="1425.79" font-family="Inter Medium" font-weight="400" font-size="8.467" fill="#33475E" text-anchor="middle" letter-spacing="0.000" ><tspan x="133.75" dy="0.00">El imán gira con ella.</tspan></text>
+<circle cx="311.25" cy="1354.79" r="38.00" fill="white" stroke="#C9D6DE" stroke-width="0.8" />
+<rect x="281.25" y="1348.79" width="8.00" height="16.00" rx="1" fill="#E2553B" stroke="none" stroke-width="0" />
+<path d="M289.25,1352.7924878876606 A 12.0 9.600000000000001 0 0 1 310.85,1356.7924878876606" fill="none" stroke="#0E8F95" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2.2 2.2"/>
+<path d="M289.25,1352.7924878876606 A 20.0 16.0 0 0 1 325.25,1356.7924878876606" fill="none" stroke="#0E8F95" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2.2 2.2"/>
+<path d="M289.25,1352.7924878876606 A 28.0 22.400000000000002 0 0 1 339.65,1356.7924878876606" fill="none" stroke="#0E8F95" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2.2 2.2"/>
+<path d="M323.25,1342.7924878876606 h14.0 v12.0 a7.0 4.0 0 0 1 -14.0 0 z" fill="#0B2545" stroke="#0B2545" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" />
+<line x1="325.75" y1="1358.79" x2="325.75" y2="1370.79" stroke="#0B2545" stroke-width="1.4" stroke-linecap="round" />
+<line x1="330.25" y1="1358.79" x2="330.25" y2="1370.79" stroke="#0B2545" stroke-width="1.4" stroke-linecap="round" />
+<line x1="334.75" y1="1358.79" x2="334.75" y2="1370.79" stroke="#0B2545" stroke-width="1.4" stroke-linecap="round" />
+<circle cx="280.25" cy="1324.79" r="8.00" fill="#0B2545" stroke="none" stroke-width="0" />
+<text x="280.25" y="1327.99" font-family="Inter" font-weight="700" font-size="9.173" fill="white" text-anchor="middle" letter-spacing="0.000" ><tspan x="280.25" dy="0.00">2</tspan></text>
+<line x1="355.25" y1="1354.79" x2="441.75" y2="1354.79" stroke="#0E8F95" stroke-width="1.6" stroke-linecap="round" />
+<path d="M437.75,1350.2924878876606 L444.75,1354.7924878876606 L437.75,1359.2924878876606" fill="none" stroke="#0E8F95" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+<text x="311.25" y="1412.79" font-family="Inter SemiBold" font-weight="400" font-size="9.878" fill="#0B2545" text-anchor="middle" letter-spacing="0.000" ><tspan x="311.25" dy="0.00">El campo cambia</tspan></text>
+<text x="311.25" y="1425.79" font-family="Inter Medium" font-weight="400" font-size="8.467" fill="#33475E" text-anchor="middle" letter-spacing="0.000" ><tspan x="311.25" dy="0.00">El sensor Hall, fijo, lo detecta.</tspan></text>
+<circle cx="488.75" cy="1354.79" r="38.00" fill="white" stroke="#C9D6DE" stroke-width="0.8" />
+<rect x="464.75" y="1337.79" width="48.00" height="34.00" rx="3" fill="white" stroke="#0B2545" stroke-width="2" />
+<rect x="478.75" y="1345.79" width="20.00" height="18.00" rx="1.5" fill="#0B2545" stroke="none" stroke-width="0" />
+<line x1="460.75" y1="1341.79" x2="464.75" y2="1341.79" stroke="#0B2545" stroke-width="1.4" stroke-linecap="round" />
+<line x1="512.75" y1="1341.79" x2="516.75" y2="1341.79" stroke="#0B2545" stroke-width="1.4" stroke-linecap="round" />
+<line x1="460.75" y1="1346.99" x2="464.75" y2="1346.99" stroke="#0B2545" stroke-width="1.4" stroke-linecap="round" />
+<line x1="512.75" y1="1346.99" x2="516.75" y2="1346.99" stroke="#0B2545" stroke-width="1.4" stroke-linecap="round" />
+<line x1="460.75" y1="1352.19" x2="464.75" y2="1352.19" stroke="#0B2545" stroke-width="1.4" stroke-linecap="round" />
+<line x1="512.75" y1="1352.19" x2="516.75" y2="1352.19" stroke="#0B2545" stroke-width="1.4" stroke-linecap="round" />
+<line x1="460.75" y1="1357.39" x2="464.75" y2="1357.39" stroke="#0B2545" stroke-width="1.4" stroke-linecap="round" />
+<line x1="512.75" y1="1357.39" x2="516.75" y2="1357.39" stroke="#0B2545" stroke-width="1.4" stroke-linecap="round" />
+<line x1="460.75" y1="1362.59" x2="464.75" y2="1362.59" stroke="#0B2545" stroke-width="1.4" stroke-linecap="round" />
+<line x1="512.75" y1="1362.59" x2="516.75" y2="1362.59" stroke="#0B2545" stroke-width="1.4" stroke-linecap="round" />
+<line x1="460.75" y1="1367.79" x2="464.75" y2="1367.79" stroke="#0B2545" stroke-width="1.4" stroke-linecap="round" />
+<line x1="512.75" y1="1367.79" x2="516.75" y2="1367.79" stroke="#0B2545" stroke-width="1.4" stroke-linecap="round" />
+<circle cx="457.75" cy="1324.79" r="8.00" fill="#0B2545" stroke="none" stroke-width="0" />
+<text x="457.75" y="1327.99" font-family="Inter" font-weight="700" font-size="9.173" fill="white" text-anchor="middle" letter-spacing="0.000" ><tspan x="457.75" dy="0.00">3</tspan></text>
+<line x1="532.75" y1="1354.79" x2="619.25" y2="1354.79" stroke="#0E8F95" stroke-width="1.6" stroke-linecap="round" />
+<path d="M615.25,1350.2924878876606 L622.25,1354.7924878876606 L615.25,1359.2924878876606" fill="none" stroke="#0E8F95" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+<text x="488.75" y="1412.79" font-family="Inter SemiBold" font-weight="400" font-size="9.878" fill="#0B2545" text-anchor="middle" letter-spacing="0.000" ><tspan x="488.75" dy="0.00">El ESP32 registra</tspan></text>
+<text x="488.75" y="1425.79" font-family="Inter Medium" font-weight="400" font-size="8.467" fill="#33475E" text-anchor="middle" letter-spacing="0.000" ><tspan x="488.75" dy="0.00">Lee los 3 sensores y controla el servo.</tspan></text>
+<circle cx="666.25" cy="1354.79" r="38.00" fill="white" stroke="#C9D6DE" stroke-width="0.8" />
+<rect x="638.25" y="1335.79" width="56.00" height="36.00" rx="3" fill="white" stroke="#0B2545" stroke-width="2" />
+<line x1="658.25" y1="1377.79" x2="674.25" y2="1377.79" stroke="#0B2545" stroke-width="2" stroke-linecap="round" />
+<path d="M643.25,1349.7924878876606 L652.25,1349.7924878876606 C657.25,1349.7924878876606 657.25,1342.7924878876606 662.25,1342.7924878876606 L672.25,1342.7924878876606 C677.25,1342.7924878876606 677.25,1349.7924878876606 682.25,1349.7924878876606 L689.25,1349.7924878876606" fill="none" stroke="#0E8F95" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+<path d="M643.25,1357.7924878876606 L652.25,1357.7924878876606 C657.25,1357.7924878876606 657.25,1350.7924878876606 662.25,1350.7924878876606 L672.25,1350.7924878876606 C677.25,1350.7924878876606 677.25,1357.7924878876606 682.25,1357.7924878876606 L689.25,1357.7924878876606" fill="none" stroke="#0B2545" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+<path d="M643.25,1365.7924878876606 L652.25,1365.7924878876606 C657.25,1365.7924878876606 657.25,1358.7924878876606 662.25,1358.7924878876606 L672.25,1358.7924878876606 C677.25,1358.7924878876606 677.25,1365.7924878876606 682.25,1365.7924878876606 L689.25,1365.7924878876606" fill="none" stroke="#E2553B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+<circle cx="635.25" cy="1324.79" r="8.00" fill="#0B2545" stroke="none" stroke-width="0" />
+<text x="635.25" y="1327.99" font-family="Inter" font-weight="700" font-size="9.173" fill="white" text-anchor="middle" letter-spacing="0.000" ><tspan x="635.25" dy="0.00">4</tspan></text>
+<text x="666.25" y="1412.79" font-family="Inter SemiBold" font-weight="400" font-size="9.878" fill="#0B2545" text-anchor="middle" letter-spacing="0.000" ><tspan x="666.25" dy="0.00">Vemos y analizamos</tspan></text>
+<text x="666.25" y="1425.79" font-family="Inter Medium" font-weight="400" font-size="8.467" fill="#33475E" text-anchor="middle" letter-spacing="0.000" ><tspan x="666.25" dy="0.00">Una señal por valva en el computador.</tspan></text>
+<rect x="45.00" y="1460.79" width="710.00" height="27.18" rx="8" fill="#DDF0F0" stroke="none" stroke-width="0" />
+<text x="65.00" y="1473.79" font-family="Inter Medium" font-weight="400" font-size="8.467" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="65.00" dy="0.00">La señal del sensor no es un ángulo: para expresarla en grados, cada valva se calibra con posiciones conocidas.</tspan></text>
+</g>
+<g id="E_observamos">
+<line x1="45.00" y1="1521.73" x2="755.00" y2="1521.73" stroke="#C9D6DE" stroke-width="0.8" stroke-linecap="round" />
+<text x="45.00" y="1545.73" font-family="Inter" font-weight="700" font-size="16.229" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="45.00" dy="0.00">Qué observamos</tspan></text>
+<text x="755.00" y="1545.73" font-family="Inter Medium" font-weight="400" font-size="7.056" fill="#33475E" text-anchor="end" letter-spacing="0.000" ><tspan x="755.00" dy="0.00">Esquemas ilustrativos, no son resultados</tspan></text>
+<rect x="45.00" y="1563.73" width="167.00" height="72.00" rx="4" fill="white" stroke="#C9D6DE" stroke-width="0.8" />
+<image id="img_superior_cerrada" x="66.00" y="1567.73" width="52.00" height="51.14" href="imagenes/pendon_superior_cerrada.png" preserveAspectRatio="xMidYMid meet"/>
+<image id="img_superior_abierta" x="139.00" y="1567.73" width="52.00" height="51.14" href="imagenes/pendon_superior_abierta.png" preserveAspectRatio="xMidYMid meet"/>
+<text x="92.00" y="1629.73" font-family="Inter Medium" font-weight="400" font-size="7.056" fill="#33475E" text-anchor="middle" letter-spacing="0.000" ><tspan x="92.00" dy="0.00">cerrada</tspan></text>
+<text x="165.00" y="1629.73" font-family="Inter Medium" font-weight="400" font-size="7.056" fill="#33475E" text-anchor="middle" letter-spacing="0.000" ><tspan x="165.00" dy="0.00">abierta</tspan></text>
+<text x="45.00" y="1651.73" font-family="Inter SemiBold" font-weight="400" font-size="9.173" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="45.00" dy="0.00">Apertura y cierre</tspan></text>
+<rect x="226.00" y="1563.73" width="167.00" height="72.00" rx="4" fill="white" stroke="#C9D6DE" stroke-width="0.8" />
+<line x1="234.00" y1="1627.73" x2="385.00" y2="1627.73" stroke="#C9D6DE" stroke-width="0.8" stroke-linecap="round" />
+<path d="M234.0,1623.2491918876606 L258.16,1623.2491918876606 C267.22,1623.2491918876606 264.20000000000005,1581.8091918876605 276.28000000000003,1581.8091918876605 L312.52000000000004,1581.8091918876605 C321.58000000000004,1581.8091918876605 318.56,1623.2491918876606 330.64000000000004,1623.2491918876606 L385.0,1623.2491918876606" fill="none" stroke="#0E8F95" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+<path d="M234.0,1623.2491918876606 L263.445,1623.2491918876606 C272.505,1623.2491918876606 269.485,1585.0235918876606 281.565,1585.0235918876606 L317.805,1585.0235918876606 C326.865,1585.0235918876606 323.84499999999997,1623.2491918876606 335.925,1623.2491918876606 L385.0,1623.2491918876606" fill="none" stroke="#0B2545" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+<path d="M234.0,1623.2491918876606 L271.75,1623.2491918876606 C280.81,1623.2491918876606 277.79,1588.2379918876607 289.87,1588.2379918876607 L326.11,1588.2379918876607 C335.17,1588.2379918876607 332.15,1623.2491918876606 344.23,1623.2491918876606 L385.0,1623.2491918876606" fill="none" stroke="#E2553B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+<text x="226.00" y="1651.73" font-family="Inter SemiBold" font-weight="400" font-size="9.173" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="226.00" dy="0.00">Coordinación de las 3 valvas</tspan></text>
+<rect x="407.00" y="1563.73" width="167.00" height="72.00" rx="4" fill="white" stroke="#C9D6DE" stroke-width="0.8" />
+<line x1="415.00" y1="1627.73" x2="566.00" y2="1627.73" stroke="#C9D6DE" stroke-width="0.8" stroke-linecap="round" />
+<path d="M415.0,1623.2491918876606 L442.18,1623.2491918876606 C451.24,1623.2491918876606 448.22,1581.8091918876605 460.3,1581.8091918876605 L496.54,1581.8091918876605 C505.6,1581.8091918876605 502.58,1623.2491918876606 514.66,1623.2491918876606 L566.0,1623.2491918876606" fill="none" stroke="#0E8F95" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+<line x1="442.18" y1="1575.09" x2="514.66" y2="1575.09" stroke="#0B2545" stroke-width="1.2" stroke-linecap="round" />
+<line x1="442.18" y1="1572.09" x2="442.18" y2="1578.09" stroke="#0B2545" stroke-width="1.2" stroke-linecap="round" />
+<line x1="514.66" y1="1572.09" x2="514.66" y2="1578.09" stroke="#0B2545" stroke-width="1.2" stroke-linecap="round" />
+<text x="407.00" y="1651.73" font-family="Inter SemiBold" font-weight="400" font-size="9.173" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="407.00" dy="0.00">Tiempos del movimiento</tspan></text>
+<rect x="588.00" y="1563.73" width="167.00" height="72.00" rx="4" fill="white" stroke="#C9D6DE" stroke-width="0.8" />
+<line x1="596.00" y1="1627.73" x2="747.00" y2="1627.73" stroke="#C9D6DE" stroke-width="0.8" stroke-linecap="round" />
+<path d="M596.0,1623.2491918876606 L623.18,1623.2491918876606 C632.2399999999999,1623.2491918876606 629.2199999999999,1581.8091918876605 641.3,1581.8091918876605 L677.54,1581.8091918876605 C686.6,1581.8091918876605 683.58,1623.2491918876606 695.66,1623.2491918876606 L747.0,1623.2491918876606" fill="none" stroke="#33475E" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 2.5"/>
+<path d="M596.0,1623.2491918876606 L627.71,1623.2491918876606 C636.77,1623.2491918876606 633.75,1594.6667918876606 645.83,1594.6667918876606 L682.0699999999999,1594.6667918876606 C691.13,1594.6667918876606 688.11,1623.2491918876606 700.1899999999999,1623.2491918876606 L747.0,1623.2491918876606" fill="none" stroke="#E2553B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+<text x="588.00" y="1651.73" font-family="Inter SemiBold" font-weight="400" font-size="9.173" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="588.00" dy="0.00">Cambios frente a un patrón de</tspan></text>
+<text x="588.00" y="1663.33" font-family="Inter SemiBold" font-weight="400" font-size="9.173" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="588.00" dy="0.00">referencia</tspan></text>
+</g>
+<g id="F_hoy_futuro">
+<line x1="45.00" y1="1706.69" x2="755.00" y2="1706.69" stroke="#C9D6DE" stroke-width="0.8" stroke-linecap="round" />
+<text x="45.00" y="1730.69" font-family="Inter" font-weight="700" font-size="16.229" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="45.00" dy="0.00">Hoy y a futuro</tspan></text>
+<line x1="53.00" y1="1760.69" x2="747.00" y2="1760.69" stroke="#C9D6DE" stroke-width="1.2" stroke-linecap="round" />
+<circle cx="53.00" cy="1760.69" r="8.00" fill="#0E8F95" stroke="none" stroke-width="0" />
+<text x="45.00" y="1786.69" font-family="Inter SemiBold" font-weight="400" font-size="10.584" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="45.00" dy="0.00">Hoy · prototipo</tspan></text>
+<text x="45.00" y="1801.69" font-family="Inter Medium" font-weight="400" font-size="8.467" fill="#33475E" text-anchor="start" letter-spacing="0.000" ><tspan x="45.00" dy="0.00">Modelo de banco que mueve tres valvas y registra una</tspan><tspan x="45.00" dy="11.18">señal por valva. Sin fluido ni pacientes.</tspan></text>
+<circle cx="296.33" cy="1760.69" r="8.00" fill="white" stroke="#0E8F95" stroke-width="2.2" />
+<path d="M296.33333333333337,1752.6891918876606 A8 8 0 0 1 296.33333333333337,1768.6891918876606 Z" fill="#0E8F95" stroke="none" stroke-width="0" stroke-linecap="round" stroke-linejoin="round" />
+<text x="288.33" y="1786.69" font-family="Inter SemiBold" font-weight="400" font-size="10.584" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="288.33" dy="0.00">Lo que estudiamos</tspan></text>
+<text x="288.33" y="1801.69" font-family="Inter Medium" font-weight="400" font-size="8.467" fill="#33475E" text-anchor="start" letter-spacing="0.000" ><tspan x="288.33" dy="0.00">Qué variables del movimiento son medibles, repetibles</tspan><tspan x="288.33" dy="11.18">y comparables.</tspan></text>
+<circle cx="539.67" cy="1760.69" r="8.00" fill="#FBFAF7" stroke="#0E8F95" stroke-width="2.2" stroke-dasharray="3 2.2"/>
+<text x="531.67" y="1786.69" font-family="Inter SemiBold" font-weight="400" font-size="10.584" fill="#0B2545" text-anchor="start" letter-spacing="0.000" ><tspan x="531.67" dy="0.00">A futuro</tspan></text>
+<text x="531.67" y="1801.69" font-family="Inter Medium" font-weight="400" font-size="8.467" fill="#33475E" text-anchor="start" letter-spacing="0.000" ><tspan x="531.67" dy="0.00">Tras una validación adecuada: apoyo al seguimiento</tspan><tspan x="531.67" dy="11.18">funcional y a la rehabilitación cardiorrespiratoria</tspan><tspan x="531.67" dy="11.18">personalizada, con inteligencia artificial.</tspan></text>
+<text x="45.00" y="1840.04" font-family="Inter Medium" font-weight="400" font-size="7.056" fill="#33475E" text-anchor="start" letter-spacing="0.000" ><tspan x="45.00" dy="0.00">La inteligencia artificial es una línea de desarrollo futuro; hoy, el software compara cada ciclo con un patrón de referencia. Prototipo académico: no es un dispositivo médico ni entrega diagnósticos.</tspan></text>
+</g>
+<g id="G_invitacion">
+<rect x="-10.00" y="1885.00" width="820.00" height="74.00" rx="0" fill="#0B2545" stroke="none" stroke-width="0" />
+<text x="45.00" y="1919.00" font-family="Inter" font-weight="700" font-size="15.523" fill="white" text-anchor="start" letter-spacing="0.000" ><tspan x="45.00" dy="0.00">Acércate: mira el mecanismo en movimiento y conversemos.</tspan></text>
+<text x="45.00" y="1942.00" font-family="Inter SemiBold" font-weight="400" font-size="9.173" fill="#8FD3D6" text-anchor="start" letter-spacing="0.000" ><tspan x="45.00" dy="0.00">CardioValveAI</tspan></text>
+</g>
+</svg>

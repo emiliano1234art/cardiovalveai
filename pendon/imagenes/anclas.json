@@ -1,0 +1,135 @@
+{
+ "theta_protagonista": 62.0,
+ "protagonista": {
+  "portasensor1": {
+   "uv": [
+    0.757154643535614,
+    0.22399622201919556
+   ],
+   "visible": false,
+   "golpe": "Cuerpo"
+  },
+  "valva1": {
+   "uv": [
+    0.7116187810897827,
+    0.24025887250900269
+   ],
+   "visible": true,
+   "golpe": "Valva_1"
+  },
+  "portasensor2": {
+   "uv": [
+    0.19538211822509766,
+    0.2802696228027344
+   ],
+   "visible": false,
+   "golpe": "Cuerpo"
+  },
+  "valva2": {
+   "uv": [
+    0.4542814791202545,
+    0.15250545740127563
+   ],
+   "visible": false,
+   "golpe": "Valva_2"
+  },
+  "portasensor3": {
+   "uv": [
+    0.6082916259765625,
+    0.5064008235931396
+   ],
+   "visible": true,
+   "golpe": "Portasensor_3"
+  },
+  "valva3": {
+   "uv": [
+    0.3931809365749359,
+    0.2948039174079895
+   ],
+   "visible": true,
+   "golpe": "Valva_3"
+  },
+  "cuerpo205": {
+   "uv": [
+    0.2061331570148468,
+    0.5578034222126007
+   ],
+   "visible": false,
+   "golpe": "Cuerpo"
+  },
+  "cuerpo225": {
+   "uv": [
+    0.1868106573820114,
+    0.6203139424324036
+   ],
+   "visible": false,
+   "golpe": "Cuerpo"
+  },
+  "cuerpo245": {
+   "uv": [
+    0.20796681940555573,
+    0.6851375102996826
+   ],
+   "visible": true,
+   "golpe": "Cuerpo"
+  },
+  "cuerpo290": {
+   "uv": [
+    0.3998936712741852,
+    0.7936344593763351
+   ],
+   "visible": false,
+   "golpe": null
+  },
+  "cuerpo305": {
+   "uv": [
+    0.49347618222236633,
+    0.8056872487068176
+   ],
+   "visible": true,
+   "golpe": "Cuerpo"
+  },
+  "cuerpo320": {
+   "uv": [
+    0.5893814563751221,
+    0.8023031502962112
+   ],
+   "visible": true,
+   "golpe": "Cuerpo"
+  },
+  "cuerpo335": {
+   "uv": [
+    0.6788886785507202,
+    0.7838671505451202
+   ],
+   "visible": true,
+   "golpe": "Cuerpo"
+  },
+  "servo": {
+   "uv": [
+    0.39882975816726685,
+    0.65451979637146
+   ],
+   "visible": true,
+   "golpe": "Servo"
+  }
+ },
+ "detalle": {
+  "iman": {
+   "uv": [
+    0.44379767775535583,
+    0.42210739850997925
+   ],
+   "visible": false,
+   "golpe": "Valva_1"
+  },
+  "hall": {
+   "uv": [
+    0.2520715892314911,
+    0.5575793385505676
+   ],
+   "visible": true,
+   "golpe": "Hall_1"
+  }
+ }
+}

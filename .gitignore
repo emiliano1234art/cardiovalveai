@@ -11,3 +11,12 @@ hardware/out_v3/
 hardware/out_v3.1/
 hardware/out_v4/
 __pycache__/
+
+# pendón: renders crudos y de prueba (se regeneran con renders_pendon.py); la entrega va en entrega/CardioValveAI_Pendon_800x2000.zip
+pendon/imagenes/*_prueba.png
+pendon/imagenes/protagonista.png
+pendon/imagenes/mecanismo.png
+pendon/imagenes/detalle_hall_iman.png
+pendon/imagenes/superior_*.png
+pendon/entrega/
+pendon_meta.json
