@@ -150,10 +150,25 @@ def main():
     tgt = (hall + mag) / 2 + M[:3, :3] @ np.array([-6.0, -8.0, -2.0])
     shot(sc, cam, 'detalle_hall_iman', tuple(tgt + ev * 150), tuple(tgt), 80, R(2400, 2000),
          tuple(o.name for o in sc.objects if o.type == 'MESH' and o.name not in keep))
-    # 4) vista superior cerrada y abierta (misma cámara)
-    for nm, th in (('superior_cerrada', 0.0), ('superior_abierta', 80.0)):
+    # 3b) lupa del imán: misma preparación, cámara cerca del extremo del barril
+    shot(sc, cam, 'lupa_iman', tuple(mag + ev * 55), tuple(mag + M[:3, :3] @ np.array([0, 4.0, 0])), 80, R(1600, 1600),
+         tuple(o.name for o in sc.objects if o.type == 'MESH' and o.name not in keep))
+    # 4) vista superior: ciclo de apertura (misma cámara para todos los ángulos)
+    for nm, th in (('superior_cerrada', 0.0), ('superior_30', 30.0), ('superior_60', 60.0), ('superior_abierta', 80.0)):
         B.apply(objs, A.pose(K.beta_for_theta(th)))
         shot(sc, cam, nm, (0.01, -0.02, 330), (0, 0, 40), 50, R(1800, 1800), ref_hidden)
+    # 5) lupas sobre la imagen protagonista: misma dirección de vista, más cerca
+    B.apply(objs, pose)
+    for inst in ('Portasensor_1', 'Hall_1', 'Valva_1', 'Iman_1'):
+        objs[inst].matrix_world = Matrix(np.asarray(pose[inst]).tolist())
+    d_hero = np.array((205, -255, 205), float) - np.array((0, -4, 30), float); d_hero /= np.linalg.norm(d_hero)
+    p_hall = (A.Rz(C.LEAF_DIR[2]) @ np.array([C.D_HINGE, P.CARRIER_END + 1.2, C.Z_HINGE, 1.0]))[:3]
+    p_valva = (A.leaf_tf(0, th_open) @ np.array([C.D_HINGE - 13, 0, C.Z_HINGE + C.BARREL_R, 1.0]))[:3]
+    shot(sc, cam, 'lupa_hall', tuple(p_hall + d_hero * 115), tuple(p_hall), 135, R(1600, 1600), ref_hidden)
+    shot(sc, cam, 'lupa_valva', tuple(p_valva + d_hero * 150), tuple(p_valva), 100, R(1600, 1600), ref_hidden)
+    d_mec = np.array((170, -215, 110), float) - np.array((0, -8, 36), float); d_mec /= np.linalg.norm(d_mec)
+    p_srv = np.array((0.0, P.Y_CRANK - 6.0, C.Z_SERVO + 2.0))
+    shot(sc, cam, 'lupa_servo', tuple(p_srv + d_mec * 125), tuple(p_srv), 72, R(1600, 1600), ('Cuerpo',) + ref_hidden)
     anchors(sc, objs, cam, pose, th_open)
 
 
