@@ -76,6 +76,7 @@ def wrap(text, k, pt, width, ls=0.0):
 
 
 TXT = {}
+EXTRA = 0.0   # holgura vertical repartida entre secciones (se calcula en main)
 
 
 def T(key, value):
@@ -280,12 +281,12 @@ def build():
     s.line(M + 380, yi - 13, M + 380, y1 + 4, TEAL_M, 1.0)
     s.text(M + 398, yi, T('pregunta', '¿Qué puede contarnos el movimiento de una válvula?'), 'c', 46, TEAL, width=CW - 398 - 22, lh=1.1)
     s.add('</g>')
-    y = y1 + 26
+    y = y1 + 26 + EXTRA
 
     # ── B · protagonista con lupas ─────────────────────────────────
     s.add('<g id="B_protagonista">')
     href, px, bb = duotone('protagonista.png', 'p2_protagonista.png')
-    hw = 450.0
+    hw = 500.0
     hh = hw * px[1] / px[0]
     hx, hy = (W - hw) / 2 + 6, y + 28
     s.image(hx, hy, hw, hh, href, 'img_protagonista', px)
@@ -317,20 +318,20 @@ def build():
         s.circle(cx, cy, R_ + 3.2, fill=WHITE)
         s.image(cx - R_, cy - R_, 2 * R_, 2 * R_, href_l, 'img_' + src[:-4], pxl, clip_circle=(cx, cy, R_))
         s.circle(cx, cy, R_ + 1.6, stroke=col, sw=2.2)
-        s.arc_text(cx, cy, R_ + 9.5, lab, 'cb', 30, col if col == ACC else TEAL_D, bottom=True, ls=0.08)
-        s.text(cx, cy + R_ + 25, sub, 'm', 21, INK2, anchor='middle')
+        s.arc_text(cx, cy, R_ + 15.5, lab, 'cb', 30, col if col == ACC else TEAL_D, bottom=True, ls=0.08)
+        s.text(cx, cy + R_ + 30, sub, 'm', 21, INK2, anchor='middle')
     # unión imán ↔ sensor (son un par)
     (_, _, (c1x, c1y), *_), (_, _, (c2x, c2y), *_) = lupas[1], lupas[2]
     s.line(c1x, c1y + R_ + 30, c2x, c2y - R_ - 4, ACC, 1.2, 'stroke-dasharray="3 3"')
     s.text(hx + 6, hy + hh + 14, T('pie_protagonista', 'Imágenes generadas a partir del modelo 3D del prototipo actual. En la lupa del imán, el portasensor se muestra separado; en la del servomotor, la estructura está oculta.'),
            'm', 18, INK2, width=hw + 30, lh=1.25)
     s.add('</g>')
-    y = hy + hh + 52
+    y = hy + hh + 52 + EXTRA
 
     # ── cifras de diseño ───────────────────────────────────────────
     s.add('<g id="B_cifras">')
     facts = [(T('cifra1', '90 mm'), T('cifra1_txt', 'diámetro del anillo impreso en 3D')),
-             (T('cifra2', '3 × 3'), T('cifra2_txt', 'valvas, imanes y sensores Hall: uno de cada uno por valva')),
+             (T('cifra2', '3'), T('cifra2_txt', 'valvas, cada una con su imán y su sensor Hall')),
              (T('cifra3', '0°–80°'), T('cifra3_txt', 'apertura de diseño, con un solo servomotor'))]
     fw = CW / 3
     for i, (num, txt) in enumerate(facts):
@@ -340,7 +341,7 @@ def build():
         s.text(x + 16, y + 2, num, 'cb', 104, TEAL_D, ls=0.0)
         s.text(x + 16, y + 20, txt, 'm', 22, INK, width=fw - 26, lh=1.22)
     s.add('</g>')
-    y += 92
+    y += 92 + EXTRA
 
     # ── C · necesidad + panel del ciclo ─────────────────────────────
     s.add('<g id="C_necesidad">')
@@ -363,9 +364,9 @@ def build():
     s.rect(px0, y - 42, W + BLEED - px0, ph_, fill=TEAL_L)
     s.text(px0 + 20, y - 4, T('t_ciclo', 'Un ciclo: abrir y cerrar'), 'cb', 46, TEAL_D)
     cxp, cyp = px0 + (W - px0) / 2 + 2, y - 42 + ph_ / 2 + 22
-    rx, ry = (W - px0) / 2 - 62, ph_ / 2 - 70
+    rx, ry = (W - px0) / 2 - 70, ph_ / 2 - 70
     s.add(f'<ellipse cx="{cxp:.1f}" cy="{cyp:.1f}" rx="{rx:.1f}" ry="{ry:.1f}" fill="none" stroke="{TEAL}" stroke-width="2.2" stroke-dasharray="7 6"/>')
-    views = [('superior_cerrada.png', 'cerrada · 0°', 180), ('superior_30.png', '30°', 90), ('superior_60.png', '60°', 0), ('superior_abierta.png', 'abierta · 80°', 270)]
+    views = [('superior_cerrada.png', 'cerrada · 0°', 180), ('superior_30.png', '30°', 125), ('superior_60.png', '60°', 55), ('superior_abierta.png', 'abierta · 80°', 0)]
     rv = 40.0
     for src, lab, ang in views:
         a = math.radians(ang)
@@ -373,19 +374,21 @@ def build():
         href_v, pxv, _ = duotone(src, 'p2_' + src)
         s.circle(vx_, vy_, rv + 4, fill=BG)
         s.image(vx_ - rv, vy_ - rv, 2 * rv, 2 * rv * pxv[1] / pxv[0], href_v, 'img_' + src[:-4], pxv)
-        ly = vy_ + rv + 15 if ang != 90 else vy_ - rv - 8
+        ly = vy_ + rv + 15 if ang in (0, 180) else vy_ - rv - 8
         s.text(vx_, ly, lab, 'c', 26, TEAL_D, anchor='middle')
     # flechas de sentido sobre la elipse
-    for ang in (135, 45, 315, 225):
+    for ang in (90, 270):
         a = math.radians(ang)
         x0, y0 = cxp + rx * math.cos(a), cyp - ry * math.sin(a)
-        tx, ty = -rx * math.sin(a), -ry * math.cos(a)        # tangente (sentido horario en pantalla)
+        tx, ty = rx * math.sin(a), ry * math.cos(a)          # tangente en sentido horario en pantalla: arriba →, abajo ←
         n = math.hypot(tx, ty); tx, ty = tx / n, ty / n
         s.path(f'M{x0 - 5 * tx - 4 * ty:.1f},{y0 - 5 * ty + 4 * tx:.1f} L{x0 + 3 * tx:.1f},{y0 + 3 * ty:.1f} L{x0 - 5 * tx + 4 * ty:.1f},{y0 - 5 * ty - 4 * tx:.1f}',
                stroke=TEAL_D, sw=2.0)
-    s.text(cxp, cyp + 4, T('ciclo_centro', 'vista\nsuperior'), 'c', 24, TEAL, anchor='middle', lh=1.05)
+    s.text(cxp, cyp - ry - 9, T('ciclo_abre', 'abre'), 'cb', 30, TEAL_D, anchor='middle')
+    s.text(cxp, cyp + ry + 17, T('ciclo_cierra', 'cierra'), 'cb', 30, TEAL_D, anchor='middle')
+    s.text(cxp, cyp + 8, T('ciclo_centro', 'vista superior\ndel modelo'), 'c', 24, TEAL, anchor='middle', lh=1.05)
     s.add('</g>')
-    y = max(yl_end, y - 42 + ph_) + 60
+    y = max(yl_end, y - 42 + ph_) + 60 + EXTRA
 
     # ── D · del movimiento a los datos ─────────────────────────────
     s.add('<g id="D_funcionamiento">')
@@ -423,7 +426,7 @@ def build():
     s.rect(M, y - 12, CW, 18, fill=TEAL_XL, r=9)
     s.text(M + 16, y, nt, 'm', 22, INK, width=CW - 32)
     s.add('</g>')
-    y += 52
+    y += 52 + EXTRA
 
     # ── E · qué observamos ──────────────────────────────────────────
     s.add('<g id="E_observamos">')
@@ -450,7 +453,7 @@ def build():
             pulse(s, px_, py_, pw_, ph2, 0.0, 1.0, INK2, 1.4, 'stroke-dasharray="3 2.5"'); pulse(s, px_, py_, pw_, ph2, 0.03, 0.7, ACC, 1.8)
         s.text(x + 22, y + 77, str(i + 1), 'cb', 64, TEAL_M, anchor='middle')
         s.text(x + 38, y + 68, label, 'sb', 24, INK, width=cw4 - 40, lh=1.2)
-    y += 54 + 56
+    y += 54 + 56 + EXTRA
     s.add('</g>')
 
     # ── F · hoy / a futuro (caja comparativa) ───────────────────────
@@ -469,8 +472,15 @@ def build():
         x = M + 14 + i * (c3 + 6)
         if i:
             s.line(x - 6, y + 12, x - 6, y + bh - 30, TEAL, 1.2)
-        mk = ('●', '◐', '○')[i]
-        s.text(x, y + 20, f'{mk} {t1}', 'sb', 26, TEAL_D)
+        mx, my = x + 4.5, y + 17
+        if i == 0:
+            s.circle(mx, my, 4.5, fill=TEAL_D)
+        elif i == 1:
+            s.circle(mx, my, 4.5, fill=WHITE, stroke=TEAL_D, sw=1.4)
+            s.path(f'M{mx},{my - 4.5} A4.5 4.5 0 0 1 {mx},{my + 4.5} Z', fill=TEAL_D, stroke='none', sw=0)
+        else:
+            s.circle(mx, my, 4.5, fill='none', stroke=TEAL_D, sw=1.4, extra='stroke-dasharray="2 1.6"')
+        s.text(x + 13, y + 20, t1, 'sb', 26, TEAL_D)
         s.text(x, y + 32, t2, 'm', 22, INK, width=c3 - 12, lh=1.3)
     s.text(M + 14, y + bh - 10, T('nota_ia', 'La inteligencia artificial es una línea de desarrollo futuro; hoy, el software compara cada ciclo con un patrón de referencia. '
                                             'Prototipo académico: no es un dispositivo médico ni entrega diagnósticos.'), 'm', 17, INK2, width=CW - 28)
@@ -505,7 +515,7 @@ def verify(s, gy):
 
 
 def words():
-    skip = {'nombre', 'franja', 'vertical', 'rotulo_modelo', 'ciclo_centro'}
+    skip = {'nombre', 'franja', 'vertical', 'rotulo_modelo', 'ciclo_centro', 'ciclo_abre', 'ciclo_cierra'}
     return sum(len(str(v).split()) for k, v in TXT.items() if not k.startswith('_') and k not in skip)
 
 
@@ -587,8 +597,13 @@ Inter / Inter Display (título y texto) y Barlow Condensed (franja, títulos de 
 
 
 def main():
+    global EXTRA, TXT
     os.makedirs(OUT, exist_ok=True)
     s, gy = build()
+    EXTRA = max(0.0, (1880.0 - 34 - TXT['_y_fin_contenido']) / 6)
+    TXT = {}
+    s, gy = build()
+    print('holgura por sección:', round(EXTRA, 1), 'mm')
     issues = verify(s, gy)
     svg_path = os.path.join(HERE, 'CardioValveAI_Pendon_v2_800x2000.svg')
     open(svg_path, 'w', encoding='utf-8').write(s.svg(BLEED))
