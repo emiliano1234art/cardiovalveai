@@ -20,9 +20,16 @@
 #include "cmd.h"
 #include "cal.h"
 #include "board_pins.h"
+#ifdef CONFIG_CVAI_DASHBOARD_JSON
+#include "dash.h"
+#endif
 
 #ifndef CVAI_BAUD
+#ifdef CONFIG_CVAI_DASHBOARD_JSON
+#define CVAI_BAUD 115200     /* dashboard web: JSON por línea, ≈ 30 % del enlace */
+#else
 #define CVAI_BAUD 921600     /* uso estimado ≈ 31 % del enlace (ver documentación) */
+#endif
 #endif
 int g_baud = CVAI_BAUD;
 
@@ -32,8 +39,13 @@ void app_main(void)
     cal_init();                     /* calibraciones guardadas en NVS (una por sensor) */
     servo_init();                   /* PWM apagado al arrancar */
     acq_adc_start();
-    acq_i2s_start();
+#ifndef CONFIG_CVAI_DASHBOARD_JSON
+    acq_i2s_start();                // el prototipo v4 no lleva micrófono; el modo dashboard no lo inicia
+#endif
     cmd_start();
+#ifdef CONFIG_CVAI_DASHBOARD_JSON
+    dash_start();                   // telemetría JSON a 50 Hz; el movimiento empieza con el primer SET_MODE
+#endif
     vTaskDelay(pdMS_TO_TICKS(400));
     send_info();
     proto_text("CardioValveAI v3 listo. 'STREAM ON' y latidos 'HB'. Servo sin pulsos hasta START/MOVE. Calibración válida: H1=%d H2=%d H3=%d",

@@ -1,0 +1,2 @@
+# Modo dashboard web: JSON por línea a 115200 baudios (ver main/Kconfig.projbuild)
+CONFIG_CVAI_DASHBOARD_JSON=y

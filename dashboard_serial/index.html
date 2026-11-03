@@ -4,12 +4,15 @@
   Abrir directamente en Chrome o Edge de escritorio (Web Serial API). Necesita internet solo para cargar Tailwind, Chart.js y la tipografía.
 
   PROTOCOLO (115200 baudios, 8N1, texto UTF-8, un objeto JSON por línea terminada en \n)
-    ESP32 → navegador, ~50 Hz:  {"t": 124500, "deg": 45.2, "mode": "SANO", "phase": "APERTURA"}
+    ESP32 → navegador, ~50 Hz:  {"t": 124500, "deg": 45.2, "mode": "SANO", "phase": "APERTURA", "src": "HALL"}
         t      milisegundos desde el arranque del microcontrolador
         deg    ángulo de apertura de las valvas (grados)
         mode   "SANO" | "ESTENOSIS"          (modo que el ESP32 tiene activo)
-        phase  "APERTURA" | "MESETA SISTÓLICA" | "CIERRE" | "DIÁSTOLE"
+        phase  "APERTURA" | "MESETA SISTÓLICA" | "CIERRE" | "DIÁSTOLE" (se acepta con o sin tilde) | "REPOSO"
+        src    (opcional) "HALL" = medido con los 3 sensores Hall calibrados | "CMD" = estimado desde el comando del servo
     navegador → ESP32:          {"cmd":"SET_MODE","mode":"SANO"}\n   o   {"cmd":"SET_MODE","mode":"ESTENOSIS"}\n
+        además: {"cmd":"HB"}\n cada 0,5 s (latido: sin él el ESP32 detiene el servo) y {"cmd":"STOP"}\n (botón «Detener movimiento»)
+    ESP32 → navegador, avisos:  {"evt":"STOP_ESTOP","arg":0}   {"err":"..."}   {"txt":"..."}   {"info":{...}}   {"ack":"..."}
   Las líneas que no son JSON (mensajes de arranque, etc.) se descartan y se cuentan.
   Prototipo académico de banco: no es un dispositivo médico ni entrega diagnósticos.
 -->
@@ -159,6 +162,10 @@
         <span class="eyebrow">Modo activo</span>
         <span id="activeName" class="text-2xl font-extrabold tracking-tight text-mute sm:text-3xl">—</span>
         <span id="activeNote" class="text-sm text-mute">Sin telemetría</span>
+        <button id="btnStop" type="button" disabled
+          class="ml-auto rounded-full border border-alert/60 bg-alert/10 px-4 py-2 text-sm font-semibold text-red-200 transition hover:bg-alert/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-40">
+          ■ Detener movimiento
+        </button>
       </div>
     </section>
 
@@ -178,6 +185,7 @@
           </div>
           <div class="mt-1.5 flex justify-between text-[0.7rem] text-mute"><span>0°</span><span>35°</span><span>80°</span><span>90°</span></div>
         </div>
+        <p id="kpiSrc" class="mt-3 hidden text-xs leading-snug text-mute"></p>
       </article>
 
       <article class="card p-5 sm:p-6">
@@ -262,7 +270,20 @@ const MODES = {
   SANO:      { name: 'Fisiológico (Sano)',           color: '#00E5FF', note: 'Apertura nominal 0°–80°' },
   ESTENOSIS: { name: 'Patológico (Estenosis)',       color: '#F59E0B', note: 'Apertura restringida 0°–35°' },
 };
-const PHASE_LABEL = { APERTURA: 'Apertura', MESETA: 'Meseta sistólica', CIERRE: 'Cierre', DIASTOLE: 'Diástole' };
+const PHASE_LABEL = { APERTURA: 'Apertura', MESETA: 'Meseta sistólica', CIERRE: 'Cierre', DIASTOLE: 'Diástole', REPOSO: 'Reposo', AJUSTE: 'Ajuste' };
+const SRC_TEXT = {
+  HALL: '● Medido: promedio de los 3 sensores Hall calibrados',
+  CMD:  '○ Estimado a partir del comando del servo (no es una medición)',
+};
+const EVT_TEXT = {
+  STOP_ESTOP:     ['err',  'Parada de emergencia física activa: el servo quedó sin pulsos. Suelta el pulsador para reanudar.'],
+  STOP_HEARTBEAT: ['warn', 'El ESP32 detuvo el movimiento porque dejó de recibir el latido del panel.'],
+  STOP_STALL:     ['err',  'El ESP32 detuvo el movimiento: los sensores Hall no detectaron movimiento de las valvas.'],
+  STOP_LIMIT:     ['err',  'El ESP32 detuvo el movimiento: un ángulo medido salió del límite permitido.'],
+  STOP_ACQ_FAULT: ['err',  'Falla de adquisición en el ESP32: se detuvo el movimiento.'],
+  ADC_POOL_OVF:   ['warn', 'El ESP32 perdió lecturas de los sensores Hall (sobrecarga del ADC).'],
+  ADC_PATTERN_ERR:['warn', 'Error de secuencia en la lectura de los sensores Hall.'],
+};
 
 /* ───────────────────────── Utilidades ───────────────────────── */
 const $ = (id) => document.getElementById(id);
@@ -317,7 +338,7 @@ function setStatus(status, detail = '') {
   demoBtn.textContent = status === 'demo' ? 'Detener demostración' : 'Modo demostración';
   demoBtn.disabled = status === 'connected' || status === 'connecting';
   const live = status === 'connected' || status === 'demo';
-  $('btnSano').disabled = !live; $('btnEst').disabled = !live;
+  $('btnSano').disabled = !live; $('btnEst').disabled = !live; $('btnStop').disabled = !live;
   if (status === 'error') showNotice('err', detail || 'Error de comunicación con el puerto.');
   else if (status === 'unsupported') showNotice('err', 'Este navegador no admite la Web Serial API. Abre este archivo en Chrome o Edge de escritorio (no funciona en Safari, Firefox ni en el celular).');
   else if (status === 'demo') showNotice('warn', 'DEMOSTRACIÓN: los datos de la gráfica están SIMULADOS en este navegador. No provienen del prototipo.');
@@ -426,6 +447,7 @@ function handleLine(line) {
   if (line[0] !== '{') { S.bad++; log('RX', line.slice(0, 120)); return; }
   let d;
   try { d = JSON.parse(line); } catch { S.bad++; log('ERR', 'JSON inválido: ' + line.slice(0, 100)); return; }
+  if (d && typeof d === 'object' && typeof d.deg !== 'number' && ('evt' in d || 'err' in d || 'txt' in d || 'info' in d || 'ack' in d)) { handleAux(d, line); return; }
   if (!d || typeof d !== 'object' || typeof d.deg !== 'number' || !Number.isFinite(d.deg)) {
     S.bad++; log('RX', 'sin "deg": ' + line.slice(0, 100)); return;
   }
@@ -435,7 +457,19 @@ function handleLine(line) {
     mode: typeof d.mode === 'string' ? modeKey(d.mode) : (S.last ? S.last.mode : null),
     phase: typeof d.phase === 'string' ? phaseKey(d.phase) : (S.last ? S.last.phase : null),
     phaseRaw: typeof d.phase === 'string' ? d.phase : null,
+    src: d.src === 'HALL' || d.src === 'CMD' ? d.src : null,
   });
+}
+
+/* Avisos del ESP32 (no son telemetría): se registran y, si corresponde, se muestran */
+function handleAux(d, line) {
+  log('ESP', line.slice(0, 140));
+  if (typeof d.err === 'string') { showNotice('err', 'El ESP32 informa: ' + d.err); S.auxNotice = true; return; }
+  if (typeof d.evt === 'string') {
+    const e = EVT_TEXT[d.evt];
+    if (e) { showNotice(e[0], e[1]); S.auxNotice = true; }
+    else if (d.evt === 'RUN_START' || d.evt === 'ESTOP_RELEASED') { if (S.auxNotice) { S.auxNotice = false; hideNotice(); } }
+  }
 }
 
 function onPacket(p) {
@@ -464,6 +498,8 @@ function paintKpis(ts) {
   $('kpiDeg').textContent = fmt1(p.deg);
   $('kpiBar').style.width = Math.max(0, Math.min(100, (p.deg / Y_MAX) * 100)) + '%';
   $('kpiPhase').textContent = p.phase ? (PHASE_LABEL[p.phase] || p.phaseRaw || p.phase) : '—';
+  const srcEl = $('kpiSrc');
+  if (p.src) { srcEl.textContent = SRC_TEXT[p.src]; srcEl.classList.remove('hidden'); } else { srcEl.classList.add('hidden'); }
   for (const el of document.querySelectorAll('.phase-step')) el.classList.toggle('on', el.dataset.p === p.phase);
   if (ts - S.hemoAt > 250) { S.hemoAt = ts; paintHemo(); }
 }
@@ -471,9 +507,10 @@ function paintKpis(ts) {
 function paintHemo() {
   const el = $('kpiHemo'), note = $('kpiHemoNote');
   if (S.ys.length < 30) { el.textContent = 'Reuniendo datos…'; el.className = 'mt-2 text-2xl font-extrabold leading-tight text-mute sm:text-3xl'; return; }
-  const peak = Math.max(...S.ys);
+  const peak = Math.max(...S.ys), low = Math.min(...S.ys);
   let title, cls, txt;
-  if (peak >= 60) { title = 'Apertura completa'; cls = 'text-neon'; txt = `Ángulo máximo reciente ${fmt1(peak)}°: dentro del rango nominal de diseño (hasta 80°).`; }
+  if (peak - low < 5) { title = 'Sin movimiento'; cls = 'text-mute'; txt = 'Las valvas están quietas (variación menor a 5° en ~3 s): no hay ciclo que evaluar.'; }
+  else if (peak >= 60) { title = 'Apertura completa'; cls = 'text-neon'; txt = `Ángulo máximo reciente ${fmt1(peak)}°: dentro del rango nominal de diseño (hasta 80°).`; }
   else if (peak <= 40) { title = 'Apertura estenosada'; cls = 'text-amber'; txt = `Ángulo máximo reciente ${fmt1(peak)}°: apertura restringida (límite 35°). Patrón tipo parvus et tardus simulado: pulso pequeño y tardío.`; }
   else { title = 'Apertura intermedia'; cls = 'text-white'; txt = `Ángulo máximo reciente ${fmt1(peak)}°: entre el límite de estenosis (35°) y la apertura nominal.`; }
   el.textContent = title;
@@ -604,10 +641,24 @@ async function sendMode(mode) {
   S.pending = { mode, at: performance.now() };
   paintStatusBar();
   log('TX', line.trim() + (S.status === 'demo' ? '   (demostración)' : ''));
-  if (S.status === 'demo') { setTimeout(() => { S.demo.mode = mode; }, 180); return; }
+  if (S.status === 'demo') { setTimeout(() => { S.demo.mode = mode; S.demo.run = true; }, 180); return; }
   try { await S.writer.write(line); }
   catch (e) { S.pending = null; log('ERR', 'No se pudo enviar el comando: ' + (e && e.message || e)); showNotice('err', 'No se pudo enviar el comando al ESP32.'); }
 }
+
+async function sendStop() {
+  const line = JSON.stringify({ cmd: 'STOP' }) + '\n';
+  S.pending = null;
+  log('TX', line.trim() + (S.status === 'demo' ? '   (demostración)' : ''));
+  if (S.status === 'demo') { setTimeout(() => { S.demo.run = false; }, 120); return; }
+  try { await S.writer.write(line); }
+  catch (e) { log('ERR', 'No se pudo enviar STOP: ' + (e && e.message || e)); showNotice('err', 'No se pudo enviar la orden de detener. Usa la parada de emergencia física o desconecta el USB.'); }
+}
+
+/* Latido: el firmware detiene el servo si pasan ~2 s sin recibirlo (p. ej. si se cierra la pestaña o se cuelga el navegador) */
+setInterval(() => {
+  if (S.status === 'connected' && S.writer) S.writer.write(JSON.stringify({ cmd: 'HB' }) + '\n').catch(() => {});
+}, 500);
 
 if (navigator.serial) {
   navigator.serial.addEventListener('disconnect', async (ev) => {
@@ -620,26 +671,27 @@ if (navigator.serial) {
 /* ───────────────────────── Modo demostración (datos simulados) ───────────────────────── */
 function startDemo() {
   resetData();
-  S.demo.mode = 'SANO'; S.demo.t0 = performance.now();
+  S.demo.mode = 'SANO'; S.demo.run = true; S.demo.t0 = performance.now();
   setStatus('demo');
   S.demo.timer = setInterval(() => {
     const ms = performance.now() - S.demo.t0;
     const c = (ms % 1000) / 1000;                       // ciclo de 1 s
     const est = S.demo.mode === 'ESTENOSIS';
-    const amp = est ? 32 : 80;
+    const amp = S.demo.run ? (est ? 32 : 80) : 0;
     const sm = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
     let deg, phase;
     if (c < (est ? 0.34 : 0.22)) { deg = amp * sm(c / (est ? 0.34 : 0.22)); phase = 'APERTURA'; }
     else if (c < 0.55) { deg = amp * (1 - 0.04 * Math.sin((c - 0.22) * 9)); phase = 'MESETA SISTÓLICA'; }
     else if (c < 0.75) { deg = amp * (1 - sm((c - 0.55) / 0.2)); phase = 'CIERRE'; }
     else { deg = 0; phase = 'DIÁSTOLE'; }
+    if (!S.demo.run) phase = 'REPOSO';
     handleLine(JSON.stringify({ t: Math.round(ms), deg: +(deg + (Math.random() - 0.5) * 0.4).toFixed(1), mode: S.demo.mode, phase }));
   }, 20);
 }
 function stopDemo() { clearInterval(S.demo.timer); S.demo.timer = null; S.pending = null; setStatus('disconnected'); }
 
 function resetData() {
-  S.ys = []; S.last = null; S.rx = 0; S.bad = 0; S.rxMark = 0; S.rxT = 0; S.lastRxAt = 0; S.pending = null; S.dirty = true;
+  S.auxNotice = false; S.ys = []; S.last = null; S.rx = 0; S.bad = 0; S.rxMark = 0; S.rxT = 0; S.lastRxAt = 0; S.pending = null; S.dirty = true;
   $('chartMsg').classList.remove('hidden'); $('chartMsg').textContent = 'Esperando telemetría…';
   $('kpiDeg').textContent = '--.-'; $('kpiBar').style.width = '0%'; $('kpiPhase').textContent = '—';
   for (const el of document.querySelectorAll('.phase-step')) el.classList.remove('on');
@@ -651,6 +703,7 @@ $('btnConnect').addEventListener('click', () => (S.status === 'connected' ? disc
 $('btnDemo').addEventListener('click', () => (S.status === 'demo' ? stopDemo() : startDemo()));
 $('btnSano').addEventListener('click', () => sendMode('SANO'));
 $('btnEst').addEventListener('click', () => sendMode('ESTENOSIS'));
+$('btnStop').addEventListener('click', sendStop);
 window.addEventListener('pagehide', () => { try { S.reader?.cancel(); } catch {} });
 
 buildChart();

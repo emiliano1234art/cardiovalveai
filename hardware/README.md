@@ -32,6 +32,7 @@ El ángulo ordenado al servo no es la posición de las valvas, y la animación n
 | `electronica/esquema.py` | Esquemas eléctricos (schemdraw) |
 | `firmware/CardioValveAI_v3_Adquisicion/` | Firmware ESP-IDF v5.4: ADC continuo (3 Hall), I2S (INMP441), servo no bloqueante, calibración en NVS, protocolo binario. **Compila; no se probó en hardware** |
 | `host/cvai_montaje.py` | v4: deja el servo en 180° sin pulsos para calzar el horn (posición de montaje) |
+| `../dashboard_serial/` | Dashboard web de un solo archivo (Web Serial, Chrome/Edge): control de modo sano/estenosis y telemetría en vivo. Requiere el firmware en **modo dashboard** (`sdkconfig.dashboard`, JSON a 115200). Ver su `LEEME.md` |
 | `host/` | Registro y vista en vivo, análisis por ciclo, calibración con galgas, emulador de datos **sintéticos** y prueba de extremo a extremo |
 
 ```bash

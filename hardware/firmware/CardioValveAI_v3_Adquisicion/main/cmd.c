@@ -27,6 +27,9 @@
 #include "servo.h"
 #include "acq.h"
 #include "cal.h"
+#ifdef CONFIG_CVAI_DASHBOARD_JSON
+#include "dash.h"
+#endif
 
 #define FW_VERSION "CardioValveAI_v3_Adquisicion 3.0.0"
 extern int g_baud;
@@ -153,6 +156,11 @@ static void cmd_task(void *arg)
         if (uart_read_bytes(UART_NUM_0, &ch, 1, pdMS_TO_TICKS(100)) != 1) continue;
         if (ch == '\n') {
             line[n] = 0;
+#ifdef CONFIG_CVAI_DASHBOARD_JSON
+            const char *p = line;
+            while (*p == ' ' || *p == '\t' || *p == '\r') p++;
+            if (*p == '{') { dash_handle_line(p); n = 0; continue; }   /* JSON del dashboard; el resto sigue siendo texto (HB, STOP, CAL…) */
+#endif
             handle(line);
             n = 0;
         } else if (n < (int)sizeof line - 1) {

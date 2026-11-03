@@ -1,0 +1,12 @@
+menu "CardioValveAI"
+
+    config CVAI_DASHBOARD_JSON
+        bool "Modo dashboard web: JSON por línea a 115200 baudios"
+        default n
+        help
+            Activado: por el USB circula texto JSON (telemetría de ángulo a 50 Hz y comandos SET_MODE / HB / STOP) para el
+            dashboard web (dashboard_serial/index.html). No se inicia el micrófono y el protocolo binario queda desactivado.
+            Desactivado (por omisión): protocolo binario a 921600 baudios para las herramientas de registro y calibración
+            (hardware/host). La calibración de los Hall se guarda en la memoria del ESP32 y la usan ambos modos.
+
+endmenu

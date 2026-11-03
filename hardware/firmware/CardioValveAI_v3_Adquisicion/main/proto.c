@@ -7,8 +7,15 @@
 #include "freertos/ringbuf.h"
 #include "driver/uart.h"
 #include "esp_timer.h"
+#ifdef CONFIG_CVAI_DASHBOARD_JSON
+#include "dash.h"
+#endif
 
+#ifdef CONFIG_CVAI_DASHBOARD_JSON
+#define TX_RING_BYTES (8 * 1024)    /* ≈ 0,7 s de telemetría a 11,5 kB/s (115200 baudios) */
+#else
 #define TX_RING_BYTES (48 * 1024)   /* ≈ 0,5 s de datos a 92 kB/s: absorbe pausas cortas de la computadora */
+#endif
 #define MAX_PAYLOAD   2048
 
 static RingbufHandle_t s_ring;
@@ -53,8 +60,26 @@ void proto_init(int baud)
     xTaskCreatePinnedToCore(tx_task, "tx", 3072, NULL, 5, NULL, 0);
 }
 
+bool proto_write_line(const char *line, size_t n)
+{
+    uint8_t *f = NULL;
+    if (n == 0 || n > MAX_PAYLOAD || xRingbufferSendAcquire(s_ring, (void **)&f, n, 0) != pdTRUE || !f) {
+        taskENTER_CRITICAL(&s_mux);
+        s_dropped++;
+        taskEXIT_CRITICAL(&s_mux);
+        return false;
+    }
+    memcpy(f, line, n);
+    xRingbufferSendComplete(s_ring, f);
+    return true;
+}
+
 bool proto_send(uint8_t type, const void *payload, uint16_t len)
 {
+#ifdef CONFIG_CVAI_DASHBOARD_JSON
+    (void)type; (void)payload; (void)len;
+    return false;                    /* por el puerto solo circula JSON por línea */
+#endif
     if (len > MAX_PAYLOAD || type >= FR_NTYPES) {
         return false;
     }
@@ -81,6 +106,10 @@ bool proto_send(uint8_t type, const void *payload, uint16_t len)
 
 void proto_event(uint8_t code, int32_t arg)
 {
+#ifdef CONFIG_CVAI_DASHBOARD_JSON
+    dash_event(code, arg);
+    return;
+#endif
     struct __attribute__((packed)) { int64_t t; uint8_t code; int32_t arg; } e = { esp_timer_get_time(), code, arg };
     _Static_assert(sizeof e == 13, "EVENT = 13 bytes (cvai_proto.EVENT)");
     proto_send(FR_EVENT, &e, sizeof e);
@@ -94,7 +123,11 @@ void proto_text(const char *fmt, ...)
     int n = vsnprintf(s, sizeof s, fmt, ap);
     va_end(ap);
     if (n > 0) {
+#ifdef CONFIG_CVAI_DASHBOARD_JSON
+        dash_text(s);
+#else
         proto_send(FR_TEXT, s, (uint16_t)(n < (int)sizeof s ? n : (int)sizeof s - 1));
+#endif
     }
 }
 

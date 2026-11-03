@@ -41,3 +41,6 @@ void proto_text(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 uint32_t proto_dropped(void);
 uint32_t proto_bytes_sent(void);
 uint16_t proto_crc16(const uint8_t *d, size_t n, uint16_t crc);
+/* Modo dashboard (CONFIG_CVAI_DASHBOARD_JSON): escribe una línea de texto ya formada en la cola de transmisión (no bloquea).
+ * En ese modo las tramas binarias (proto_send) se descartan para que por el puerto solo circule JSON por línea. */
+bool proto_write_line(const char *s, size_t n);
