@@ -1,0 +1,661 @@
+<!doctype html>
+<!--
+  CardioValveAI · Dashboard serial (un solo archivo)
+  Abrir directamente en Chrome o Edge de escritorio (Web Serial API). Necesita internet solo para cargar Tailwind, Chart.js y la tipografía.
+
+  PROTOCOLO (115200 baudios, 8N1, texto UTF-8, un objeto JSON por línea terminada en \n)
+    ESP32 → navegador, ~50 Hz:  {"t": 124500, "deg": 45.2, "mode": "SANO", "phase": "APERTURA"}
+        t      milisegundos desde el arranque del microcontrolador
+        deg    ángulo de apertura de las valvas (grados)
+        mode   "SANO" | "ESTENOSIS"          (modo que el ESP32 tiene activo)
+        phase  "APERTURA" | "MESETA SISTÓLICA" | "CIERRE" | "DIÁSTOLE"
+    navegador → ESP32:          {"cmd":"SET_MODE","mode":"SANO"}\n   o   {"cmd":"SET_MODE","mode":"ESTENOSIS"}\n
+  Las líneas que no son JSON (mensajes de arranque, etc.) se descartan y se cuentan.
+  Prototipo académico de banco: no es un dispositivo médico ni entrega diagnósticos.
+-->
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CardioValveAI · Dashboard</title>
+  <meta name="color-scheme" content="dark" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+          colors: {
+            canvas: '#0B1320', deep: '#0A0F1D', card: '#131F33', card2: '#162540', scope: '#0D1626',
+            neon: '#00E5FF', teal: '#06B6D4', udd: '#0284C7', royal: '#2563EB',
+            amber: { DEFAULT: '#F59E0B' }, alert: '#EF4444', mute: '#94A3B8',
+          },
+        },
+      },
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <style>
+    body {
+      background:
+        radial-gradient(1100px 520px at 85% -8%, rgba(2, 132, 199, 0.20), transparent 60%),
+        radial-gradient(900px 480px at -5% 105%, rgba(0, 229, 255, 0.07), transparent 60%),
+        #0B1320;
+      font-variant-numeric: tabular-nums;
+    }
+    .card {
+      background: linear-gradient(180deg, #162540 0%, #131F33 100%);
+      border: 1px solid rgba(0, 229, 255, 0.15);
+      border-radius: 18px;
+      box-shadow: 0 14px 34px -16px rgba(0, 0, 0, 0.65);
+    }
+    .eyebrow { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: #94A3B8; }
+
+    /* LED del puerto */
+    .led { width: 11px; height: 11px; border-radius: 999px; background: #64748B; flex: none; }
+    .led.on   { background: #22D3EE; animation: pulse-cyan 1.6s infinite; }
+    .led.wait { background: #F59E0B; animation: pulse-amber 1s infinite; }
+    .led.err  { background: #EF4444; animation: pulse-red 1.2s infinite; }
+    .led.demo { background: #F59E0B; animation: pulse-amber 1.6s infinite; }
+    @keyframes pulse-cyan  { 0% { box-shadow: 0 0 0 0 rgba(0, 229, 255, .7); } 70% { box-shadow: 0 0 0 9px rgba(0, 229, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0); } }
+    @keyframes pulse-amber { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, .7); } 70% { box-shadow: 0 0 0 9px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
+    @keyframes pulse-red   { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, .7); } 70% { box-shadow: 0 0 0 9px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+    @media (prefers-reduced-motion: reduce) { .led { animation: none !important; } }
+
+    /* botones de modo */
+    .mode-btn {
+      position: relative; text-align: left; width: 100%; border-radius: 16px; padding: 20px 22px;
+      border: 1px solid transparent; transition: transform .15s ease, filter .2s ease, box-shadow .2s ease;
+      outline-offset: 3px;
+    }
+    .mode-btn:not(:disabled):hover { transform: translateY(-1px); filter: brightness(1.07); }
+    .mode-btn:focus-visible { outline: 3px solid #fff; }
+    .mode-btn:disabled { opacity: .42; cursor: not-allowed; filter: saturate(.6); }
+    .mode-sano { background: linear-gradient(135deg, #0284C7 0%, #00E5FF 100%); color: #04121F; box-shadow: 0 12px 30px -14px rgba(0, 229, 255, .65); }
+    .mode-est  { background: linear-gradient(135deg, #D97706 0%, #F59E0B 55%, #FBBF24 100%); color: #1A1205; box-shadow: 0 12px 30px -14px rgba(245, 158, 11, .6); }
+    .mode-btn .tag { display: none; }
+    .mode-btn.is-active { box-shadow: 0 0 0 3px #0B1320, 0 0 0 5px #fff; }
+    .mode-btn.is-active .tag { display: inline-flex; }
+    .badge-dark { display: inline-flex; align-items: center; gap: 6px; background: rgba(4, 18, 31, .78); color: #fff; border-radius: 999px; padding: 4px 11px; font-size: .78rem; font-weight: 700; }
+
+    /* escalón de fases */
+    .phase-step { flex: 1; text-align: center; padding: 7px 4px; border-radius: 10px; font-size: .72rem; font-weight: 700; color: #94A3B8;
+      border: 1px solid rgba(148, 163, 184, .22); background: rgba(10, 15, 29, .35); line-height: 1.15; }
+    .phase-step.on { color: #04121F; background: #00E5FF; border-color: #00E5FF; box-shadow: 0 0 16px rgba(0, 229, 255, .45); }
+
+    .scope { background: #0D1626; border: 1px solid rgba(0, 229, 255, 0.15); border-radius: 14px; }
+    .dim { opacity: .45; transition: opacity .3s; }
+    details > summary { cursor: pointer; list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
+    .logline { white-space: pre-wrap; word-break: break-all; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+  </style>
+</head>
+
+<body class="min-h-screen bg-canvas font-sans text-slate-200 antialiased">
+<div class="mx-auto max-w-[1400px] px-4 py-5 sm:px-6 lg:px-8">
+
+  <!-- A · Encabezado -->
+  <header class="flex flex-col gap-4 border-b border-neon/15 pb-5 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+      <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">CardioValve<span class="text-neon">AI</span></h1>
+      <p class="mt-1 text-sm text-mute sm:text-base">Sistema Inteligente de Caracterización Valvular y Seguimiento Funcional</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <div id="portBadge" class="inline-flex items-center gap-2.5 rounded-full border border-neon/20 bg-deep/70 px-4 py-2 text-sm font-semibold text-white" aria-live="polite">
+        <span id="led" class="led" aria-hidden="true"></span>
+        <span class="text-mute font-medium">Puerto USB</span>
+        <span id="portText">Desconectado</span>
+      </div>
+      <button id="btnDemo" type="button"
+        class="rounded-full border border-amber/50 bg-amber/10 px-4 py-2 text-sm font-semibold text-amber transition hover:bg-amber/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+        Modo demostración
+      </button>
+      <button id="btnConnect" type="button"
+        class="rounded-full bg-gradient-to-r from-udd to-neon px-5 py-2 text-sm font-bold text-[#04121F] shadow-[0_8px_24px_-10px_rgba(0,229,255,.8)] transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-40">
+        Conectar Hardware
+      </button>
+    </div>
+  </header>
+
+  <!-- Avisos -->
+  <div id="notice" role="status" aria-live="polite" class="mt-4 hidden rounded-xl border px-4 py-3 text-sm"></div>
+
+  <main class="mt-5 space-y-5">
+
+    <!-- B · Panel de control de modos -->
+    <section class="card p-5 sm:p-6" aria-labelledby="h-modos">
+      <div class="mb-4 flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <p class="eyebrow">Control del prototipo</p>
+          <h2 id="h-modos" class="text-xl font-bold text-white">Panel de control de modos</h2>
+        </div>
+        <p class="text-xs text-mute">El modo activo se muestra según lo que informa el ESP32, no según el último botón pulsado.</p>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <button id="btnSano" type="button" class="mode-btn mode-sano" aria-pressed="false" disabled>
+          <span class="block text-lg font-extrabold leading-tight sm:text-xl">Modo Fisiológico (Sano)</span>
+          <span class="mt-1 block text-sm font-medium opacity-80">Válvula con apertura normal</span>
+          <span class="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <span class="badge-dark">Apertura nominal · 0°–80°</span>
+            <span class="tag badge-dark">● ACTIVO</span>
+          </span>
+        </button>
+        <button id="btnEst" type="button" class="mode-btn mode-est" aria-pressed="false" disabled>
+          <span class="block text-lg font-extrabold leading-tight sm:text-xl">Modo Patológico (Estenosis)</span>
+          <span class="mt-1 block text-sm font-medium opacity-80">Estenosis aórtica simulada</span>
+          <span class="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <span class="badge-dark">Apertura restringida · 0°–35°</span>
+            <span class="tag badge-dark">● ACTIVO</span>
+          </span>
+        </button>
+      </div>
+
+      <div id="activeBox" class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-slate-600/40 bg-deep/60 px-5 py-4">
+        <span class="eyebrow">Modo activo</span>
+        <span id="activeName" class="text-2xl font-extrabold tracking-tight text-mute sm:text-3xl">—</span>
+        <span id="activeNote" class="text-sm text-mute">Sin telemetría</span>
+      </div>
+    </section>
+
+    <!-- C · KPI -->
+    <section class="grid gap-5 md:grid-cols-2 xl:grid-cols-3" aria-label="Métricas rápidas">
+      <article class="card p-5 sm:p-6">
+        <p class="eyebrow">Ángulo instantáneo</p>
+        <div class="mt-2 flex items-end gap-1">
+          <span id="kpiDeg" class="text-6xl font-extrabold leading-none text-neon sm:text-7xl" style="text-shadow:0 0 22px rgba(0,229,255,.35)">--.-</span>
+          <span class="pb-1 text-3xl font-bold text-neon/80">°</span>
+        </div>
+        <div class="mt-4" aria-hidden="true">
+          <div class="relative h-2.5 rounded-full bg-deep">
+            <div id="kpiBar" class="h-full rounded-full bg-gradient-to-r from-udd to-neon" style="width:0%"></div>
+            <span class="absolute -top-1 w-0.5 bg-amber" style="left:38.9%;height:18px"></span>
+            <span class="absolute -top-1 w-0.5 bg-neon" style="left:88.9%;height:18px"></span>
+          </div>
+          <div class="mt-1.5 flex justify-between text-[0.7rem] text-mute"><span>0°</span><span>35°</span><span>80°</span><span>90°</span></div>
+        </div>
+      </article>
+
+      <article class="card p-5 sm:p-6">
+        <p class="eyebrow">Fase del ciclo</p>
+        <p id="kpiPhase" class="mt-2 text-3xl font-extrabold leading-tight text-white sm:text-4xl">—</p>
+        <div id="phaseSteps" class="mt-4 flex gap-1.5" aria-hidden="true">
+          <span class="phase-step" data-p="APERTURA">Apertura</span>
+          <span class="phase-step" data-p="MESETA">Meseta sistólica</span>
+          <span class="phase-step" data-p="CIERRE">Cierre</span>
+          <span class="phase-step" data-p="DIASTOLE">Diástole</span>
+        </div>
+      </article>
+
+      <article class="card p-5 sm:p-6 md:col-span-2 xl:col-span-1">
+        <div class="flex items-center justify-between gap-2">
+          <p class="eyebrow">Estado hemodinámico</p>
+          <span class="rounded-full border border-amber/50 bg-amber/10 px-2.5 py-0.5 text-[0.68rem] font-bold uppercase tracking-wider text-amber">Simulado</span>
+        </div>
+        <p id="kpiHemo" class="mt-2 text-2xl font-extrabold leading-tight text-mute sm:text-3xl">Sin datos</p>
+        <p id="kpiHemoNote" class="mt-2 text-sm leading-relaxed text-mute">Se calcula con el ángulo máximo de los últimos ~3 s.</p>
+        <p class="mt-3 text-xs text-mute/80">Describe el modelo mecánico de banco, no una medición en pacientes.</p>
+      </article>
+    </section>
+
+    <!-- D · Gráfica -->
+    <section class="card p-5 sm:p-6" aria-labelledby="h-chart">
+      <div class="mb-3 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p class="eyebrow">Telemetría en vivo</p>
+          <h2 id="h-chart" class="text-xl font-bold text-white">Apertura valvular en tiempo real</h2>
+        </div>
+        <dl class="flex flex-wrap gap-x-5 gap-y-1 text-xs text-mute">
+          <div class="flex gap-1.5"><dt>Frecuencia</dt><dd id="stHz" class="font-bold text-white">0 Hz</dd></div>
+          <div class="flex gap-1.5"><dt>Paquetes</dt><dd id="stRx" class="font-bold text-white">0</dd></div>
+          <div class="flex gap-1.5"><dt>Líneas descartadas</dt><dd id="stBad" class="font-bold text-white">0</dd></div>
+          <div class="flex gap-1.5"><dt>Último paquete</dt><dd id="stAge" class="font-bold text-white">—</dd></div>
+        </dl>
+      </div>
+      <div class="scope relative h-[340px] p-2 sm:h-[420px] sm:p-3 lg:h-[460px]">
+        <canvas id="chart" aria-label="Gráfica del ángulo de apertura valvular en grados, en función del tiempo" role="img"></canvas>
+        <div id="chartMsg" class="pointer-events-none absolute inset-0 flex items-center justify-center text-center text-sm text-mute">
+          Esperando telemetría…
+        </div>
+      </div>
+      <ul class="mt-3 flex flex-wrap gap-x-6 gap-y-1.5 text-xs text-mute" aria-label="Líneas de referencia">
+        <li class="flex items-center gap-2"><svg width="26" height="6" aria-hidden="true"><line x1="0" y1="3" x2="26" y2="3" stroke="#94A3B8" stroke-width="2" stroke-dasharray="4 3"/></svg>0° · Sellado diastólico</li>
+        <li class="flex items-center gap-2"><svg width="26" height="6" aria-hidden="true"><line x1="0" y1="3" x2="26" y2="3" stroke="#F59E0B" stroke-width="2" stroke-dasharray="4 3"/></svg>35° · Límite de estenosis aórtica</li>
+        <li class="flex items-center gap-2"><svg width="26" height="6" aria-hidden="true"><line x1="0" y1="3" x2="26" y2="3" stroke="#0284C7" stroke-width="2" stroke-dasharray="4 3"/></svg>80° · Apertura máxima de diseño</li>
+      </ul>
+    </section>
+
+    <!-- Registro -->
+    <details class="card p-5 sm:p-6">
+      <summary class="flex items-center justify-between gap-3">
+        <span class="text-base font-bold text-white">Registro de comunicación</span>
+        <span class="text-xs text-mute">últimas líneas enviadas (TX), no JSON (RX) y errores</span>
+      </summary>
+      <pre id="log" class="logline scope mt-3 max-h-56 overflow-auto p-3 font-mono text-xs leading-relaxed text-mute" aria-live="off">—</pre>
+    </details>
+  </main>
+
+  <footer class="mt-6 border-t border-neon/10 pt-4 text-xs leading-relaxed text-mute">
+    Prototipo académico de banco, sin fluido. No es un dispositivo médico ni entrega diagnósticos. La señal es el ángulo que informa el microcontrolador (115200 baudios, JSON por línea).
+  </footer>
+</div>
+
+<script>
+'use strict';
+
+/* ───────────────────────── Constantes ───────────────────────── */
+const BAUD = 115200;
+const MAX_POINTS = 150;             // FIFO de la gráfica (~3 s a 50 Hz)
+const Y_MIN = 0, Y_MAX = 90;
+const STALE_MS = 2000;              // sin telemetría
+const CONFIRM_MS = 2500;            // espera de confirmación tras un comando
+const REFS = [
+  { v: 0,  color: '#94A3B8', label: '0° · Sellado diastólico',        short: '0°' },
+  { v: 35, color: '#F59E0B', label: '35° · Límite estenosis aórtica', short: '35°' },
+  { v: 80, color: '#0284C7', label: '80° · Apertura máxima de diseño', short: '80°' },
+];
+const MODES = {
+  SANO:      { name: 'Fisiológico (Sano)',           color: '#00E5FF', note: 'Apertura nominal 0°–80°' },
+  ESTENOSIS: { name: 'Patológico (Estenosis)',       color: '#F59E0B', note: 'Apertura restringida 0°–35°' },
+};
+const PHASE_LABEL = { APERTURA: 'Apertura', MESETA: 'Meseta sistólica', CIERRE: 'Cierre', DIASTOLE: 'Diástole' };
+
+/* ───────────────────────── Utilidades ───────────────────────── */
+const $ = (id) => document.getElementById(id);
+const norm = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim();
+const modeKey = (m) => { const n = norm(m); if (n.startsWith('SAN')) return 'SANO'; if (n.startsWith('ESTENOS')) return 'ESTENOSIS'; return n || null; };
+const phaseKey = (p) => {
+  const n = norm(p);
+  if (n.startsWith('APERT')) return 'APERTURA';
+  if (n.includes('MESETA') || n.includes('SISTOL')) return 'MESETA';
+  if (n.startsWith('CIERRE')) return 'CIERRE';
+  if (n.startsWith('DIAST')) return 'DIASTOLE';
+  return n || null;
+};
+const fmt1 = (x) => x.toFixed(1);
+
+/* ───────────────────────── Estado ───────────────────────── */
+const S = {
+  status: 'disconnected',     // disconnected | connecting | connected | demo | error | unsupported
+  detail: '',
+  port: null, reader: null, writer: null, readClosed: null, writeClosed: null,
+  ys: [],                     // FIFO de ángulos
+  last: null,                 // último paquete válido {deg, mode, phase, t}
+  lastRxAt: 0,
+  rx: 0, bad: 0, rxPerSec: 0, rxMark: 0,
+  pending: null,              // {mode, at}
+  dirty: false, hemoAt: 0,
+  demo: { timer: null, mode: 'SANO', t0: 0 },
+};
+
+/* ───────────────────────── Registro de comunicación ───────────────────────── */
+const logLines = [];
+function log(kind, text) {
+  const hh = new Date().toLocaleTimeString('es-CL', { hour12: false });
+  logLines.push(`${hh} ${kind.padEnd(3)} ${text}`);
+  if (logLines.length > 40) logLines.shift();
+  $('log').textContent = logLines.join('\n');
+}
+
+/* ───────────────────────── Interfaz de estado ───────────────────────── */
+function setStatus(status, detail = '') {
+  S.status = status; S.detail = detail;
+  const led = $('led'), txt = $('portText'), btn = $('btnConnect'), demoBtn = $('btnDemo');
+  const map = {
+    disconnected: ['', 'Desconectado'], connecting: ['wait', 'Conectando…'], connected: ['on', 'Conectado'],
+    demo: ['demo', 'Demostración (simulado)'], error: ['err', 'Error'], unsupported: ['err', 'Puerto no compatible'],
+  };
+  const [cls, label] = map[status];
+  led.className = 'led ' + cls;
+  txt.textContent = label;
+  btn.textContent = status === 'connected' ? 'Desconectar' : status === 'connecting' ? 'Conectando…' : 'Conectar Hardware';
+  btn.disabled = status === 'unsupported' || status === 'connecting' || status === 'demo';
+  demoBtn.textContent = status === 'demo' ? 'Detener demostración' : 'Modo demostración';
+  demoBtn.disabled = status === 'connected' || status === 'connecting';
+  const live = status === 'connected' || status === 'demo';
+  $('btnSano').disabled = !live; $('btnEst').disabled = !live;
+  if (status === 'error') showNotice('err', detail || 'Error de comunicación con el puerto.');
+  else if (status === 'unsupported') showNotice('err', 'Este navegador no admite la Web Serial API. Abre este archivo en Chrome o Edge de escritorio (no funciona en Safari, Firefox ni en el celular).');
+  else if (status === 'demo') showNotice('warn', 'DEMOSTRACIÓN: los datos de la gráfica están SIMULADOS en este navegador. No provienen del prototipo.');
+  else if (status === 'connected') hideNotice();
+  else if (!S.keepNotice) hideNotice();
+  S.keepNotice = false;
+}
+
+function showNotice(kind, msg) {
+  const el = $('notice');
+  const cls = {
+    err:  'border-alert/50 bg-alert/10 text-red-100',
+    warn: 'border-amber/50 bg-amber/10 text-amber-100',
+    info: 'border-neon/30 bg-neon/5 text-cyan-100',
+  }[kind];
+  el.className = 'mt-4 rounded-xl border px-4 py-3 text-sm ' + cls;
+  el.textContent = msg;
+}
+function hideNotice() { $('notice').className = 'mt-4 hidden rounded-xl border px-4 py-3 text-sm'; $('notice').textContent = ''; }
+
+/* ───────────────────────── Gráfica ───────────────────────── */
+let chart = null;
+function buildChart() {
+  if (typeof Chart === 'undefined') {
+    $('chartMsg').textContent = 'No se pudo cargar Chart.js (¿sin internet?). El resto del panel sigue funcionando.';
+    return;
+  }
+  Chart.defaults.font.family = '"Plus Jakarta Sans", Inter, system-ui, sans-serif';
+  Chart.defaults.color = '#94A3B8';
+
+  const refLines = {
+    id: 'refLines',
+    beforeDatasetsDraw(c) {
+      const { ctx, chartArea: { left, right }, scales: { y } } = c;
+      for (const r of REFS) {
+        const py = y.getPixelForValue(r.v);
+        ctx.save();
+        ctx.setLineDash([6, 5]); ctx.lineWidth = 1.3; ctx.strokeStyle = r.color; ctx.globalAlpha = 0.85;
+        ctx.beginPath(); ctx.moveTo(left, py); ctx.lineTo(right, py); ctx.stroke();
+        ctx.setLineDash([]); ctx.globalAlpha = 1; ctx.fillStyle = r.color;
+        ctx.font = '600 11px "Plus Jakarta Sans", Inter, sans-serif';
+        ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+        ctx.fillText(c.width < 620 ? r.short : r.label, right - 8, py - 4);
+        ctx.restore();
+      }
+    },
+  };
+  const glow = {
+    id: 'glow',
+    beforeDatasetDraw(c, args) { if (args.index !== 1) return; c.ctx.save(); c.ctx.shadowColor = 'rgba(0,229,255,.95)'; c.ctx.shadowBlur = 16; },
+    afterDatasetDraw(c, args) { if (args.index === 1) c.ctx.restore(); },
+  };
+  const fillGradient = (ctx) => {
+    const { chart: c } = ctx; const a = c.chartArea;
+    if (!a) return 'rgba(0,229,255,.2)';
+    const g = c.ctx.createLinearGradient(0, a.top, 0, a.bottom);
+    g.addColorStop(0, 'rgba(0,229,255,.38)'); g.addColorStop(1, 'rgba(0,229,255,0)');
+    return g;
+  };
+  const gridColor = 'rgba(148,163,184,.10)';
+  chart = new Chart($('chart'), {
+    type: 'line',
+    data: { datasets: [
+      { label: 'Relleno', data: [], parsing: false, borderWidth: 0, pointRadius: 0, fill: 'origin', backgroundColor: fillGradient, tension: 0.3 },
+      { label: 'Ángulo (°)', data: [], parsing: false, borderColor: '#00E5FF', borderWidth: 2.6, pointRadius: 0, fill: false, tension: 0.3 },
+    ] },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false, normalized: true,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: {
+        x: {
+          type: 'linear', min: 0, max: MAX_POINTS - 1,
+          grid: { color: gridColor }, border: { color: 'rgba(148,163,184,.3)' },
+          title: { display: true, text: 'Tiempo (s)', color: '#94A3B8' },
+          afterBuildTicks(axis) { axis.ticks = (axis.chart.width < 620 ? [0, 50, 100, MAX_POINTS - 1] : [0, 30, 60, 90, 120, MAX_POINTS - 1]).map((value) => ({ value })); },
+          ticks: {
+            color: '#94A3B8',
+            callback: (v) => { const hz = S.rxPerSec > 5 ? S.rxPerSec : 50; const s = (MAX_POINTS - 1 - v) / hz; return s < 0.05 ? 'ahora' : '−' + fmt1(s) + ' s'; },
+          },
+        },
+        y: {
+          min: Y_MIN, max: Y_MAX,
+          grid: { color: gridColor }, border: { color: 'rgba(148,163,184,.3)' },
+          title: { display: true, text: 'Ángulo de apertura (°)', color: '#94A3B8' },
+          afterBuildTicks(axis) { axis.ticks = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90].map((value) => ({ value })); },
+          ticks: { color: '#94A3B8', callback: (v) => v + '°' },
+        },
+      },
+    },
+    plugins: [refLines, glow],
+  });
+}
+
+function paintChart() {
+  if (!chart) return;
+  const n = S.ys.length;
+  const pts = new Array(n);
+  for (let i = 0; i < n; i++) pts[i] = { x: MAX_POINTS - n + i, y: S.ys[i] };
+  chart.data.datasets[0].data = pts;
+  chart.data.datasets[1].data = pts;
+  chart.update('none');
+}
+
+/* ───────────────────────── Telemetría ───────────────────────── */
+function handleLine(line) {
+  if (line[0] !== '{') { S.bad++; log('RX', line.slice(0, 120)); return; }
+  let d;
+  try { d = JSON.parse(line); } catch { S.bad++; log('ERR', 'JSON inválido: ' + line.slice(0, 100)); return; }
+  if (!d || typeof d !== 'object' || typeof d.deg !== 'number' || !Number.isFinite(d.deg)) {
+    S.bad++; log('RX', 'sin "deg": ' + line.slice(0, 100)); return;
+  }
+  onPacket({
+    deg: d.deg,
+    t: typeof d.t === 'number' ? d.t : null,
+    mode: typeof d.mode === 'string' ? modeKey(d.mode) : (S.last ? S.last.mode : null),
+    phase: typeof d.phase === 'string' ? phaseKey(d.phase) : (S.last ? S.last.phase : null),
+    phaseRaw: typeof d.phase === 'string' ? d.phase : null,
+  });
+}
+
+function onPacket(p) {
+  S.rx++;
+  S.lastRxAt = performance.now();
+  S.last = p;
+  S.ys.push(p.deg);
+  if (S.ys.length > MAX_POINTS) S.ys.shift();
+  S.dirty = true;
+  if (S.pending && p.mode === S.pending.mode) { S.pending = null; }
+}
+
+/* ───────────────────────── Render (rAF ~50 FPS) ───────────────────────── */
+let lastPaint = 0;
+function frame(ts) {
+  requestAnimationFrame(frame);
+  if (!S.dirty || ts - lastPaint < 16) return;
+  S.dirty = false; lastPaint = ts;
+  paintChart();
+  paintKpis(ts);
+}
+
+function paintKpis(ts) {
+  const p = S.last; if (!p) return;
+  $('chartMsg').classList.add('hidden');
+  $('kpiDeg').textContent = fmt1(p.deg);
+  $('kpiBar').style.width = Math.max(0, Math.min(100, (p.deg / Y_MAX) * 100)) + '%';
+  $('kpiPhase').textContent = p.phase ? (PHASE_LABEL[p.phase] || p.phaseRaw || p.phase) : '—';
+  for (const el of document.querySelectorAll('.phase-step')) el.classList.toggle('on', el.dataset.p === p.phase);
+  if (ts - S.hemoAt > 250) { S.hemoAt = ts; paintHemo(); }
+}
+
+function paintHemo() {
+  const el = $('kpiHemo'), note = $('kpiHemoNote');
+  if (S.ys.length < 30) { el.textContent = 'Reuniendo datos…'; el.className = 'mt-2 text-2xl font-extrabold leading-tight text-mute sm:text-3xl'; return; }
+  const peak = Math.max(...S.ys);
+  let title, cls, txt;
+  if (peak >= 60) { title = 'Apertura completa'; cls = 'text-neon'; txt = `Ángulo máximo reciente ${fmt1(peak)}°: dentro del rango nominal de diseño (hasta 80°).`; }
+  else if (peak <= 40) { title = 'Apertura estenosada'; cls = 'text-amber'; txt = `Ángulo máximo reciente ${fmt1(peak)}°: apertura restringida (límite 35°). Patrón tipo parvus et tardus simulado: pulso pequeño y tardío.`; }
+  else { title = 'Apertura intermedia'; cls = 'text-white'; txt = `Ángulo máximo reciente ${fmt1(peak)}°: entre el límite de estenosis (35°) y la apertura nominal.`; }
+  el.textContent = title;
+  el.className = 'mt-2 text-2xl font-extrabold leading-tight sm:text-3xl ' + cls;
+  note.textContent = txt;
+}
+
+/* Modo activo, estadísticas y vigilancia: ~4 Hz, sin tocar el rAF */
+function paintStatusBar() {
+  const now = performance.now();
+  const live = S.status === 'connected' || S.status === 'demo';
+  const age = S.lastRxAt ? now - S.lastRxAt : null;
+  const stale = live && (age === null || age > STALE_MS);
+  $('stRx').textContent = S.rx.toLocaleString('es-CL');
+  $('stBad').textContent = S.bad.toLocaleString('es-CL');
+  $('stHz').textContent = Math.round(S.rxPerSec) + ' Hz';
+  $('stAge').textContent = age === null ? '—' : age < 1000 ? 'hace ' + Math.round(age) + ' ms' : 'hace ' + fmt1(age / 1000) + ' s';
+
+  // modo activo (según telemetría)
+  const mk = S.last && live ? S.last.mode : null;
+  const m = mk && MODES[mk];
+  const nameEl = $('activeName'), noteEl = $('activeNote');
+  nameEl.textContent = m ? m.name : (mk || '—');
+  nameEl.style.color = m ? m.color : '#94A3B8';
+  $('activeBox').style.borderColor = m ? m.color + '88' : 'rgba(100,116,139,.4)';
+  let note = !live ? 'Sin conexión' : !S.last ? 'Esperando telemetría…' : m ? m.note : 'Modo no reconocido por el panel';
+  if (S.pending) {
+    if (now - S.pending.at > CONFIRM_MS) note = `El ESP32 no confirmó el cambio a ${S.pending.mode} (¿firmware compatible?).`;
+    else note = `Comando enviado: esperando que el ESP32 confirme ${S.pending.mode}…`;
+  } else if (stale && S.last) note = 'Sin telemetría reciente: el modo mostrado puede estar desactualizado.';
+  noteEl.textContent = note;
+  for (const [id, key] of [['btnSano', 'SANO'], ['btnEst', 'ESTENOSIS']]) {
+    const on = mk === key && !stale;
+    $(id).classList.toggle('is-active', on);
+    $(id).setAttribute('aria-pressed', String(on));
+  }
+  // atenuar si no hay datos recientes
+  for (const id of ['kpiDeg', 'kpiPhase']) $(id).classList.toggle('dim', stale);
+  let warn = null;
+  if (stale && S.status === 'connected' && S.rx > 0) warn = 'Conectado, pero sin telemetría reciente. Revisa que el firmware siga enviando JSON a 115200 baudios.';
+  else if (stale && S.status === 'connected' && S.rx === 0 && S.bad > 20) warn = 'Se reciben datos que no son JSON. Si el firmware es el de adquisición v3, usa un protocolo binario a 921600 baudios: este panel espera un JSON por línea a 115200.';
+  if (warn) { showNotice('warn', warn); S.staleNotice = true; }
+  else if (S.staleNotice) { S.staleNotice = false; if (S.status === 'connected') hideNotice(); }
+}
+setInterval(() => {
+  const now = performance.now();
+  S.rxPerSec = (S.rx - S.rxMark) / ((now - (S.rxT || now - 250)) / 1000);
+  S.rxMark = S.rx; S.rxT = now;
+  paintStatusBar();
+}, 250);
+
+/* ───────────────────────── Web Serial ───────────────────────── */
+async function connect() {
+  if (!navigator.serial) { setStatus('unsupported'); return; }
+  setStatus('connecting');
+  let port;
+  try {
+    port = await navigator.serial.requestPort();
+  } catch (e) {
+    if (e && e.name === 'NotFoundError') { S.keepNotice = true; setStatus('disconnected'); showNotice('info', 'No se eligió ningún puerto.'); return; }
+    setStatus('error', 'No se pudo abrir el selector de puertos: ' + (e && e.message || e)); return;
+  }
+  try {
+    await port.open({ baudRate: BAUD });
+  } catch (e) {
+    setStatus('error', 'No se pudo abrir el puerto. Cierra otros programas que lo usen (monitor serial, cvai_record.py, Arduino IDE) y vuelve a intentar. (' + (e && e.message || e) + ')');
+    return;
+  }
+  try {
+    const dec = new TextDecoderStream();
+    S.readClosed = port.readable.pipeTo(dec.writable).catch(() => {});
+    S.reader = dec.readable.getReader();
+    const enc = new TextEncoderStream();
+    S.writeClosed = enc.readable.pipeTo(port.writable).catch(() => {});
+    S.writer = enc.writable.getWriter();
+    S.port = port;
+  } catch (e) {
+    setStatus('error', 'No se pudieron preparar los flujos del puerto: ' + (e && e.message || e));
+    try { await port.close(); } catch {}
+    return;
+  }
+  resetData();
+  setStatus('connected');
+  log('---', `Puerto abierto a ${BAUD} baudios`);
+  readLoop();
+}
+
+async function readLoop() {
+  let buf = '';
+  const reader = S.reader;
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += value;
+      let i;
+      while ((i = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, i).trim();
+        buf = buf.slice(i + 1);
+        if (line) handleLine(line);
+      }
+      if (buf.length > 4096) { buf = ''; S.bad++; }       // basura sin saltos de línea (p. ej. datos binarios)
+    }
+  } catch (e) {
+    if (S.status === 'connected') { await teardown(); setStatus('error', 'Se perdió la conexión con el dispositivo (' + (e && e.message || e) + ').'); }
+  }
+}
+
+async function teardown() {
+  const { reader, writer, readClosed, writeClosed, port } = S;
+  S.reader = S.writer = S.readClosed = S.writeClosed = S.port = null;
+  try { await reader?.cancel(); } catch {}
+  try { await readClosed; } catch {}
+  try { await writer?.close(); } catch {}
+  try { await writeClosed; } catch {}
+  try { await port?.close(); } catch {}
+}
+
+async function disconnect() {
+  await teardown();
+  S.pending = null;
+  setStatus('disconnected');
+  log('---', 'Puerto cerrado');
+}
+
+async function sendMode(mode) {
+  const line = JSON.stringify({ cmd: 'SET_MODE', mode }) + '\n';
+  S.pending = { mode, at: performance.now() };
+  paintStatusBar();
+  log('TX', line.trim() + (S.status === 'demo' ? '   (demostración)' : ''));
+  if (S.status === 'demo') { setTimeout(() => { S.demo.mode = mode; }, 180); return; }
+  try { await S.writer.write(line); }
+  catch (e) { S.pending = null; log('ERR', 'No se pudo enviar el comando: ' + (e && e.message || e)); showNotice('err', 'No se pudo enviar el comando al ESP32.'); }
+}
+
+if (navigator.serial) {
+  navigator.serial.addEventListener('disconnect', async (ev) => {
+    if (S.port && ev.target === S.port && S.status === 'connected') {
+      await teardown(); setStatus('error', 'Se desconectó el cable USB del microcontrolador.');
+    }
+  });
+}
+
+/* ───────────────────────── Modo demostración (datos simulados) ───────────────────────── */
+function startDemo() {
+  resetData();
+  S.demo.mode = 'SANO'; S.demo.t0 = performance.now();
+  setStatus('demo');
+  S.demo.timer = setInterval(() => {
+    const ms = performance.now() - S.demo.t0;
+    const c = (ms % 1000) / 1000;                       // ciclo de 1 s
+    const est = S.demo.mode === 'ESTENOSIS';
+    const amp = est ? 32 : 80;
+    const sm = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
+    let deg, phase;
+    if (c < (est ? 0.34 : 0.22)) { deg = amp * sm(c / (est ? 0.34 : 0.22)); phase = 'APERTURA'; }
+    else if (c < 0.55) { deg = amp * (1 - 0.04 * Math.sin((c - 0.22) * 9)); phase = 'MESETA SISTÓLICA'; }
+    else if (c < 0.75) { deg = amp * (1 - sm((c - 0.55) / 0.2)); phase = 'CIERRE'; }
+    else { deg = 0; phase = 'DIÁSTOLE'; }
+    handleLine(JSON.stringify({ t: Math.round(ms), deg: +(deg + (Math.random() - 0.5) * 0.4).toFixed(1), mode: S.demo.mode, phase }));
+  }, 20);
+}
+function stopDemo() { clearInterval(S.demo.timer); S.demo.timer = null; S.pending = null; setStatus('disconnected'); }
+
+function resetData() {
+  S.ys = []; S.last = null; S.rx = 0; S.bad = 0; S.rxMark = 0; S.rxT = 0; S.lastRxAt = 0; S.pending = null; S.dirty = true;
+  $('chartMsg').classList.remove('hidden'); $('chartMsg').textContent = 'Esperando telemetría…';
+  $('kpiDeg').textContent = '--.-'; $('kpiBar').style.width = '0%'; $('kpiPhase').textContent = '—';
+  for (const el of document.querySelectorAll('.phase-step')) el.classList.remove('on');
+  $('kpiHemo').textContent = 'Sin datos';
+}
+
+/* ───────────────────────── Arranque ───────────────────────── */
+$('btnConnect').addEventListener('click', () => (S.status === 'connected' ? disconnect() : connect()));
+$('btnDemo').addEventListener('click', () => (S.status === 'demo' ? stopDemo() : startDemo()));
+$('btnSano').addEventListener('click', () => sendMode('SANO'));
+$('btnEst').addEventListener('click', () => sendMode('ESTENOSIS'));
+window.addEventListener('pagehide', () => { try { S.reader?.cancel(); } catch {} });
+
+buildChart();
+setStatus(navigator.serial ? 'disconnected' : 'unsupported');
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
