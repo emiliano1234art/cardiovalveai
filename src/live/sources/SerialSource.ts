@@ -130,6 +130,8 @@ export class SerialSource implements LiveSource {
       phase: String(o.f ?? ''),
       cycle: Number(o.c) || 0,
       active: o.on !== 0,
+      calibrated: o.cv === 1,
+      calProgress: o.cp === undefined ? 100 : Number(o.cp) || 0,
     });
   }
 }

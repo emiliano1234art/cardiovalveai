@@ -23,9 +23,9 @@ El dashboard actual (tema claro blanco/turquesa) muestra una válvula animada qu
 
 ### Qué hace
 
-- **Dos modos** desde el dashboard: *Válvula normal* (el servo abre 80°) y *Válvula incompleta* (abre 35°). Con cualquier señal de imán, el dashboard informa la apertura del modo elegido; el ángulo que de verdad miden los Hall se muestra aparte.
-- **Servo** calibrado: 500 µs = 0° (vertical), 2500 µs = 180°, movimiento lento y suave. Los ángulos y tiempos están al inicio del `.ino`.
-- **Hall a grados**: promedio ponderado de la posición de cada sensor (`HALL_POS_DEG`, ajústalo a donde estén tus sensores). Usa *Calibrar neutro* y *Calibrar rango* si la lectura no coincide.
+- **Dos modos** desde el dashboard: *Válvula normal* (el servo abre 180°) y *Válvula incompleta* (abre 80°). Los ángulos están al inicio del `.ino`.
+- **Servo** calibrado: 500 µs = 0° (vertical), 2500 µs = 180°, movimiento lento y suave. No se mueve al encender: parte con **▶ Iniciar movimiento**.
+- **Los Hall miden el ángulo real.** Con la válvula cerrada y quieta pulsa **1 · Calibrar neutro**, y después **2 · Calibrar curva (≈30 s)**: el servo recorre todo su rango y el ESP32 aprende qué leen los 3 sensores en cada ángulo (queda guardado en su memoria, no hay que repetirlo al apagar). Desde entonces, abrir poco marca poco y abrir completo marca completo. Si cambias `ANGULO_NORMAL` en el `.ino`, hay que volver a calibrar la curva.
 - **Registros**: cada ciclo se guarda en el navegador (hasta 3000) y se puede exportar o importar en CSV/JSON.
 - **Informe redactado por Claude** (opcional, requiere internet y una API key de Anthropic): lee los registros de apertura y escribe el análisis de patrones y el plan de rehabilitación kinésica. Se elige el modelo (por defecto Claude Opus 5.5; también Sonnet 5.5 y Haiku 5.5, más económicos). La key se escribe en el dashboard, se usa solo desde el navegador y **no se sube al repositorio**; si marcas «Recordar», queda guardada en ese navegador. Crea una key con límite de gasto en console.anthropic.com y no la uses en equipos compartidos. El resto del dashboard funciona sin internet.
 - **Análisis de patrones («IA local»)**: calcula la apertura media respecto de lo esperado, variabilidad, tendencia y ritmo, y muestra una alerta cuando la válvula abre incompletamente. Son reglas estadísticas que corren en el navegador; no es un modelo de lenguaje y no necesita internet.

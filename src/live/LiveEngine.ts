@@ -28,6 +28,9 @@ export interface LiveSnapshot {
   angles: Record<ValveMode, number>;
   sample: Sample | null;
   shown: number;
+  calibrated: boolean;
+  calibrating: boolean;
+  calProgress: number;
   chart: ChartPoint[];
   cycles: CycleRecord[];
   sessionId: string;
@@ -122,7 +125,7 @@ export class LiveEngine {
     this.angleSource = s;
     savePref(STORAGE.source, s);
   }
-  command(cmd: 'START' | 'STOP' | 'CAL_ZERO' | 'CAL_SPAN'): void {
+  command(cmd: 'START' | 'STOP' | 'CAL_ZERO' | 'CAL_CURVE'): void {
     this.source?.send(cmd);
   }
 
@@ -159,9 +162,16 @@ export class LiveEngine {
     if (total >= HALL_PRESENT_ON) this.present = true;
     else if (total <= HALL_PRESENT_OFF) this.present = false;
 
-    // El estado mostrado lo define el modo elegido: con cualquier señal del imán se informa
-    // la apertura de ese modo (normal o incompleta), sin importar la intensidad de la señal.
-    if (this.angleSource === 'hall') {
+    const calibrating = s.phase === 'CALIBRANDO';
+    if (calibrating) {
+      // el servo recorre su rango solo: se muestra su movimiento y no se registran ciclos
+      this.shown = s.servoDeg;
+      this.open = null;
+    } else if (this.angleSource === 'hall' && s.calibrated) {
+      // ángulo real medido por los imanes: si la válvula abre poco, marca poco
+      this.shown = Math.max(0, s.hallDeg);
+    } else if (this.angleSource === 'hall') {
+      // sin calibrar todavía: con cualquier señal del imán se informa la apertura del modo elegido
       const dt = clamp((now - this.prevAt) / 1000, 0, 0.2);
       const target = this.present ? this.angles[this.mode] : 0;
       const step = DISPLAY_SLEW_DEG_S * dt;
@@ -175,7 +185,7 @@ export class LiveEngine {
     const cut = now - CHART_SECONDS * 1000;
     while (this.points.length && this.points[0].at < cut) this.points.shift();
 
-    this.trackCycle(s);
+    if (!calibrating) this.trackCycle(s);
   }
 
   private trackCycle(s: Sample): void {
@@ -238,6 +248,9 @@ export class LiveEngine {
       angles: { ...this.angles },
       sample: this.sample,
       shown: this.shown,
+      calibrated: this.sample?.calibrated ?? false,
+      calibrating: this.sample?.phase === 'CALIBRANDO',
+      calProgress: this.sample?.calProgress ?? 0,
       chart: this.points.map((p) => ({ s: (p.at - now) / 1000, shown: p.shown, hall: p.hall, servo: p.servo })),
       cycles: [...this.cycles],
       sessionId: this.session,

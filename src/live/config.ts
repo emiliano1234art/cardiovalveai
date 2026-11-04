@@ -2,12 +2,12 @@ import type { ValveMode } from './types';
 
 /** Valores por defecto; el ESP32 los reemplaza en su mensaje "hello". */
 export const DEFAULT_ANGLES: Record<ValveMode, number> = {
-  SANO: 80,
-  INCOMPLETA: 35,
+  SANO: 180,
+  INCOMPLETA: 80,
 };
 
 /** Ángulo de apertura de referencia de una válvula normal (°). */
-export const REFERENCE_DEG = 80;
+export const REFERENCE_DEG = DEFAULT_ANGLES.SANO;
 
 /** Suma de intensidades Hall para considerar que "hay imán" (con histéresis). */
 export const HALL_PRESENT_ON = 0.12;

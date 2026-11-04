@@ -2,7 +2,7 @@ import type { LiveSnapshot } from '../LiveEngine';
 
 interface Props {
   snap: LiveSnapshot;
-  onCommand: (c: 'CAL_ZERO' | 'CAL_SPAN') => void;
+  onCommand: (c: 'CAL_ZERO' | 'CAL_CURVE') => void;
 }
 
 const NAMES = ['Hall 1', 'Hall 2', 'Hall 3'];
@@ -50,13 +50,29 @@ export function HallPanel({ snap, onCommand }: Props) {
       </div>
 
       <div className="lv-actions">
-        <button className="lv-btn" onClick={() => onCommand('CAL_ZERO')} disabled={!usb} title="Con los imanes lejos, vuelve a medir el valor neutro">
-          Calibrar neutro
+        <button className="lv-btn" onClick={() => onCommand('CAL_ZERO')} disabled={!usb || snap.calibrating} title="Con la válvula cerrada y quieta, vuelve a medir el valor neutro">
+          1 · Calibrar neutro
         </button>
-        <button className="lv-btn" onClick={() => onCommand('CAL_SPAN')} disabled={!usb} title="Durante 8 s acerca los imanes a cada sensor">
-          Calibrar rango (8 s)
+        <button
+          className="lv-btn primary"
+          disabled={!usb || snap.calibrating}
+          title="El servo recorre todo su rango y el ESP32 aprende qué leen los sensores en cada ángulo"
+          onClick={() => {
+            if (window.confirm(`El servo se moverá solo de 0° a ${snap.angles.SANO.toFixed(0)}° durante unos 30 segundos.\n\nAntes: válvula cerrada, libre de obstáculos y ya calibrado el neutro.\n\n¿Empezar?`)) onCommand('CAL_CURVE');
+          }}
+        >
+          2 · Calibrar curva (≈30 s)
         </button>
       </div>
+      {snap.calibrating ? (
+        <p className="lv-note">
+          <b>Calibrando… {snap.calProgress} %</b> · el servo se mueve solo, no lo toques. Pulsa «Detener» arriba si quieres cancelar.
+        </p>
+      ) : (
+        <p className="lv-note">
+          Curva de ángulo: <b>{snap.calibrated ? 'calibrada ✓ (los sensores miden el ángulo real)' : 'sin calibrar (aproximado)'}</b>
+        </p>
+      )}
       {snap.info && <p className="lv-note">ESP32: {snap.info}</p>}
       {!usb && <p className="lv-note">La calibración está disponible con el ESP32 conectado por USB.</p>}
     </section>

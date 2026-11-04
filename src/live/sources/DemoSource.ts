@@ -1,5 +1,5 @@
 import { DEFAULT_ANGLES } from '../config';
-import { hallToDegrees, HALL_POS_DEG } from '../hallMath';
+import { HALL_POS_DEG } from '../hallMath';
 import type { Hello, LinkStatus, LiveSource, Sample, ValveMode } from '../types';
 
 const PROFILE = {
@@ -98,11 +98,14 @@ export class DemoSource implements LiveSource {
       servoDeg: this.angle,
       hallRaw: raw,
       hallW: w,
-      hallDeg: hallToDegrees(w) * k,
+      // el simulador mide el ángulo real (como un ESP32 ya calibrado), con un poco de ruido
+      hallDeg: Math.max(0, this.angle + (Math.random() - 0.5) * 2),
       mode: this.mode,
       phase: !this.active ? 'PAUSA' : ['APERTURA', 'MESETA', 'CIERRE', 'DIASTOLE'][this.phase],
       cycle: this.cycle,
       active: this.active,
+      calibrated: true,
+      calProgress: 100,
     });
   }
 }

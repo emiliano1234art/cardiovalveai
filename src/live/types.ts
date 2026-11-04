@@ -20,6 +20,10 @@ export interface Sample {
   phase: string;
   cycle: number;
   active: boolean;
+  /** el ESP32 ya aprendió la curva ángulo ↔ lectura de los Hall */
+  calibrated: boolean;
+  /** avance de la calibración automática (0–100) */
+  calProgress: number;
 }
 
 export interface Hello {

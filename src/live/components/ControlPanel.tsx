@@ -68,7 +68,9 @@ export function ControlPanel({ snap, onMode, onSource, onCommand }: Props) {
       </div>
 
       <p className="lv-note">
-        Modo demostración: con cualquier señal del imán se informa el ángulo del modo elegido. El ángulo que realmente miden los sensores se muestra aparte, en “Sensores Hall”.
+        {snap.calibrated
+          ? 'El ángulo mostrado es el que miden los imanes: si la válvula abre poco, marca poco; si abre completa, marca completa.'
+          : 'Los sensores todavía no están calibrados: en «Sensores Hall» pulsa «Calibrar curva» para que midan el ángulo real.'}
       </p>
     </section>
   );
