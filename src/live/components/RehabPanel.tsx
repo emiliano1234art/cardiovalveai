@@ -18,7 +18,7 @@ export function RehabPanel({ snap, win }: { snap: LiveSnapshot; win: '10' | 'ses
           <h2 className="lv-card-title">
             Plan de rehabilitación kinésica <span className="lv-tag">generado desde los registros</span>
           </h2>
-          <p className="lv-card-sub">Se ajusta al ángulo de apertura medido para que la persona se canse menos en su día a día</p>
+          <p className="lv-card-sub">Ejercicios y consejos que se ajustan a cuánto abre la válvula, para que la persona se canse menos en su día a día.</p>
         </div>
         <div className="lv-actions">
           <button className="lv-btn" disabled={!plan.phases.length} onClick={() => downloadText('plan-rehabilitacion.md', planToMarkdown(plan), 'text/markdown')}>

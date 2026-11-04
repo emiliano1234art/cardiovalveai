@@ -11,8 +11,8 @@ export function LiveChart({ snap }: { snap: LiveSnapshot }) {
     <section className="lv-card">
       <div className="lv-card-head">
         <div>
-          <h2 className="lv-card-title">Ángulo en el tiempo</h2>
-          <p className="lv-card-sub">Últimos 12 segundos</p>
+          <h2 className="lv-card-title">Cómo se mueve la válvula</h2>
+          <p className="lv-card-sub">Cada subida es una apertura y cada bajada un cierre (últimos 12 segundos). 0° = cerrada.</p>
         </div>
         <div className="lv-legend">
           <span><i style={{ background: 'var(--brand)' }} />Mostrado</span>

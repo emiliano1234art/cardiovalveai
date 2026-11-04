@@ -22,7 +22,7 @@ export function HallPanel({ snap, onCommand, onDemoHall }: Props) {
       <div className="lv-card-head">
         <div>
           <h2 className="lv-card-title">Sensores Hall</h2>
-          <p className="lv-card-sub">Se convierten a grados al mover los imanes</p>
+          <p className="lv-card-sub">Detectan los imanes pegados a las valvas. Cuando las valvas se mueven, las barras se llenan.</p>
         </div>
         <span className={`lv-chip ${neutral ? '' : 'ok'}`}>{neutral ? 'Neutro · sin imán' : 'Imán detectado'}</span>
       </div>

@@ -10,8 +10,8 @@ interface Props {
 }
 
 const MODES: { id: ValveMode; sub: string }[] = [
-  { id: 'SANO', sub: 'Abre completamente, como debería' },
-  { id: 'INCOMPLETA', sub: 'Abre solo una parte' },
+  { id: 'SANO', sub: 'Se abre completa, como una válvula sana' },
+  { id: 'INCOMPLETA', sub: 'Se abre solo una parte: deja pasar menos sangre' },
 ];
 
 export function ControlPanel({ snap, onMode, onSource, onCommand }: Props) {
@@ -35,8 +35,8 @@ export function ControlPanel({ snap, onMode, onSource, onCommand }: Props) {
 
       <div className="lv-card-head" style={{ marginTop: 16 }}>
         <div>
-          <h2 className="lv-card-title">Modo de la válvula</h2>
-          <p className="lv-card-sub">Cambia cómo se abre el servo y lo que muestra el dashboard</p>
+          <h2 className="lv-card-title">¿Cómo quieres que se abra?</h2>
+          <p className="lv-card-sub">Cambia cómo se abre la válvula del prototipo. Puedes cambiarlo en cualquier momento.</p>
         </div>
       </div>
       <div className="lv-modes" role="radiogroup" aria-label="Modo de la válvula">
@@ -56,7 +56,7 @@ export function ControlPanel({ snap, onMode, onSource, onCommand }: Props) {
       </div>
 
       <div className="lv-row">
-        <span className="lv-kicker">Ángulo mostrado según</span>
+        <span className="lv-kicker">El ángulo se calcula con</span>
         <div className="lv-seg" role="radiogroup" aria-label="Fuente del ángulo mostrado">
           <button role="radio" aria-checked={snap.angleSource === 'hall'} className={snap.angleSource === 'hall' ? 'active' : ''} onClick={() => onSource('hall')}>
             Imanes (Hall)
