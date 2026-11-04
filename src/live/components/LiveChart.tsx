@@ -4,6 +4,9 @@ import type { LiveSnapshot } from '../LiveEngine';
 const AXIS = { stroke: '#5d8790', fontSize: 11, tickLine: false, axisLine: { stroke: '#cfe6e8' } } as const;
 
 export function LiveChart({ snap }: { snap: LiveSnapshot }) {
+  // el eje vertical se adapta al ángulo de apertura normal (80°, 180°…)
+  const top = Math.ceil(Math.max(90, snap.angles.SANO * 1.1) / 30) * 30;
+  const ticks = Array.from({ length: top / 30 + 1 }, (_, i) => i * 30);
   return (
     <section className="lv-card">
       <div className="lv-card-head">
@@ -21,7 +24,7 @@ export function LiveChart({ snap }: { snap: LiveSnapshot }) {
         <LineChart data={snap.chart} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
           <CartesianGrid stroke="#e3f1f2" vertical={false} />
           <XAxis dataKey="s" type="number" domain={[-12, 0]} ticks={[-12, -9, -6, -3, 0]} tickFormatter={(v: number) => `${v} s`} {...AXIS} />
-          <YAxis domain={[0, 90]} ticks={[0, 30, 60, 90]} width={40} tickFormatter={(v: number) => `${v}°`} {...AXIS} />
+          <YAxis domain={[0, top]} ticks={ticks} width={40} tickFormatter={(v: number) => `${v}°`} {...AXIS} />
           <ReferenceLine y={snap.angles.SANO} stroke="#17b57a" strokeOpacity={0.55} strokeDasharray="4 4" />
           <Tooltip
             isAnimationActive={false}

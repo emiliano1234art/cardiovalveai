@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { MODE_LABEL, REFERENCE_DEG } from '../config';
+import { MODE_LABEL } from '../config';
 import type { LiveSnapshot } from '../LiveEngine';
 
+/** Ángulo visual de las valvas cuando la válvula está 100 % abierta (°). */
+const VISUAL_FULL = 80;
 const C = 140;
 const R = 78;
 const STATE = { closed: 'Cerrada', opening: 'Abriendo', open: 'Abierta', closing: 'Cerrando' } as const;
@@ -22,6 +24,9 @@ export function ValveView({ snap, getAngle }: Props) {
   const stateText = useRef<HTMLSpanElement>(null);
   const stateDot = useRef<HTMLSpanElement>(null);
   const pctText = useRef<HTMLSpanElement>(null);
+  // ángulo de apertura normal del servo (80°, 180°…): la animación se escala con él
+  const refDeg = useRef(snap.angles.SANO);
+  refDeg.current = snap.angles.SANO;
 
   useEffect(() => {
     let raf = 0;
@@ -34,7 +39,8 @@ export function ValveView({ snap, getAngle }: Props) {
       last = now;
       const target = getAngle();
       cur += (target - cur) * (1 - Math.exp(-dt / 70)); // suaviza entre muestras
-      const a = Math.max(0, Math.min(90, cur));
+      const frac = Math.max(0, Math.min(1.1, cur / Math.max(1, refDeg.current)));
+      const a = frac * VISUAL_FULL; // ángulo visual de las valvas
       const s = Math.max(0.05, Math.cos((a * Math.PI) / 180));
       const hinge = 2;
       top.current?.setAttribute('transform', `translate(0 ${C - hinge}) scale(1 ${s}) translate(0 ${-(C - hinge)})`);
@@ -44,8 +50,8 @@ export function ValveView({ snap, getAngle }: Props) {
       const th = Math.PI - (a / 90) * Math.PI;
       needle.current?.setAttribute('x2', String(70 + 52 * Math.cos(th)));
       needle.current?.setAttribute('y2', String(74 - 52 * Math.sin(th)));
-      if (angleText.current) angleText.current.textContent = a.toFixed(0);
-      if (pctText.current) pctText.current.textContent = `${Math.round((a / REFERENCE_DEG) * 100)} %`;
+      if (angleText.current) angleText.current.textContent = Math.max(0, cur).toFixed(0);
+      if (pctText.current) pctText.current.textContent = `${Math.round(frac * 100)} %`;
 
       const d = a - prev;
       prev = a;
@@ -70,7 +76,8 @@ export function ValveView({ snap, getAngle }: Props) {
 
   const incomplete = snap.mode === 'INCOMPLETA';
   const peak = snap.angles[snap.mode];
-  const peakPct = Math.round((peak / REFERENCE_DEG) * 100);
+  const peakPct = Math.round((peak / snap.angles.SANO) * 100);
+  const peakVisual = (peak / snap.angles.SANO) * VISUAL_FULL; // para el arco del goniómetro
 
   return (
     <section className="lv-card lv-valve">
@@ -129,7 +136,7 @@ export function ValveView({ snap, getAngle }: Props) {
         <div className="lv-valve-side">
           <svg viewBox="0 0 140 84" className="lv-gonio" aria-hidden>
             <path d="M18 74 A52 52 0 0 1 122 74" fill="none" stroke="#d4f0ef" strokeWidth="9" strokeLinecap="round" />
-            <path d={`M18 74 A52 52 0 0 1 ${70 + 52 * Math.cos(Math.PI - (peak / 90) * Math.PI)} ${74 - 52 * Math.sin(Math.PI - (peak / 90) * Math.PI)}`} fill="none" stroke={incomplete ? 'var(--crit)' : 'var(--brand)'} strokeOpacity=".35" strokeWidth="9" strokeLinecap="round" />
+            <path d={`M18 74 A52 52 0 0 1 ${70 + 52 * Math.cos(Math.PI - (peakVisual / 90) * Math.PI)} ${74 - 52 * Math.sin(Math.PI - (peakVisual / 90) * Math.PI)}`} fill="none" stroke={incomplete ? 'var(--crit)' : 'var(--brand)'} strokeOpacity=".35" strokeWidth="9" strokeLinecap="round" />
             <line ref={needle} x1="70" y1="74" x2="18" y2="74" stroke="#0d3b44" strokeWidth="2.4" strokeLinecap="round" />
             <circle cx="70" cy="74" r="4" fill="#0d3b44" />
           </svg>

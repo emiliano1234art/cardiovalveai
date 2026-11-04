@@ -84,8 +84,10 @@ export class DemoSource implements LiveSource {
     }
 
     // El imán sigue a la valva: cada Hall responde según la cercanía a su posición.
+    // las posiciones de los sensores se escalan con el ángulo de apertura normal (80°, 180°…)
+    const k = DEFAULT_ANGLES.SANO / 80;
     const w = HALL_POS_DEG.map((pos) => {
-      const d = (this.angle - pos) / 14;
+      const d = (this.angle - pos * k) / (14 * k);
       const g = Math.exp(-d * d) + (Math.random() - 0.5) * 0.02;
       return Math.min(1, Math.max(0, (g - 0.15) / 0.85)); // zona muerta
     }) as [number, number, number];
@@ -96,7 +98,7 @@ export class DemoSource implements LiveSource {
       servoDeg: this.angle,
       hallRaw: raw,
       hallW: w,
-      hallDeg: hallToDegrees(w),
+      hallDeg: hallToDegrees(w) * k,
       mode: this.mode,
       phase: !this.active ? 'PAUSA' : ['APERTURA', 'MESETA', 'CIERRE', 'DIASTOLE'][this.phase],
       cycle: this.cycle,
