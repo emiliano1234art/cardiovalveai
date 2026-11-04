@@ -13,8 +13,8 @@
   Velocidad del Monitor Serie / dashboard: 115200 baudios.
 
   Comandos que entiende (una línea de texto cada uno):
-    MODE:SANO          válvula normal      (servo abre ANGULO_NORMAL)
-    MODE:INCOMPLETA    válvula incompleta  (servo abre ANGULO_INCOMPLETA)
+    MODE:SANO          válvula normal      (servo gira 180° -> el dashboard muestra 90°)
+    MODE:INCOMPLETA    válvula incompleta  (servo gira 110° -> el dashboard muestra 55°)
     START / STOP       el servo NO se mueve al encender: parte con START y se detiene con STOP
     HB                 latido del dashboard (si deja de llegar, el servo se detiene)
     CAL_ZERO           re-mide el valor neutro de los Hall (válvula cerrada y quieta)
@@ -39,10 +39,16 @@ const int US_0   = 500;
 const int US_180 = 2500;
 
 // ───────── Ángulos de apertura de cada modo (en grados del servo) ─────────
+// ESTOS son los grados que gira el SERVO (0° a 180°).
 // Normal = media vuelta completa. Si el servo choca con la estructura, baja a 170.
 // Si cambias ANGULO_NORMAL hay que volver a hacer CAL_CURVE.
 const float ANGULO_NORMAL     = 180.0;
-const float ANGULO_INCOMPLETA = 80.0;
+const float ANGULO_INCOMPLETA = 110.0;
+
+// Escala entre lo que gira el servo y el ángulo de apertura que se MUESTRA en el dashboard.
+// 0.5  ->  el servo gira 180° y la válvula muestra 90° (normal);
+//          el servo gira 110° y la válvula muestra 55° (incompleta).
+const float ESCALA_VALVULA = 0.5;
 
 // ───────── Tiempos de cada fase del ciclo (ms) ─────────
 // Lentos a propósito: el MG90S se mueve fluido y sin perder fuerza.
@@ -402,9 +408,9 @@ void leerSerial() {
 // ───────── Telemetría ─────────
 void enviarHello() {
   Serial.print("{\"hello\":1,\"fw\":\"1.1\",\"normal\":");
-  Serial.print(ANGULO_NORMAL, 1);
+  Serial.print(ANGULO_NORMAL * ESCALA_VALVULA, 1);
   Serial.print(",\"incompleta\":");
-  Serial.print(ANGULO_INCOMPLETA, 1);
+  Serial.print(ANGULO_INCOMPLETA * ESCALA_VALVULA, 1);
   Serial.println("}");
 }
 
@@ -414,12 +420,12 @@ void enviarTelemetria() {
   tUltimoEnvio = ahora;
 
   Serial.print("{\"t\":");   Serial.print(ahora);
-  Serial.print(",\"sv\":");  Serial.print(anguloServo, 1);
+  Serial.print(",\"sv\":");  Serial.print(anguloServo * ESCALA_VALVULA, 1);
   Serial.print(",\"h\":[");
   for (int k = 0; k < 3; k++) { Serial.print((int)hallFiltrado[k]); if (k < 2) Serial.print(","); }
   Serial.print("],\"w\":[");
   for (int k = 0; k < 3; k++) { Serial.print(hallW[k], 2); if (k < 2) Serial.print(","); }
-  Serial.print("],\"hd\":"); Serial.print(hallGrados, 1);
+  Serial.print("],\"hd\":"); Serial.print(hallGrados * ESCALA_VALVULA, 1);
   Serial.print(",\"m\":\""); Serial.print(modoNormal ? "SANO" : "INCOMPLETA");
   Serial.print("\",\"f\":\""); Serial.print(nombreFase());
   Serial.print("\",\"c\":"); Serial.print(ciclo);

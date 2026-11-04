@@ -2,8 +2,8 @@ import type { ValveMode } from './types';
 
 /** Valores por defecto; el ESP32 los reemplaza en su mensaje "hello". */
 export const DEFAULT_ANGLES: Record<ValveMode, number> = {
-  SANO: 180,
-  INCOMPLETA: 80,
+  SANO: 90,
+  INCOMPLETA: 55,
 };
 
 /** Ángulo de apertura de referencia de una válvula normal (°). */
@@ -23,7 +23,7 @@ export const CYCLE_MIN_PEAK = 10;
 
 /** Clasificación según % de la apertura esperada. */
 export const OPEN_PCT_NORMAL = 85;
-export const OPEN_PCT_LIMITED = 60;
+export const OPEN_PCT_LIMITED = 70;
 
 export const MODE_LABEL: Record<ValveMode, string> = {
   SANO: 'Válvula normal',
