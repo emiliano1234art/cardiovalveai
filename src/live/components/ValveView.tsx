@@ -3,14 +3,14 @@ import type { LiveSnapshot } from '../LiveEngine';
 import { ValveTopView } from './ValveTopView';
 
 // la vista 3D se descarga solo cuando se abre (pesa más)
-const MechanismView = lazy(() => import('./MechanismView'));
+const HeartView = lazy(() => import('./HeartView'));
 
 interface Props {
   snap: LiveSnapshot;
   getAngle: () => number;
 }
 
-/** Tarjeta principal: la válvula trifoliada en dos vistas (desde arriba · maqueta 3D del mecanismo). */
+/** Tarjeta principal: la válvula trifoliada en dos vistas (desde arriba · dentro del corazón en 3D). */
 export function ValveView({ snap, getAngle }: Props) {
   const [tab, setTab] = useState<'top' | 'mech'>('top');
   const incomplete = snap.mode === 'INCOMPLETA';
@@ -23,7 +23,7 @@ export function ValveView({ snap, getAngle }: Props) {
           <p className="lv-card-sub">
             {tab === 'top'
               ? 'Así se ve la válvula desde arriba: tiene 3 valvas que se abren y se cierran como la de tu prototipo.'
-              : 'Así se mueve por dentro el mecanismo de tu maqueta: el servo gira y las valvas se abren.'}
+              : 'Así se abriría la válvula dentro del corazón, con la sangre pasando y los sensores detectando los imanes.'}
           </p>
         </div>
         <span className={`lv-chip ${incomplete ? 'crit' : 'ok'}`}>{incomplete ? 'Se abre incompleta' : 'Se abre normal'}</span>
@@ -34,7 +34,7 @@ export function ValveView({ snap, getAngle }: Props) {
           Vista desde arriba
         </button>
         <button role="tab" aria-selected={tab === 'mech'} className={tab === 'mech' ? 'active' : ''} onClick={() => setTab('mech')}>
-          Maqueta 3D del mecanismo
+          Dentro del corazón (3D)
         </button>
       </div>
 
@@ -42,7 +42,7 @@ export function ValveView({ snap, getAngle }: Props) {
         <ValveTopView snap={snap} getAngle={getAngle} />
       ) : (
         <Suspense fallback={<p className="lv-note">Cargando la vista 3D…</p>}>
-          <MechanismView snap={snap} getAngle={getAngle} />
+          <HeartView snap={snap} getAngle={getAngle} />
         </Suspense>
       )}
     </section>
