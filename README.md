@@ -1,5 +1,45 @@
 # ValveSense
 
+## Monitor en vivo: servo + sensores Hall (ESP32 por USB)
+
+El dashboard actual muestra una válvula animada que se abre y se cierra, el ángulo medido por 3 sensores Hall, el historial de ciclos, un análisis de patrones y un plan de rehabilitación kinésica. **No usa WiFi**: el ESP32 se conecta por cable USB y el navegador lee el puerto con Web Serial (Chrome o Edge).
+
+### Conexiones
+
+| Componente | Conexión |
+|---|---|
+| Jack (+) / (−) | Riel positivo (+5 V) / riel negativo (GND) |
+| Servo MG90S | Rojo a +5 V · café a GND · señal a **GPIO 18** |
+| ESP32 GND | Mismo GND que el jack y el servo |
+| Hall 1 / 2 / 3 (señal) | GPIO **34** / **35** / **32** |
+| Hall VCC / GND | 3V3 del ESP32 / GND |
+
+### Puesta en marcha
+
+1. Instala la librería **ESP32Servo** en el Arduino IDE y sube `firmware/cardiovalve_esp32/cardiovalve_esp32.ino`. Cierra el Monitor Serie después (el puerto no puede estar ocupado).
+2. Con los imanes **lejos** de los sensores, enciende el ESP32: mide el valor neutro de cada Hall al arrancar.
+3. `npm install` y `npm run dev`, abre `http://localhost:5173` en Chrome o Edge (o el sitio publicado) y pulsa **Conectar ESP32 (USB)**.
+4. **Modo demo** simula el ESP32 para probar el dashboard sin hardware.
+
+### Qué hace
+
+- **Dos modos** desde el dashboard: *Válvula normal* (el servo abre 80°) y *Válvula incompleta* (abre 35°). Con cualquier señal de imán, el dashboard informa la apertura del modo elegido; el ángulo que de verdad miden los Hall se muestra aparte.
+- **Servo** calibrado: 500 µs = 0° (vertical), 2500 µs = 180°, movimiento lento y suave. Los ángulos y tiempos están al inicio del `.ino`.
+- **Hall a grados**: promedio ponderado de la posición de cada sensor (`HALL_POS_DEG`, ajústalo a donde estén tus sensores). Usa *Calibrar neutro* y *Calibrar rango* si la lectura no coincide.
+- **Registros**: cada ciclo se guarda en el navegador (hasta 3000) y se puede exportar o importar en CSV/JSON.
+- **Análisis de patrones («IA local»)**: calcula la apertura media respecto de lo esperado, variabilidad, tendencia y ritmo, y muestra una alerta cuando la válvula abre incompletamente. Son reglas estadísticas que corren en el navegador; no es un modelo de lenguaje y no necesita internet.
+- **Plan de rehabilitación kinésica**: se genera según el nivel de apertura (normal, limitada o incompleta), con respiración, ejercicio gradual, conservación de energía, monitoreo y señales de alerta. Se puede descargar o imprimir.
+
+> Es un prototipo académico con un modelo a escala. El plan debe ser revisado por un/a kinesiólogo/a y el médico tratante; no es un diagnóstico.
+
+### Código
+
+`src/live/` (motor, fuentes USB y demo, análisis, plan y componentes) y `firmware/`. El resto de `src/` (motor piezo/audio, simulación) es la versión anterior y ya no se usa en la interfaz.
+
+---
+
+## ValveSense (versión anterior: análisis de piezo y audio)
+
 **Análisis inteligente de la firma mecánica y acústica valvular**
 
 Dashboard web para un prototipo experimental a escala (Ingeniería Biomédica + Kinesiología) inspirado en una prótesis aórtica mecánica. Una válvula de ~60–80 mm, accionada por servomotor, se monitoriza con un **sensor piezoeléctrico** (vibración), un **micrófono MEMS** (sonido) y un **ESP32** (adquisición).
