@@ -23,6 +23,8 @@ El dashboard actual (tema claro blanco/turquesa) muestra una válvula animada qu
 
 ### Qué hace
 
+- **Válvula trifoliada (3 valvas)** en dos vistas: *desde arriba* (animación) y *maqueta 3D del mecanismo* (Three.js), ambas sincronizadas con la válvula real. La maqueta 3D es de referencia hasta que se reemplace por el modelo del prototipo.
+- **Interfaz guiada**: 3 pasos, un resumen en palabras simples del estado de la válvula y un glosario.
 - **Dos modos** desde el dashboard: *Válvula normal* (el servo gira 180° y el dashboard muestra **90°**) y *Válvula incompleta* (el servo gira 110° y muestra **55°**). La escala `ESCALA_VALVULA = 0.5` y los ángulos del servo están al inicio del `.ino`.
 - **Servo** calibrado: 500 µs = 0° (vertical), 2500 µs = 180°, movimiento lento y suave. No se mueve al encender: parte con **▶ Iniciar movimiento**.
 - **Los Hall miden el ángulo real.** Con la válvula cerrada y quieta pulsa **1 · Calibrar neutro**, y después **2 · Calibrar curva (≈30 s)**: el servo recorre todo su rango y el ESP32 aprende qué leen los 3 sensores en cada ángulo (queda guardado en su memoria, no hay que repetirlo al apagar). Desde entonces, abrir poco marca poco y abrir completo marca completo. Si cambias `ANGULO_NORMAL` en el `.ino`, hay que volver a calibrar la curva.

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AiPanel } from './components/AiPanel';
 import { ClaudePanel } from './components/ClaudePanel';
 import { ControlPanel } from './components/ControlPanel';
+import { GuideSteps, Glossary, StatusSummary } from './components/Guide';
 import { HallPanel } from './components/HallPanel';
 import { HistoryPanel } from './components/HistoryPanel';
 import { LiveChart } from './components/LiveChart';
@@ -30,6 +31,9 @@ export default function LiveApp() {
       )}
 
       <main className="lv-wrap lv-main">
+        <GuideSteps snap={snap} />
+        <StatusSummary snap={snap} />
+
         <div className="lv-grid lv-top-grid">
           <ValveView snap={snap} getAngle={engine.getAngle} />
           <div className="lv-stack">
@@ -39,10 +43,10 @@ export default function LiveApp() {
         </div>
 
         <div className="lv-stats">
-          <Stat label="Ciclos de esta sesión" value={String(snap.sessionCycles)} />
-          <Stat label="Último ciclo" value={lastPeak ? `${lastPeak.peak.toFixed(0)}°` : '—'} foot={lastPeak ? `${Math.round((lastPeak.peak / snap.angles.SANO) * 100)} % de lo normal` : 'sin datos'} />
-          <Stat label="Ritmo" value={lastPeak ? lastPeak.bpm.toFixed(1) : '—'} unit="ciclos/min" />
-          <Stat label="Registros guardados" value={String(snap.cycles.length)} foot="en este navegador" />
+          <Stat label="Veces que se abrió" value={String(snap.sessionCycles)} foot="en esta sesión" />
+          <Stat label="Última apertura" value={lastPeak ? `${lastPeak.peak.toFixed(0)}°` : '—'} foot={lastPeak ? `${Math.round((lastPeak.peak / snap.angles.SANO) * 100)} % de lo normal` : 'todavía sin datos'} />
+          <Stat label="Ritmo" value={lastPeak ? lastPeak.bpm.toFixed(1) : '—'} unit="aperturas/min" foot="como los latidos por minuto" />
+          <Stat label="Registros guardados" value={String(snap.cycles.length)} foot="se conservan al cerrar la página" />
         </div>
 
         <LiveChart snap={snap} />
@@ -50,6 +54,7 @@ export default function LiveApp() {
         <RehabPanel snap={snap} win={win} />
         <ClaudePanel snap={snap} win={win} />
         <HistoryPanel snap={snap} onClear={() => engine.clearHistory()} onImport={(c) => engine.importCycles(c)} />
+        <Glossary />
       </main>
 
       <footer className="lv-footer">

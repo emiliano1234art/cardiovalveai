@@ -34,8 +34,8 @@ export function AiPanel({ snap, win, onWin }: { snap: LiveSnapshot; win: Win; on
     <section className="lv-card">
       <div className="lv-card-head">
         <div>
-          <h2 className="lv-card-title">Análisis de patrones <span className="lv-tag">IA local</span></h2>
-          <p className="lv-card-sub">Revisa los ángulos de apertura guardados y detecta si la válvula abre mal</p>
+          <h2 className="lv-card-title">¿Está funcionando bien? <span className="lv-tag">análisis automático</span></h2>
+          <p className="lv-card-sub">Revisa las últimas aperturas y avisa si la válvula se abre menos de lo que debería</p>
         </div>
         <div className="lv-seg" role="radiogroup" aria-label="Ventana de análisis">
           {(['10', 'session', 'all'] as const).map((w) => (
