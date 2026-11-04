@@ -16,7 +16,7 @@ export function LiveChart({ snap }: { snap: LiveSnapshot }) {
         </div>
         <div className="lv-legend">
           <span><i style={{ background: 'var(--brand)' }} />Mostrado</span>
-          <span><i style={{ background: 'var(--sky)' }} />Medido (Hall)</span>
+          <span><i style={{ background: 'var(--sky)' }} />{snap.demoHall ? 'Hall (demostración)' : 'Medido (Hall)'}</span>
           <span><i className="dash" />Servo</span>
         </div>
       </div>

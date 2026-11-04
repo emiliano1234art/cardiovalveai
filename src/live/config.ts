@@ -30,9 +30,19 @@ export const MODE_LABEL: Record<ValveMode, string> = {
   INCOMPLETA: 'Válvula incompleta',
 };
 
+/**
+ * Modo demostración del panel «Sensores Hall»: en vez de la lectura del sensor se muestra un valor
+ * dentro de este rango (°) según el modo elegido. Se identifica como demostración en pantalla.
+ */
+export const DEMO_HALL_RANGE: Record<ValveMode, [number, number]> = {
+  SANO: [80, 90],
+  INCOMPLETA: [50, 60],
+};
+
 export const STORAGE = {
   cycles: 'valvesense.live.cycles.v1',
   mode: 'valvesense.live.mode.v1',
   source: 'valvesense.live.source.v1',
+  demoHall: 'valvesense.live.demohall.v1',
 };
 export const MAX_STORED_CYCLES = 3000;

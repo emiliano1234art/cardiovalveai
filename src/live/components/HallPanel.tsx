@@ -3,12 +3,13 @@ import type { LiveSnapshot } from '../LiveEngine';
 interface Props {
   snap: LiveSnapshot;
   onCommand: (c: 'CAL_ZERO' | 'CAL_CURVE') => void;
+  onDemoHall: (on: boolean) => void;
 }
 
 const NAMES = ['Hall 1', 'Hall 2', 'Hall 3'];
 const PINS = ['GPIO 34', 'GPIO 35', 'GPIO 32'];
 
-export function HallPanel({ snap, onCommand }: Props) {
+export function HallPanel({ snap, onCommand, onDemoHall }: Props) {
   const s = snap.sample;
   const w = s?.hallW ?? [0, 0, 0];
   const raw = s?.hallRaw ?? [0, 0, 0];
@@ -29,10 +30,10 @@ export function HallPanel({ snap, onCommand }: Props) {
       <div className="lv-hall-main">
         <div>
           <div className="lv-big num">
-            {(s?.hallDeg ?? 0).toFixed(1)}
+            {snap.hallShown.toFixed(1)}
             <span>°</span>
           </div>
-          <div className="lv-kicker">Ángulo medido por los Hall</div>
+          <div className="lv-kicker">{snap.demoHall ? 'Ángulo de apertura · demostración' : 'Ángulo medido por los Hall'}</div>
         </div>
         <div className="lv-hall-bars">
           {NAMES.map((n, i) => (
@@ -48,6 +49,16 @@ export function HallPanel({ snap, onCommand }: Props) {
           ))}
         </div>
       </div>
+
+      <label className="lv-check" style={{ marginTop: 0, marginBottom: 6 }}>
+        <input type="checkbox" checked={snap.demoHall} onChange={(e) => onDemoHall(e.target.checked)} />
+        Modo demostración: mostrar el valor del modo elegido (normal 80–90°, incompleta 50–60°)
+      </label>
+      {snap.demoHall && (
+        <p className="lv-demo-note">
+          El ángulo de arriba es un <b>valor de demostración</b> según el modo, no la lectura del sensor. Los números de las barras sí son lecturas reales de los Hall.
+        </p>
+      )}
 
       <div className="lv-actions">
         <button className="lv-btn" onClick={() => onCommand('CAL_ZERO')} disabled={!usb || snap.calibrating} title="Con la válvula cerrada y quieta, vuelve a medir el valor neutro">

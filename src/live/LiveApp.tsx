@@ -34,7 +34,7 @@ export default function LiveApp() {
           <ValveView snap={snap} getAngle={engine.getAngle} />
           <div className="lv-stack">
             <ControlPanel snap={snap} onMode={(m) => engine.setMode(m)} onSource={(s) => engine.setAngleSource(s)} onCommand={(c) => engine.command(c)} />
-            <HallPanel snap={snap} onCommand={(c) => engine.command(c)} />
+            <HallPanel snap={snap} onCommand={(c) => engine.command(c)} onDemoHall={(on) => engine.setDemoHall(on)} />
           </div>
         </div>
 

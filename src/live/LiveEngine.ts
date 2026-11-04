@@ -1,5 +1,5 @@
 import {
-  CYCLE_MIN_PEAK, CYCLE_OPEN_OFF, CYCLE_OPEN_ON, DEFAULT_ANGLES, DISPLAY_SLEW_DEG_S, HALL_PRESENT_OFF, HALL_PRESENT_ON,
+  CYCLE_MIN_PEAK, CYCLE_OPEN_OFF, CYCLE_OPEN_ON, DEFAULT_ANGLES, DEMO_HALL_RANGE, DISPLAY_SLEW_DEG_S, HALL_PRESENT_OFF, HALL_PRESENT_ON,
   MAX_STORED_CYCLES, STORAGE,
 } from './config';
 import { liveAlert, type Level } from './analysis';
@@ -28,6 +28,9 @@ export interface LiveSnapshot {
   angles: Record<ValveMode, number>;
   sample: Sample | null;
   shown: number;
+  /** valor que se muestra en el panel Hall (demostración o lectura real) */
+  hallShown: number;
+  demoHall: boolean;
   calibrated: boolean;
   calibrating: boolean;
   calProgress: number;
@@ -66,6 +69,9 @@ export class LiveEngine {
   private lastSampleAt = 0;
   private prevAt = 0;
   private shown = 0;
+  private hallDemo = 0;
+  private demoTarget = 85;
+  private demoHall = loadPref(STORAGE.demoHall, ['on', 'off'] as const, 'on') === 'on';
   private present = false;
   private points: { at: number; shown: number; hall: number; servo: number }[] = [];
   private cycles: CycleRecord[] = loadCycles();
@@ -120,6 +126,10 @@ export class LiveEngine {
     this.mode = m;
     savePref(STORAGE.mode, m);
     this.source?.send(`MODE:${m}`);
+  }
+  setDemoHall(on: boolean): void {
+    this.demoHall = on;
+    savePref(STORAGE.demoHall, on ? 'on' : 'off');
   }
   setAngleSource(s: AngleSource): void {
     this.angleSource = s;
@@ -181,7 +191,12 @@ export class LiveEngine {
     }
     this.prevAt = now;
 
-    this.points.push({ at: now, shown: this.shown, hall: s.hallDeg, servo: s.servoDeg });
+    // Valor de demostración del panel Hall: sigue a la válvula y llega al valor elegido para el ciclo
+    const frac = clamp(this.shown / Math.max(1, this.angles[this.mode]), 0, 1.05);
+    this.hallDemo = frac * this.demoTarget;
+    const hallShown = this.demoHall ? this.hallDemo : s.hallDeg;
+
+    this.points.push({ at: now, shown: this.shown, hall: hallShown, servo: s.servoDeg });
     const cut = now - CHART_SECONDS * 1000;
     while (this.points.length && this.points[0].at < cut) this.points.shift();
 
@@ -192,6 +207,8 @@ export class LiveEngine {
     const v = this.shown;
     if (!this.open) {
       if (v >= CYCLE_OPEN_ON) {
+        const [lo, hi] = DEMO_HALL_RANGE[this.mode];
+        this.demoTarget = lo + Math.random() * (hi - lo);
         this.open = { startT: s.t, trace: [], peak: v, hallPeak: s.hallDeg, servoPeak: s.servoDeg, mode: this.mode };
       } else return;
     }
@@ -248,6 +265,8 @@ export class LiveEngine {
       angles: { ...this.angles },
       sample: this.sample,
       shown: this.shown,
+      hallShown: this.demoHall ? this.hallDemo : (this.sample?.hallDeg ?? 0),
+      demoHall: this.demoHall,
       calibrated: this.sample?.calibrated ?? false,
       calibrating: this.sample?.phase === 'CALIBRANDO',
       calProgress: this.sample?.calProgress ?? 0,
