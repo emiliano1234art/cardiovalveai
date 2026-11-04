@@ -15,7 +15,7 @@
   Comandos que entiende (una línea de texto cada uno):
     MODE:SANO          válvula normal      (servo abre ANGULO_NORMAL)
     MODE:INCOMPLETA    válvula incompleta  (servo abre ANGULO_INCOMPLETA)
-    STOP / START       pausa o reanuda el movimiento
+    START / STOP       el servo NO se mueve al encender: parte con START y se detiene con STOP
     HB                 latido del dashboard (si deja de llegar, el servo se detiene)
     CAL_ZERO           re-mide el valor neutro de los Hall (imanes lejos)
     CAL_SPAN           durante 8 s mide la señal máxima de cada Hall
@@ -61,7 +61,7 @@ float       hallEscala[3]    = {600, 600, 600}; // cuentas con el imán pegado (
 enum Fase { APERTURA, MESETA, CIERRE, DIASTOLE };
 Fase fase = DIASTOLE;
 bool modoNormal = true;
-bool sistemaActivo = true;
+bool sistemaActivo = false;   // el servo espera en 0° hasta recibir START desde el dashboard
 unsigned long tInicioFase = 0;
 unsigned long ciclo = 0;
 float anguloServo = 0.0;
@@ -225,7 +225,6 @@ void procesarComando(String s) {
     sistemaActivo = false;
   } else if (s == "START") {
     sistemaActivo = true;
-    tUltimoLatido = millis();
     fase = DIASTOLE;
     tInicioFase = millis();
   } else if (s == "CAL_ZERO") {

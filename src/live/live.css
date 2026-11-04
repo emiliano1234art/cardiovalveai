@@ -135,6 +135,11 @@ button, input, select { font-family: inherit; }
 .lv-mode-sub { font-size: 11.5px; color: var(--text-2); }
 .lv-mode-deg { position: absolute; top: 10px; right: 12px; font-size: 18px; font-weight: 700; color: var(--brand-ink); font-variant-numeric: tabular-nums; }
 .lv-mode.bad .lv-mode-deg { color: var(--crit-ink); }
+.lv-start { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 14px 16px; border: 1px dashed var(--border-strong); border-radius: 14px; background: var(--surface-2); }
+.lv-start.running { border-style: solid; border-color: #9be0c3; background: #eafaf2; }
+.lv-start-title { font-weight: 650; font-size: 14.5px; }
+.lv-start-sub { font-size: 12.5px; color: var(--text-2); }
+.lv-btn.big { height: 44px; padding: 0 22px; font-size: 14.5px; border-radius: 12px; }
 .lv-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
 .lv-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .lv-seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; }

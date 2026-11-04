@@ -15,10 +15,25 @@ const MODES: { id: ValveMode; sub: string }[] = [
 ];
 
 export function ControlPanel({ snap, onMode, onSource, onCommand }: Props) {
-  const paused = snap.sample ? !snap.sample.active : false;
+  const connected = snap.link === 'connected';
+  const paused = snap.sample ? !snap.sample.active : true;
   return (
     <section className="lv-card">
-      <div className="lv-card-head">
+      <div className={`lv-start ${connected && !paused ? 'running' : ''}`}>
+        <div>
+          <div className="lv-start-title">
+            {!connected ? 'Conecta el ESP32 para comenzar' : paused ? 'Servo detenido en 0°' : 'Servo en movimiento'}
+          </div>
+          <div className="lv-start-sub">
+            {!connected ? 'Arriba a la derecha: «Conectar ESP32 (USB)» o «Modo demo»' : paused ? 'No se moverá hasta que pulses el botón' : 'Pulsa detener cuando quieras parar'}
+          </div>
+        </div>
+        <button className="lv-btn primary big" disabled={!connected} onClick={() => onCommand(paused ? 'START' : 'STOP')}>
+          {paused ? '▶ Iniciar movimiento' : '■ Detener'}
+        </button>
+      </div>
+
+      <div className="lv-card-head" style={{ marginTop: 16 }}>
         <div>
           <h2 className="lv-card-title">Modo de la válvula</h2>
           <p className="lv-card-sub">Cambia cómo se abre el servo y lo que muestra el dashboard</p>
@@ -52,17 +67,6 @@ export function ControlPanel({ snap, onMode, onSource, onCommand }: Props) {
         </div>
       </div>
 
-      <div className="lv-row">
-        <span className="lv-kicker">Movimiento del servo</span>
-        <div className="lv-actions">
-          <button className="lv-btn" onClick={() => onCommand('START')} disabled={snap.link !== 'connected' || !paused}>
-            ▶ Iniciar
-          </button>
-          <button className="lv-btn" onClick={() => onCommand('STOP')} disabled={snap.link !== 'connected' || paused}>
-            ■ Detener
-          </button>
-        </div>
-      </div>
       <p className="lv-note">
         Modo demostración: con cualquier señal del imán se informa el ángulo del modo elegido. El ángulo que realmente miden los sensores se muestra aparte, en “Sensores Hall”.
       </p>

@@ -23,7 +23,7 @@ export class DemoSource implements LiveSource {
   private cbStatus: (s: LinkStatus, d?: string) => void = () => {};
   private cbHello: (h: Hello) => void = () => {};
   private mode: ValveMode = 'SANO';
-  private active = true;
+  private active = false; // espera la orden START, igual que el ESP32
   private phase = 3; // 0 apertura · 1 meseta · 2 cierre · 3 diástole
   private phaseStart = 0;
   private cycle = 0;
