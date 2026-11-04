@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AiPanel } from './components/AiPanel';
+import { ClaudePanel } from './components/ClaudePanel';
 import { ControlPanel } from './components/ControlPanel';
 import { HallPanel } from './components/HallPanel';
 import { HistoryPanel } from './components/HistoryPanel';
@@ -47,6 +48,7 @@ export default function LiveApp() {
         <LiveChart snap={snap} />
         <AiPanel snap={snap} win={win} onWin={setWin} />
         <RehabPanel snap={snap} win={win} />
+        <ClaudePanel snap={snap} win={win} />
         <HistoryPanel snap={snap} onClear={() => engine.clearHistory()} onImport={(c) => engine.importCycles(c)} />
       </main>
 

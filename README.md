@@ -2,7 +2,7 @@
 
 ## Monitor en vivo: servo + sensores Hall (ESP32 por USB)
 
-El dashboard actual muestra una válvula animada que se abre y se cierra, el ángulo medido por 3 sensores Hall, el historial de ciclos, un análisis de patrones y un plan de rehabilitación kinésica. **No usa WiFi**: el ESP32 se conecta por cable USB y el navegador lee el puerto con Web Serial (Chrome o Edge).
+El dashboard actual (tema claro blanco/turquesa) muestra una válvula animada que se abre y se cierra, el ángulo medido por 3 sensores Hall, el historial de ciclos, un análisis de patrones y un plan de rehabilitación kinésica. **No usa WiFi**: el ESP32 se conecta por cable USB y el navegador lee el puerto con Web Serial (Chrome o Edge).
 
 ### Conexiones
 
@@ -27,6 +27,7 @@ El dashboard actual muestra una válvula animada que se abre y se cierra, el án
 - **Servo** calibrado: 500 µs = 0° (vertical), 2500 µs = 180°, movimiento lento y suave. Los ángulos y tiempos están al inicio del `.ino`.
 - **Hall a grados**: promedio ponderado de la posición de cada sensor (`HALL_POS_DEG`, ajústalo a donde estén tus sensores). Usa *Calibrar neutro* y *Calibrar rango* si la lectura no coincide.
 - **Registros**: cada ciclo se guarda en el navegador (hasta 3000) y se puede exportar o importar en CSV/JSON.
+- **Informe redactado por Claude** (opcional, requiere internet y una API key de Anthropic): lee los registros de apertura y escribe el análisis de patrones y el plan de rehabilitación kinésica. Se elige el modelo (por defecto Claude Opus 5.5; también Sonnet 5.5 y Haiku 5.5, más económicos). La key se escribe en el dashboard, se usa solo desde el navegador y **no se sube al repositorio**; si marcas «Recordar», queda guardada en ese navegador. Crea una key con límite de gasto en console.anthropic.com y no la uses en equipos compartidos. El resto del dashboard funciona sin internet.
 - **Análisis de patrones («IA local»)**: calcula la apertura media respecto de lo esperado, variabilidad, tendencia y ritmo, y muestra una alerta cuando la válvula abre incompletamente. Son reglas estadísticas que corren en el navegador; no es un modelo de lenguaje y no necesita internet.
 - **Plan de rehabilitación kinésica**: se genera según el nivel de apertura (normal, limitada o incompleta), con respiración, ejercicio gradual, conservación de energía, monitoreo y señales de alerta. Se puede descargar o imprimir.
 

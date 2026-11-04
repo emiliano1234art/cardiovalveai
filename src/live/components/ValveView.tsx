@@ -86,52 +86,52 @@ export function ValveView({ snap, getAngle }: Props) {
         <svg viewBox="0 0 280 280" className="lv-valve-svg" role="img" aria-label="Animación de la válvula">
           <defs>
             <radialGradient id="lvOrifice" cx="50%" cy="50%" r="50%">
-              <stop offset="0" stopColor="#0b2a33" />
-              <stop offset="1" stopColor="#06141b" />
+              <stop offset="0" stopColor="#f2fcfc" />
+              <stop offset="1" stopColor="#d6f1f1" />
             </radialGradient>
             <radialGradient id="lvGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0" stopColor="#1fd1c4" stopOpacity=".55" />
-              <stop offset="1" stopColor="#1fd1c4" stopOpacity="0" />
+              <stop offset="0" stopColor="#14c4b6" stopOpacity=".5" />
+              <stop offset="1" stopColor="#14c4b6" stopOpacity="0" />
             </radialGradient>
             <linearGradient id="lvLeaf" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#5fd8f2" />
-              <stop offset="1" stopColor="#1b8fa6" />
+              <stop offset="0" stopColor="#3fd6cc" />
+              <stop offset="1" stopColor="#0c8f9c" />
             </linearGradient>
             <linearGradient id="lvRing" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#25465a" />
-              <stop offset="1" stopColor="#12222d" />
+              <stop offset="0" stopColor="#bfe7ea" />
+              <stop offset="1" stopColor="#8fd0d6" />
             </linearGradient>
           </defs>
-          <circle cx={C} cy={C} r={122} fill="#0a141c" stroke="#1c2b38" />
-          <circle cx={C} cy={C} r={108} fill="none" stroke="#12303b" strokeWidth={14} />
-          <circle cx={C} cy={C} r={108} fill="none" stroke="#1fd1c4" strokeOpacity=".35" strokeWidth={1.2} strokeDasharray="2 6" />
+          <circle cx={C} cy={C} r={122} fill="#f4fcfc" stroke="#cdeceb" />
+          <circle cx={C} cy={C} r={108} fill="none" stroke="#d4f0ef" strokeWidth={14} />
+          <circle cx={C} cy={C} r={108} fill="none" stroke="#14c4b6" strokeOpacity=".6" strokeWidth={1.2} strokeDasharray="2 6" />
           <circle cx={C} cy={C} r={R + 12} fill="url(#lvRing)" />
           <circle cx={C} cy={C} r={R} fill="url(#lvOrifice)" />
           <circle ref={glow} cx={C} cy={C} r={R} fill="url(#lvGlow)" opacity={0} />
-          <g ref={flow} opacity={0} stroke="#4cc3ff" strokeLinecap="round" strokeWidth={2}>
+          <g ref={flow} opacity={0} stroke="#38b6f2" strokeLinecap="round" strokeWidth={2}>
             {[-34, -17, 0, 17, 34].map((x) => (
               <line key={x} x1={C + x} y1={C - 6} x2={C + x} y2={C + 6} className="lv-flow" style={{ animationDelay: `${(x + 34) * 12}ms` }} />
             ))}
           </g>
           <g ref={top}>
             <path d={leaflet(1)} fill="url(#lvLeaf)" />
-            <path d={leaflet(1)} fill="none" stroke="#9be8f7" strokeOpacity=".6" strokeWidth={1} />
+            <path d={leaflet(1)} fill="none" stroke="#e9fbfb" strokeOpacity=".9" strokeWidth={1} />
           </g>
           <g ref={bottom}>
             <path d={leaflet(-1)} fill="url(#lvLeaf)" />
-            <path d={leaflet(-1)} fill="none" stroke="#9be8f7" strokeOpacity=".6" strokeWidth={1} />
+            <path d={leaflet(-1)} fill="none" stroke="#e9fbfb" strokeOpacity=".9" strokeWidth={1} />
           </g>
           {[-1, 1].map((sx) => (
-            <rect key={sx} x={C + sx * (R + 2) - 5} y={C - 10} width={10} height={20} rx={3} fill="#4cc3ff" opacity=".8" />
+            <rect key={sx} x={C + sx * (R + 2) - 5} y={C - 10} width={10} height={20} rx={3} fill="#38b6f2" />
           ))}
         </svg>
 
         <div className="lv-valve-side">
           <svg viewBox="0 0 140 84" className="lv-gonio" aria-hidden>
-            <path d="M18 74 A52 52 0 0 1 122 74" fill="none" stroke="#1c2b38" strokeWidth="9" strokeLinecap="round" />
+            <path d="M18 74 A52 52 0 0 1 122 74" fill="none" stroke="#d4f0ef" strokeWidth="9" strokeLinecap="round" />
             <path d={`M18 74 A52 52 0 0 1 ${70 + 52 * Math.cos(Math.PI - (peak / 90) * Math.PI)} ${74 - 52 * Math.sin(Math.PI - (peak / 90) * Math.PI)}`} fill="none" stroke={incomplete ? 'var(--crit)' : 'var(--brand)'} strokeOpacity=".35" strokeWidth="9" strokeLinecap="round" />
-            <line ref={needle} x1="70" y1="74" x2="18" y2="74" stroke="#e8f3f7" strokeWidth="2.4" strokeLinecap="round" />
-            <circle cx="70" cy="74" r="4" fill="#e8f3f7" />
+            <line ref={needle} x1="70" y1="74" x2="18" y2="74" stroke="#0d3b44" strokeWidth="2.4" strokeLinecap="round" />
+            <circle cx="70" cy="74" r="4" fill="#0d3b44" />
           </svg>
           <div className="lv-angle">
             <span ref={angleText} className="lv-angle-num">0</span>

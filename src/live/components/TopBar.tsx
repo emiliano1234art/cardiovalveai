@@ -18,9 +18,9 @@ export function Logo() {
         </linearGradient>
       </defs>
       <rect width="40" height="40" rx="11" fill="url(#lvlg)" />
-      <circle cx="20" cy="20" r="11" fill="none" stroke="#04131a" strokeWidth="2.2" />
-      <path d="M20 9.5v21" stroke="#04131a" strokeWidth="2" strokeLinecap="round" opacity=".7" />
-      <path d="M8 22h6l2.5-6 3.5 11 3-8 2 3h7" fill="none" stroke="#04131a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="20" cy="20" r="11" fill="none" stroke="#ffffff" strokeWidth="2.2" />
+      <path d="M20 9.5v21" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" opacity=".8" />
+      <path d="M8 22h6l2.5-6 3.5 11 3-8 2 3h7" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

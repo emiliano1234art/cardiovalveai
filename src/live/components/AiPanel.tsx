@@ -13,7 +13,7 @@ export const LEVEL_TEXT: Record<Level, string> = {
   incomplete: 'Incompleta',
 };
 const LEVEL_COLOR: Record<Level, string> = {
-  none: '#6b8394', normal: '#2ee59d', limited: '#ffb547', incomplete: '#ff5d6c',
+  none: '#9db8bd', normal: '#17b57a', limited: '#f0a52b', incomplete: '#e5495c',
 };
 
 export function windowCycles(snap: LiveSnapshot, win: Win) {
@@ -78,14 +78,14 @@ export function AiPanel({ snap, win, onWin }: { snap: LiveSnapshot; win: Win; on
           <div className="lv-kicker">Apertura por ciclo (% de lo esperado)</div>
           <ResponsiveContainer width="100%" height={190}>
             <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-              <CartesianGrid stroke="#16232e" vertical={false} />
+              <CartesianGrid stroke="#e3f1f2" vertical={false} />
               <XAxis dataKey="i" hide />
-              <YAxis domain={[0, 110]} ticks={[0, 50, 100]} width={36} tickFormatter={(v: number) => `${v}%`} stroke="#6b8394" fontSize={11} tickLine={false} axisLine={false} />
-              <ReferenceLine y={OPEN_PCT_LIMITED} stroke="#ffb547" strokeOpacity={0.55} strokeDasharray="4 4" />
-              <ReferenceLine y={100} stroke="#2ee59d" strokeOpacity={0.4} strokeDasharray="4 4" />
+              <YAxis domain={[0, 110]} ticks={[0, 50, 100]} width={36} tickFormatter={(v: number) => `${v}%`} stroke="#5d8790" fontSize={11} tickLine={false} axisLine={false} />
+              <ReferenceLine y={OPEN_PCT_LIMITED} stroke="#e08f10" strokeOpacity={0.7} strokeDasharray="4 4" />
+              <ReferenceLine y={100} stroke="#17b57a" strokeOpacity={0.55} strokeDasharray="4 4" />
               <Tooltip
-                cursor={{ fill: 'rgba(255,255,255,.04)' }}
-                contentStyle={{ background: '#0e1720', border: '1px solid #1c2b38', borderRadius: 8, fontSize: 12 }}
+                cursor={{ fill: 'rgba(20,196,182,.08)' }}
+                contentStyle={{ background: '#ffffff', border: '1px solid #cfe6e8', borderRadius: 8, fontSize: 12, color: '#0d3b44' }}
                 labelFormatter={(_, p) => `Ciclo ${p?.[0]?.payload?.n ?? ''}`}
                 formatter={(v) => [`${Number(v).toFixed(0)} %`, 'Apertura']}
               />
